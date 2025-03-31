@@ -8,9 +8,9 @@
 import SwiftUI
 
 struct ContentView: View {
-    @ObservedObject private var supabase = Supabase.shared
+    @ObservedObject private var db = Supabase.shared
     var body: some View {
-        SignUpView(db: supabase)
+        WelcomeView(db: db)
     }
 }
 
