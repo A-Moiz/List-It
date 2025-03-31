@@ -10,13 +10,7 @@ import SwiftUI
 struct ContentView: View {
     @ObservedObject private var supabase = Supabase.shared
     var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
-        }
-        .padding()
+        SignUpView(db: supabase)
     }
 }
 
