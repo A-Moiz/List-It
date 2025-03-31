@@ -9,33 +9,26 @@ import SwiftUI
 
 struct LoginView: View {
     @ObservedObject var db: Supabase
-    @Environment(\.colorScheme) var colorScheme
     var body: some View {
-        VStack {
+        VStack() {
             Text("Welcome\nBack")
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding()
-                .font(.system(size: 40, weight: .bold, design: .default))
-            
-            VStack(spacing: 16) {
-                CustomTextField(icon: "envelope.fill", placeholder: "Email", key: $db.email, isPassword: false)
-                CustomTextField(icon: "lock.fill", placeholder: "Password", key: $db.password, isPassword: true)
-            }
-            .padding()
-            .background(Color.gray.opacity(0.2))
-            .cornerRadius(12)
-            .padding(.horizontal)
+                .font(.system(size: 32, weight: .bold, design: .default))
+
+            CustomTextField(icon: "envelope", placeholder: "email", key: $db.email, isPassword: false)
+            CustomTextField(icon: "lock", placeholder: "password", key: $db.password, isPassword: true)
             
             Button {
                 print("Sign in")
             } label: {
                 Text("Sign in")
-                    .foregroundStyle(colorScheme == .light ? Color.black : Color.white)
                     .textCase(.uppercase)
                     .bold()
             }
             .frame(width: 300, height: 50)
-            .background(db.email.isEmpty || db.password.isEmpty ? Color.orange.opacity(0.2) : Color.orange)
+            .background(Color.orange)
+            .foregroundStyle(.white)
             .clipShape(RoundedRectangle(cornerRadius: 15))
             .padding()
             
