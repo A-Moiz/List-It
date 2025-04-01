@@ -9,7 +9,7 @@ import SwiftUI
 
 struct CustomSearchBar: View {
     @Binding var text: String
-    var prompt: String
+    let prompt: String
     
     var body: some View {
         HStack {

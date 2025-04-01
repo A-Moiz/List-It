@@ -10,7 +10,9 @@ import SwiftUI
 struct AddCollectionView: View {
     @State var collectionName: String = ""
     var colors: [Color] = [.red, .blue, .green, .yellow, .purple, .pink, .indigo, .mint, .orange]
+    var icons = ["checklist", "folder", "star", "heart", "person", "bookmark", "pencil", "paintpalette", "camera"]
     @State var selectedColor: Color = .clear
+    @State var selectedIcon: String = ""
     @State var alertMessage: String = ""
     @State var showAlert: Bool = false
     @Environment(\.dismiss) var dismiss
@@ -22,34 +24,31 @@ struct AddCollectionView: View {
             VStack {
                 CustomTextField(icon: "checklist", placeholder: "Collection Name", key: $collectionName, isPassword: false)
                 
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 15) {
-                        ForEach(colors, id: \.self) { color in
-                            Circle()
-                                .fill(color)
-                                .frame(width: 40, height: 40)
-                                .overlay(
-                                    Circle()
-                                        .stroke(selectedColor == color ? Color.black : Color.clear, lineWidth: 8)
-                                )
-                                .onTapGesture {
-                                    selectedColor = color
-                                }
-                        }
-                    }
-                    .padding()
-                }
+                ColorSelectionView(colors: colors, selectedColor: $selectedColor)
                 
                 Text("Selected Color: \(selectedColor.description.capitalized)")
                     .font(.headline)
                     .foregroundColor(selectedColor == .clear ? .gray : selectedColor)
+                
+                Divider()
+                
+                IconSelectionView(icons: icons, selectedIcon: $selectedIcon)
+                
+                VStack {
+                    Text("Selected Icon: \(selectedIcon.capitalized)")
+                        .font(.headline)
+                    Text("If no icon is selected a default icon will be used")
+                }
+                .foregroundColor(selectedIcon.isEmpty ? .gray : .black)
+                
+                Divider()
                 
                 Button {
                     if collectionName.isEmpty || selectedColor == .clear {
                         alertMessage = "Please enter a name and choose a color for your Collection."
                         showAlert = true
                     } else {
-                        let newCollection = Collection(name: collectionName, contentCount: 5, fillColor: selectedColor)
+                        let newCollection = Collection(icon: selectedIcon, name: collectionName, contentCount: 5, fillColor: selectedColor)
                         collections.append(newCollection)
                         dismiss()
                     }
@@ -84,11 +83,11 @@ struct AddCollectionView: View {
 
 #Preview {
     @Previewable @State var collections = [
-        Collection(name: "Today", contentCount: 10, fillColor: .orange),
-        Collection(name: "Favorites", contentCount: 5, fillColor: .blue),
-        Collection(name: "Work", contentCount: 8, fillColor: .green),
-        Collection(name: "Personal", contentCount: 12, fillColor: .purple),
-        Collection(name: "Study", contentCount: 7, fillColor: .red)
+        Collection(icon: "", name: "Today", contentCount: 10, fillColor: .orange),
+        Collection(icon: "", name: "Favorites", contentCount: 5, fillColor: .blue),
+        Collection(icon: "", name: "Work", contentCount: 8, fillColor: .green),
+        Collection(icon: "", name: "Personal", contentCount: 12, fillColor: .purple),
+        Collection(icon: "", name: "Study", contentCount: 7, fillColor: .red)
     ]
     AddCollectionView(collections: $collections)
 }

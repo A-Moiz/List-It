@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct CollectionView: View {
+    var collectionIcon: String
     var fillColor: Color
     var collectionName: String
     var contentCount: Int
@@ -20,21 +21,28 @@ struct CollectionView: View {
                 .shadow(radius: 10)
             
             HStack(spacing: 15) {
-                Image("checklist-2")
-                    .resizable()
-                    .frame(width: 60, height: 60)
-
+                if collectionIcon.isEmpty {
+                    Image("checklist-2")
+                        .resizable()
+                        .frame(width: 60, height: 60)
+                } else {
+                    Image(systemName: collectionIcon)
+                        .resizable()
+                        .frame(width: 40, height: 40)
+                        .foregroundColor(.white)
+                }
+                
                 VStack(alignment: .leading, spacing: 5) {
                     Text(collectionName.capitalized)
                         .font(.title3)
                         .bold()
                         .foregroundColor(.white)
-
+                    
                     Text("\(contentCount) Items")
                         .font(.subheadline)
                         .foregroundColor(.white.opacity(0.7))
                 }
-
+                
                 Spacer()
             }
             .padding()
@@ -43,8 +51,9 @@ struct CollectionView: View {
 }
 
 #Preview {
+    @Previewable @State var collectionIcon: String = ""
     @Previewable @State var fillColor: Color = .blue
     @Previewable @State var collectionName: String = "my collection"
     @Previewable @State var contentCount: Int = 12
-    CollectionView(fillColor: fillColor, collectionName: collectionName, contentCount: contentCount)
+    CollectionView(collectionIcon: "gamecontroller", fillColor: fillColor, collectionName: collectionName, contentCount: contentCount)
 }
