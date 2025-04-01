@@ -39,6 +39,6 @@ struct CustomSearchBar: View {
 
 #Preview {
     @Previewable @State var text: String = ""
-    @State var prompt: String = "Search Collection..."
+    var prompt: String = "Search Collection..."
     CustomSearchBar(text: $text, prompt: prompt)
 }
