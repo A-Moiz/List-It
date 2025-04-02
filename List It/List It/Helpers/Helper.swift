@@ -32,3 +32,14 @@ extension Color {
         )
     }
 }
+
+class Helper: ObservableObject  {
+    @Published var alertMessage: String = ""
+    @Published var showAlert: Bool = false
+    static let sharedHelper = Helper()
+    
+    func showAlertWithMessage(_ message: String) {
+        self.alertMessage = message
+        self.showAlert = true
+    }
+}

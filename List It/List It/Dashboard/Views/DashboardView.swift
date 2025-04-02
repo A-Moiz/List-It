@@ -24,6 +24,7 @@ struct DashboardView: View {
         Collection(icon: "", name: "Personal", contentCount: 12, fillColor: .purple),
         Collection(icon: "", name: "Study", contentCount: 7, fillColor: .red)
     ]
+    @ObservedObject var helper: Helper
     
     var filteredCollections: [Collection] {
         if searchText.isEmpty {
@@ -84,7 +85,7 @@ struct DashboardView: View {
                 }
             }
             .sheet(isPresented: $showAddCollectionView) {
-                AddCollectionView(collections: $collections)
+                AddCollectionView(helper: helper, collections: $collections)
                 .presentationDetents([.height(500)])
                 .presentationCornerRadius(25)
                 .interactiveDismissDisabled()
@@ -94,5 +95,5 @@ struct DashboardView: View {
 }
 
 #Preview {
-    DashboardView()
+    DashboardView(helper: Helper())
 }

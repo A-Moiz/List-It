@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		967FEEFB2D9D9E020059E87A /* Lottie in Frameworks */ = {isa = PBXBuildFile; productRef = 967FEEFA2D9D9E020059E87A /* Lottie */; };
+		967FEF9C2D9DAD680059E87A /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = 967FEF9B2D9DAD680059E87A /* GoogleSignIn */; };
+		967FEF9E2D9DAD680059E87A /* GoogleSignInSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 967FEF9D2D9DAD680059E87A /* GoogleSignInSwift */; };
 		96894FF92D997B2100B71113 /* Auth in Frameworks */ = {isa = PBXBuildFile; productRef = 96894FF82D997B2100B71113 /* Auth */; };
 		96894FFB2D997B2100B71113 /* Functions in Frameworks */ = {isa = PBXBuildFile; productRef = 96894FFA2D997B2100B71113 /* Functions */; };
 		96894FFD2D997B2100B71113 /* PostgREST in Frameworks */ = {isa = PBXBuildFile; productRef = 96894FFC2D997B2100B71113 /* PostgREST */; };
@@ -61,7 +64,10 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				967FEF9E2D9DAD680059E87A /* GoogleSignInSwift in Frameworks */,
 				96894FFD2D997B2100B71113 /* PostgREST in Frameworks */,
+				967FEF9C2D9DAD680059E87A /* GoogleSignIn in Frameworks */,
+				967FEEFB2D9D9E020059E87A /* Lottie in Frameworks */,
 				96894FFB2D997B2100B71113 /* Functions in Frameworks */,
 				968950032D997B2100B71113 /* Supabase in Frameworks */,
 				96894FF92D997B2100B71113 /* Auth in Frameworks */,
@@ -133,6 +139,9 @@
 				96894FFE2D997B2100B71113 /* Realtime */,
 				968950002D997B2100B71113 /* Storage */,
 				968950022D997B2100B71113 /* Supabase */,
+				967FEEFA2D9D9E020059E87A /* Lottie */,
+				967FEF9B2D9DAD680059E87A /* GoogleSignIn */,
+				967FEF9D2D9DAD680059E87A /* GoogleSignInSwift */,
 			);
 			productName = "List It";
 			productReference = 96894F722D9964CE00B71113 /* List It.app */;
@@ -218,6 +227,8 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				96894FF72D997B2100B71113 /* XCRemoteSwiftPackageReference "supabase-swift" */,
+				967FEEF92D9D9E020059E87A /* XCRemoteSwiftPackageReference "lottie-ios" */,
+				967FEF9A2D9DAD680059E87A /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 96894F732D9964CE00B71113 /* Products */;
@@ -584,6 +595,22 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		967FEEF92D9D9E020059E87A /* XCRemoteSwiftPackageReference "lottie-ios" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/airbnb/lottie-ios";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 4.5.1;
+			};
+		};
+		967FEF9A2D9DAD680059E87A /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/google/GoogleSignIn-iOS";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 8.0.0;
+			};
+		};
 		96894FF72D997B2100B71113 /* XCRemoteSwiftPackageReference "supabase-swift" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/supabase-community/supabase-swift";
@@ -595,6 +622,21 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		967FEEFA2D9D9E020059E87A /* Lottie */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 967FEEF92D9D9E020059E87A /* XCRemoteSwiftPackageReference "lottie-ios" */;
+			productName = Lottie;
+		};
+		967FEF9B2D9DAD680059E87A /* GoogleSignIn */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 967FEF9A2D9DAD680059E87A /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
+			productName = GoogleSignIn;
+		};
+		967FEF9D2D9DAD680059E87A /* GoogleSignInSwift */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 967FEF9A2D9DAD680059E87A /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
+			productName = GoogleSignInSwift;
+		};
 		96894FF82D997B2100B71113 /* Auth */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 96894FF72D997B2100B71113 /* XCRemoteSwiftPackageReference "supabase-swift" */;

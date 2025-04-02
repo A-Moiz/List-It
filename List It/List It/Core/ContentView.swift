@@ -9,9 +9,10 @@ import SwiftUI
 
 struct ContentView: View {
     @ObservedObject private var db = Supabase.shared
+    @ObservedObject private var helper = Helper.sharedHelper
     var body: some View {
-        DashboardView()
-        // WelcomeView(db: db)
+        // DashboardView()
+        WelcomeView(db: db, helper: helper)
     }
 }
 

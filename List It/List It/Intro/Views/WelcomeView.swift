@@ -10,6 +10,7 @@ import SwiftUI
 struct WelcomeView: View {
     @Environment(\.colorScheme) var colorScheme
     @ObservedObject var db: Supabase
+    @ObservedObject var helper: Helper
     var body: some View {
         NavigationStack {
             ZStack {
@@ -29,7 +30,7 @@ struct WelcomeView: View {
                         .padding()
                         .bold()
                     
-                    NavigationLink(destination: SignUpView(db: db)) {
+                    NavigationLink(destination: SignUpView(db: db, helper: helper)) {
                         Text("Get Started")
                             .padding()
                             .background(Color.orange)
@@ -44,5 +45,5 @@ struct WelcomeView: View {
 }
 
 #Preview {
-    WelcomeView(db: Supabase())
+    WelcomeView(db: Supabase(), helper: Helper())
 }

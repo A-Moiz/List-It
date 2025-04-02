@@ -13,8 +13,7 @@ struct AddCollectionView: View {
     var icons = ["checklist", "folder", "star", "heart", "person", "bookmark", "pencil", "paintpalette", "camera"]
     @State var selectedColor: Color = .clear
     @State var selectedIcon: String = ""
-    @State var alertMessage: String = ""
-    @State var showAlert: Bool = false
+    @ObservedObject var helper: Helper
     @Environment(\.dismiss) var dismiss
     @Environment(\.colorScheme) var colorScheme
     @Binding var collections: [Collection]
@@ -22,7 +21,7 @@ struct AddCollectionView: View {
     var body: some View {
         NavigationStack {
             VStack {
-                CustomTextField(icon: "checklist", placeholder: "Collection Name", key: $collectionName, isPassword: false)
+//                CustomTextField(icon: "checklist", placeholder: "Collection Name", text: $collectionName, isPassword: false, showPassword: false)
                 
                 ColorSelectionView(colors: colors, selectedColor: $selectedColor)
                 
@@ -45,8 +44,7 @@ struct AddCollectionView: View {
                 
                 Button {
                     if collectionName.isEmpty || selectedColor == .clear {
-                        alertMessage = "Please enter a name and choose a color for your Collection."
-                        showAlert = true
+                        helper.showAlertWithMessage("Please enter a name and choose a color for your Collection.")
                     } else {
                         let newCollection = Collection(icon: selectedIcon, name: collectionName, contentCount: 5, fillColor: selectedColor)
                         collections.append(newCollection)
@@ -74,8 +72,8 @@ struct AddCollectionView: View {
             }
             .navigationTitle("Add Collection")
             .navigationBarTitleDisplayMode(.inline)
-            .alert(isPresented: $showAlert) {
-                Alert(title: Text(""), message: Text(alertMessage), dismissButton: .default(Text("OK")))
+            .alert(isPresented: $helper.showAlert) {
+                Alert(title: Text(""), message: Text(helper.alertMessage), dismissButton: .default(Text("OK")))
             }
         }
     }
@@ -89,5 +87,5 @@ struct AddCollectionView: View {
         Collection(icon: "", name: "Personal", contentCount: 12, fillColor: .purple),
         Collection(icon: "", name: "Study", contentCount: 7, fillColor: .red)
     ]
-    AddCollectionView(collections: $collections)
+    AddCollectionView(helper: Helper(), collections: $collections)
 }
