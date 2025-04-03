@@ -10,14 +10,16 @@ import SwiftUI
 struct PageTitle: View {
     @State var textOne: String
     @State var textTwo: String
+    @Environment(\.colorScheme) var colorScheme
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 5) {
             Text(textOne)
                 .font(.system(size: 38, weight: .bold, design: .rounded))
-                .foregroundColor(AppConstants.colorScheme == .dark ? .white : .primary)
+                .foregroundColor(colorScheme == .dark ? .white : .primary)
             Text(textTwo)
                 .font(.system(size: 38, weight: .bold, design: .rounded))
-                .foregroundColor(AppConstants.accentColor)
+                .foregroundColor(AppConstants.accentColor(for: colorScheme))
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.horizontal)

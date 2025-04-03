@@ -14,11 +14,12 @@ struct CustomTextField: View {
     @State var isPassword: Bool
     @State var showPassword: Bool
     @State var isEditing = false
+    @Environment(\.colorScheme) var colorScheme
     
     var textfieldBG: some View {
         RoundedRectangle(cornerRadius: 12)
-            .stroke(isEditing ? AppConstants.accentColor : (AppConstants.colorScheme == .dark ? Color.gray.opacity(0.5) : Color.gray.opacity(0.3)), lineWidth: isEditing ? 2 : 1)
-            .background(AppConstants.colorScheme == .dark ? Color(hex: "1E1E1E").cornerRadius(12) : Color.white.opacity(0.8).cornerRadius(12))
+            .stroke(isEditing ? AppConstants.accentColor(for: colorScheme) : (colorScheme == .dark ? Color.gray.opacity(0.5) : Color.gray.opacity(0.3)), lineWidth: isEditing ? 2 : 1)
+            .background(colorScheme == .dark ? Color(hex: "1E1E1E").cornerRadius(12) : Color.white.opacity(0.8).cornerRadius(12))
     }
     
     var body: some View {
@@ -26,14 +27,14 @@ struct CustomTextField: View {
             if isEditing || !text.isEmpty {
                 Text(placeholder)
                     .font(.caption)
-                    .foregroundStyle(AppConstants.accentColor)
+                    .foregroundStyle(AppConstants.accentColor(for: colorScheme))
                     .padding(.leading, 30)
                     .transition(.move(edge: .top).combined(with: .opacity))
             }
             
             HStack(spacing: 12) {
                 Image(systemName: icon)
-                    .foregroundStyle(isEditing ? AppConstants.accentColor : Color.gray)
+                    .foregroundStyle(isEditing ? AppConstants.accentColor(for: colorScheme) : Color.gray)
                     .frame(width: 20)
                 
                 if isPassword && !showPassword {
@@ -41,7 +42,7 @@ struct CustomTextField: View {
                 } else {
                     TextField(placeholder, text: $text)
                         .font(.system(size: 16))
-                        .foregroundStyle(AppConstants.colorScheme == .dark ? .white : .primary)
+                        .foregroundStyle(colorScheme == .dark ? .white : .primary)
                 }
                 
                 if isPassword {
