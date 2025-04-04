@@ -16,7 +16,7 @@ struct LoginView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                AppConstants.authBG(for: colorScheme)
+                AppConstants.background(for: colorScheme)
                     .ignoresSafeArea()
                 
                 VStack(spacing: 25) {
@@ -78,12 +78,7 @@ struct LoginView: View {
                         resetFields()
                         isNavigating = true
                     } label: {
-                        Image(systemName: "chevron.left")
-                            .font(.system(size: 16, weight: .semibold))
-                            .foregroundColor(colorScheme == .light ? .black : .white)
-                            .padding(8)
-                            .background(Color.gray.opacity(0.1))
-                            .clipShape(Circle())
+                        NavigationBackButton()
                     }
                 }
             }

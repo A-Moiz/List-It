@@ -17,7 +17,7 @@ struct SignUpView: View {
     
     var body: some View {
         ZStack {
-            AppConstants.authBG(for: colorScheme)
+            AppConstants.background(for: colorScheme)
                 .ignoresSafeArea()
             
             VStack(spacing: 25) {
@@ -72,12 +72,7 @@ struct SignUpView: View {
                     resetFields()
                     isNavigating = true
                 } label: {
-                    Image(systemName: "chevron.left")
-                        .font(.system(size: 16, weight: .semibold))
-                        .foregroundColor(colorScheme == .light ? .black : .white)
-                        .padding(8)
-                        .background(Color.gray.opacity(0.1))
-                        .clipShape(Circle())
+                    NavigationBackButton()
                 }
             }
         }

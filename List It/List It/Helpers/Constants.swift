@@ -17,7 +17,7 @@ enum AppConstants {
         return colorScheme == .dark ? Color(hex: "FF8C42").opacity(0.9) : Color(hex: "4B0082")
     }
     
-    static func authBG(for colorScheme: ColorScheme) -> LinearGradient {
+    static func background(for colorScheme: ColorScheme) -> LinearGradient {
         return colorScheme == .dark ?
         LinearGradient(
             gradient: Gradient(colors: [Color(hex: "121212"), Color(hex: "232323")]),
@@ -30,4 +30,6 @@ enum AppConstants {
             endPoint: .bottom
         )
     }
+    
+    static let collectionColors: [Color] = [.red, .blue, .green, .yellow, .purple, .pink, .indigo, .mint, .orange]
 }

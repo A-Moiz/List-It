@@ -7,31 +7,18 @@
 
 import SwiftUI
 
-struct Collection {
-    var icon: String
-    var name: String
-    var contentCount: Int
-    var fillColor: Color
-}
-
 struct DashboardView: View {
     @State var searchText: String = ""
     @State var showAddCollectionView: Bool = false
-    @State var collections = [
-        Collection(icon: "scribble", name: "Today", contentCount: 10, fillColor: .orange),
-        Collection(icon: "", name: "Favorites", contentCount: 5, fillColor: .blue),
-        Collection(icon: "lasso", name: "Work", contentCount: 8, fillColor: .green),
-        Collection(icon: "", name: "Personal", contentCount: 12, fillColor: .purple),
-        Collection(icon: "", name: "Study", contentCount: 7, fillColor: .red)
-    ]
     @ObservedObject var helper: Helper
-    
+    @ObservedObject var db: Supabase
+    @Environment(\.colorScheme) var colorScheme
     var filteredCollections: [Collection] {
         if searchText.isEmpty {
-            return collections
+            return db.collections
         } else {
-            return collections.filter { collection in
-                collection.name.lowercased().contains(searchText.lowercased())
+            return db.collections.filter { collection in
+                collection.collectionName.lowercased().contains(searchText.lowercased())
             }
         }
     }
@@ -39,6 +26,9 @@ struct DashboardView: View {
     var body: some View {
         NavigationStack {
             ZStack {
+                AppConstants.background(for: colorScheme)
+                    .ignoresSafeArea()
+                
                 VStack(alignment: .leading, spacing: 10) {
                     VStack(alignment: .leading, spacing: 4) {
                         Text("Welcome Back 👋")
@@ -52,16 +42,13 @@ struct DashboardView: View {
                     .padding()
                     
                     CustomSearchBar(text: $searchText, prompt: "Search Collection...")
-                        .padding()
                     
                     Divider()
                     
                     HStack {
                         Text("Your Collections")
                             .bold()
-                        
                         Spacer()
-                        
                         Button {
                             print("Add collection")
                             showAddCollectionView = true
@@ -74,10 +61,8 @@ struct DashboardView: View {
                     
                     ScrollView {
                         VStack(spacing: 15) {
-                            ForEach(filteredCollections, id: \.name) { collection in
-                                CollectionView(collectionIcon: collection.icon, fillColor: collection.fillColor,
-                                               collectionName: collection.name,
-                                               contentCount: collection.contentCount)
+                            ForEach(filteredCollections, id: \.id) { collection in
+                                CollectionView(collection: collection)
                             }
                         }
                         .padding(.horizontal, 15)
@@ -85,7 +70,7 @@ struct DashboardView: View {
                 }
             }
             .sheet(isPresented: $showAddCollectionView) {
-                AddCollectionView(helper: helper, collections: $collections)
+                AddCollectionView(helper: helper, collections: $db.collections)
                 .presentationDetents([.height(500)])
                 .presentationCornerRadius(25)
                 .interactiveDismissDisabled()
@@ -95,5 +80,5 @@ struct DashboardView: View {
 }
 
 #Preview {
-    DashboardView(helper: Helper())
+    DashboardView(helper: Helper(), db: Supabase())
 }

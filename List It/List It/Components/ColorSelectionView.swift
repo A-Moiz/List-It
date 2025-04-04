@@ -10,6 +10,7 @@ import SwiftUI
 struct ColorSelectionView: View {
     let colors: [Color]
     @Binding var selectedColor: Color
+    @Environment(\.colorScheme) var colorScheme
     
     var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {
@@ -17,7 +18,11 @@ struct ColorSelectionView: View {
                 ForEach(colors, id: \.self) { color in
                     Circle()
                         .fill(color)
-                        .frame(width: selectedColor == color ? 30 : 40, height: selectedColor == color ? 30 : 40)
+                        .overlay(
+                            Circle()
+                                .stroke(colorScheme == .dark ? .white : .black, lineWidth: selectedColor == color ? 4 : 0)
+                        )
+                        .frame(width: selectedColor == color ? 30 : 35, height: selectedColor == color ? 30 : 35)
                         .onTapGesture {
                             selectedColor = color
                         }
@@ -30,5 +35,5 @@ struct ColorSelectionView: View {
 
 #Preview {
     @Previewable @State var selectedColor: Color = .blue
-    ColorSelectionView(colors: [.blue, .cyan], selectedColor: $selectedColor)
+    ColorSelectionView(colors: [.blue, .cyan, .orange, .red, .green], selectedColor: $selectedColor)
 }

@@ -15,6 +15,11 @@ class Supabase: ObservableObject {
     @Published var email: String = ""
     @Published var password: String = ""
     @Published var confirmPassword: String = ""
+    @Published var collections = [
+        Collection(id: NSUUID().uuidString, collectionName: "Today", bgColor: .orange, dateCreated: Date(), isDefault: true, tasks: [], notes: []),
+        Collection(id: NSUUID().uuidString, collectionName: "Completed", bgColor: .green, dateCreated: Date(), isDefault: true, tasks: [], notes: []),
+        Collection(id: NSUUID().uuidString, collectionName: "Not Completed", bgColor: .red, dateCreated: Date(), isDefault: true, tasks: [], notes: [])
+    ]
     
     init() {
         supabaseClient = SupabaseClient(supabaseURL: URL(string: Config.SUPABASE_URL)!, supabaseKey: Config.SUPABASE_KEY)
