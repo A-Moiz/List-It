@@ -9,16 +9,16 @@ import SwiftUI
 
 struct DashboardView: View {
     @State var searchText: String = ""
-    @State var showAddCollectionView: Bool = false
+    @State var showAddListView: Bool = false
     @ObservedObject var helper: Helper
     @ObservedObject var db: Supabase
     @Environment(\.colorScheme) var colorScheme
-    var filteredCollections: [Collection] {
+    var filteredLists: [List] {
         if searchText.isEmpty {
-            return db.collections
+            return db.lists
         } else {
-            return db.collections.filter { collection in
-                collection.collectionName.lowercased().contains(searchText.lowercased())
+            return db.lists.filter { list in
+                list.listName.lowercased().contains(searchText.lowercased())
             }
         }
     }
@@ -35,13 +35,13 @@ struct DashboardView: View {
                             .font(.title3)
                             .fontWeight(.medium)
                         
-                        Text("Explore Your Collections")
+                        Text("Explore Your Lists")
                             .font(.largeTitle)
                             .bold()
                     }
                     .padding()
                     
-                    CustomSearchBar(text: $searchText, prompt: "Search Collection...")
+                    CustomSearchBar(text: $searchText, prompt: "Search List...")
                     
                     Divider()
                     
@@ -51,7 +51,7 @@ struct DashboardView: View {
                         Spacer()
                         Button {
                             print("Add collection")
-                            showAddCollectionView = true
+                            showAddListView = true
                         } label: {
                             Image(systemName: "plus.circle.fill")
                         }
@@ -61,16 +61,16 @@ struct DashboardView: View {
                     
                     ScrollView {
                         VStack(spacing: 15) {
-                            ForEach(filteredCollections, id: \.id) { collection in
-                                CollectionView(collection: collection)
+                            ForEach(filteredLists, id: \.id) { list in
+                                ListView(list: list)
                             }
                         }
                         .padding(.horizontal, 15)
                     }
                 }
             }
-            .sheet(isPresented: $showAddCollectionView) {
-                AddCollectionView(helper: helper, collections: $db.collections)
+            .sheet(isPresented: $showAddListView) {
+                AddListView(helper: helper, lists: $db.lists)
                 .presentationDetents([.height(500)])
                 .presentationCornerRadius(25)
                 .interactiveDismissDisabled()

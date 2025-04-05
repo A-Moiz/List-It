@@ -13,5 +13,9 @@ struct Note {
     var text: String
     var dateCreated: Date
     var isDeleted: Bool
-    var bgColor: Color
+    var bgColorHex: String
+    var isPinned: Bool
+    var bgColor: Color {
+        Color(hex: bgColorHex)
+    }
 }

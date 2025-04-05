@@ -31,5 +31,15 @@ enum AppConstants {
         )
     }
     
-    static let collectionColors: [Color] = [.red, .blue, .green, .yellow, .purple, .pink, .indigo, .mint, .orange]
+    static let listColorHexes: [String] = [
+        "#FF3B30", // red
+        "#007AFF", // blue
+        "#34C759", // green
+        "#FFD60A", // yellow
+        "#AF52DE", // purple
+        "#FF2D55", // pink
+        "#5856D6", // indigo
+        "#00C7BE", // mint
+        "#FF9500"  // orange
+    ]
 }

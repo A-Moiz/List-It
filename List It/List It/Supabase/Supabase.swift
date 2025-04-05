@@ -15,10 +15,8 @@ class Supabase: ObservableObject {
     @Published var email: String = ""
     @Published var password: String = ""
     @Published var confirmPassword: String = ""
-    @Published var collections = [
-        Collection(id: NSUUID().uuidString, collectionName: "Today", bgColor: .orange, dateCreated: Date(), isDefault: true, tasks: [], notes: []),
-        Collection(id: NSUUID().uuidString, collectionName: "Completed", bgColor: .green, dateCreated: Date(), isDefault: true, tasks: [], notes: []),
-        Collection(id: NSUUID().uuidString, collectionName: "Not Completed", bgColor: .red, dateCreated: Date(), isDefault: true, tasks: [], notes: [])
+    @Published var lists = [
+        List(id: UUID().uuidString, listName: "Today", bgColorHex: "#87CEEB", dateCreated: Date(), isDefault: true, tasks: [], notes: [], collections: [])
     ]
     
     init() {

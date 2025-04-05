@@ -16,4 +16,5 @@ struct Task {
     var isCompleted: Bool
     var dateCompleted: Date?
     var isDeleted: Bool
+    var isPinned: Bool
 }

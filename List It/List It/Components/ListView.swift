@@ -7,13 +7,13 @@
 
 import SwiftUI
 
-struct CollectionView: View {
-    var collection: Collection
+struct ListView: View {
+    var list: List
     
     var body: some View {
         ZStack {
             RoundedRectangle(cornerRadius: 10)
-                .fill(collection.bgColor)
+                .fill(list.bgColor)
                 .frame(height: 90)
                 .shadow(color: .gray, radius: 5, x: 0, y: 2)
             
@@ -23,12 +23,12 @@ struct CollectionView: View {
                     .frame(width: 40, height: 40)
                 
                 VStack(alignment: .leading, spacing: 5) {
-                    Text(collection.collectionName.capitalized)
+                    Text(list.listName.description.capitalized)
                         .font(.title3)
                         .bold()
                         .foregroundColor(.white)
                     
-                    Text("\(collection.contentCount) Items")
+                    Text("\(list.contentCount) Items")
                         .font(.subheadline)
                         .foregroundColor(.white.opacity(0.7))
                 }
@@ -41,6 +41,6 @@ struct CollectionView: View {
 }
 
 #Preview {
-    @Previewable @State var collection = Collection(id: NSUUID().uuidString, collectionName: "Today", bgColor: .orange, dateCreated: Date(), isDefault: true)
-    CollectionView(collection: collection)
+    @Previewable @State var list = List(id: UUID().uuidString, listName: "Today", bgColorHex: "#87CEEB", dateCreated: Date(), isDefault: true, tasks: [], notes: [], collections: [])
+    ListView(list: list)
 }
