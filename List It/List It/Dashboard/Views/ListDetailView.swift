@@ -13,8 +13,6 @@ struct ListDetailView: View {
     @Binding var list: List
     @ObservedObject var helper: Helper
     @ObservedObject var db: Supabase
-    @State private var selectedTab: Tab = .task
-    @State private var tabProgress: CGFloat = 0
     @State private var showAddTaskView: Bool = false
     @State private var showAddcollectionView: Bool = false
     
@@ -25,12 +23,32 @@ struct ListDetailView: View {
                     .ignoresSafeArea()
                 
                 VStack {
-                    TabBar(selectedTab: $selectedTab, tabProgress: tabProgress)
-                        .padding(.top)
-                    
-                    TabContentView(selectedTab: $selectedTab, tabProgress: $tabProgress)
+                    if let collections = list.collections, !collections.isEmpty {
+                        ScrollView {
+                            VStack(alignment: .leading, spacing: 8) {
+                                ForEach(collections.indices, id: \.self) { index in
+                                    let collectionBinding = Binding<Collection>(
+                                        get: { list.collections![index] },
+                                        set: { newCollection in
+                                            var updatedCollections = list.collections!
+                                            updatedCollections[index] = newCollection
+                                            list.collections = updatedCollections
+                                        }
+                                    )
+                                    
+                                    CollectionView(collection: collectionBinding)
+                                }
+                            }
+                        }
+                        .padding(.horizontal)
+                    } else {
+                        Text("No collections yet")
+                            .foregroundColor(.gray)
+                            .padding()
+                    }
                 }
                 .navigationTitle(list.listName)
+                .navigationBarBackButtonHidden()
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
                 .toolbar {
                     ToolbarItem(placement: .topBarLeading) {
@@ -62,10 +80,16 @@ struct ListDetailView: View {
                     }
                 }
                 .background(
-                    NavigationLink(destination: DashboardView(helper: helper, db: db)) {
+                    NavigationLink(destination: DashboardView(helper: helper, db: db), isActive: $backToDashboard) {
                         EmptyView()
                     }
                 )
+                .sheet(isPresented: $showAddcollectionView) {
+                    AddCollectionView(helper: helper, list: $list)
+                        .presentationDetents([.height(500)])
+                        .presentationCornerRadius(25)
+                        .interactiveDismissDisabled()
+                }
             }
         }
     }

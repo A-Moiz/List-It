@@ -20,6 +20,7 @@ struct TabContentView: View {
             }
         )
     }
+    @Binding var collection: Collection
     
     var body: some View {
         GeometryReader { geometry in
@@ -27,9 +28,29 @@ struct TabContentView: View {
             
             ScrollView(.horizontal) {
                 LazyHStack(spacing: 0) {
-                    Text("Tasks")
-                        .id(Tab.task)
-                        .containerRelativeFrame(.horizontal)
+                    VStack(alignment: .leading) {
+                        if let tasks = collection.tasks, !tasks.isEmpty {
+                            ForEach(tasks.indices, id: \.self) { index in
+                                let taskBinding = Binding<Task>(
+                                    get: { collection.tasks![index] },
+                                    set: { newTask in
+                                        var updatedTasks = collection.tasks!
+                                        updatedTasks[index] = newTask
+                                        collection.tasks = updatedTasks
+                                    }
+                                )
+                                
+                                TaskView(task: taskBinding)
+                            }
+                        } else {
+                            Text("No tasks in this Collection.")
+                                .font(.subheadline)
+                                .foregroundColor(.gray)
+                        }
+                    }
+                    .transition(.opacity.combined(with: .move(edge: .top)))
+                    .id(Tab.task)
+                    .containerRelativeFrame(.horizontal)
                     
                     Text("Notes")
                         .id(Tab.note)
@@ -51,5 +72,15 @@ struct TabContentView: View {
 #Preview {
     @Previewable @State var selectedTab: Tab = .task
     @Previewable @State var tabProgress: CGFloat = 0
-    TabContentView(selectedTab: $selectedTab, tabProgress: $tabProgress)
+    let sampleTasks = [
+        Task(id: UUID().uuidString, text: "Buy groceries", description: nil, dateCreated: Date(), dueDate: nil, isCompleted: false, dateCompleted: nil, isDeleted: false, isPinned: false),
+        Task(id: UUID().uuidString, text: "Read SwiftUI book", description: nil, dateCreated: Date(), dueDate: nil, isCompleted: false, dateCompleted: nil, isDeleted: false, isPinned: false)
+    ]
+    
+    let sampleNotes = [
+        Note(id: UUID().uuidString, text: "Don't forget to water the plants.", dateCreated: Date(), isDeleted: false, bgColorHex: "#FFCC00", isPinned: false),
+        Note(id: UUID().uuidString, text: "Meeting notes from today.", dateCreated: Date(), isDeleted: false, bgColorHex: "#FFCC00", isPinned: false)
+    ]
+    @State var collection = Collection(id: UUID().uuidString, collectionName: "List It", bgColorHex: "#87CEEB", dateCreated: Date(), tasks: sampleTasks, notes: sampleNotes)
+    TabContentView(selectedTab: $selectedTab, tabProgress: $tabProgress, collection: $collection)
 }

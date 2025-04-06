@@ -46,7 +46,7 @@ struct DashboardView: View {
                     Divider()
                     
                     HStack {
-                        Text("Your Collections")
+                        Text("Your Lists")
                             .bold()
                         Spacer()
                         Button {
@@ -61,19 +61,26 @@ struct DashboardView: View {
                     
                     ScrollView {
                         VStack(spacing: 15) {
-                            ForEach(filteredLists, id: \.id) { list in
-                                ListView(list: list)
+                            ForEach(filteredLists.indices, id: \.self) { index in
+                                let listBinding = Binding<List>(
+                                    get: { db.lists[index] },
+                                    set: { newList in
+                                        db.lists[index] = newList
+                                    }
+                                )
+                                ListView(list: listBinding, helper: helper, db: db)
                             }
                         }
                         .padding(.horizontal, 15)
                     }
                 }
             }
+            .navigationBarBackButtonHidden()
             .sheet(isPresented: $showAddListView) {
                 AddListView(helper: helper, lists: $db.lists)
-                .presentationDetents([.height(500)])
-                .presentationCornerRadius(25)
-                .interactiveDismissDisabled()
+                    .presentationDetents([.height(500)])
+                    .presentationCornerRadius(25)
+                    .interactiveDismissDisabled()
             }
         }
     }
