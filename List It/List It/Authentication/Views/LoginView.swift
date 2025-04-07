@@ -46,7 +46,7 @@ struct LoginView: View {
                     }
                     .padding(.horizontal)
                     
-                    OrDivider()
+                    CustomDivider(text: "OR")
                     
                     HStack(spacing: 20) {
                         SocialSignInButton(action: { print("Google sign in") }, icon: "google-icon", backgroundColor: .white)

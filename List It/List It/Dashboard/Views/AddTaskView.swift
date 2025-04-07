@@ -16,6 +16,7 @@ struct AddTaskView: View {
     @State var text: String = ""
     @State var description: String = ""
     @State private var dueDate: Date = Date()
+    @State private var selectedCollectionName: String? = nil
     
     var body: some View {
         NavigationStack {
@@ -26,24 +27,35 @@ struct AddTaskView: View {
                 VStack {
                     CustomTextField(icon: "plus", placeholder: "Add Task....", text: $text, isPassword: false, showPassword: false)
                     
-                    HStack {
-                        Rectangle()
-                            .fill(colorScheme == .dark ? Color.gray.opacity(0.4) : Color.gray.opacity(0.3))
-                            .frame(height: 1)
-                        
-                        Text("OPTIONAL")
-                            .font(.footnote)
-                            .foregroundColor(colorScheme == .dark ? Color.gray.opacity(0.7) : .gray)
-                            .padding(.horizontal, 8)
-                        
-                        Rectangle()
-                            .fill(colorScheme == .dark ? Color.gray.opacity(0.4) : Color.gray.opacity(0.3))
-                            .frame(height: 1)
-                    }
-                    .padding(.vertical)
+                    CustomDivider(text: "OPTIONAL")
                     
-                    CustomTextField(icon: "plus", placeholder: "Add description", text: $text, isPassword: false, showPassword: false)
+                    CustomTextField(icon: "plus", placeholder: "Add description", text: $description, isPassword: false, showPassword: false)
                         .padding(.bottom)
+                    
+                    Menu {
+                        ForEach(list.collections, id: \.id) { collection in
+                            Button(action: {
+                                selectedCollectionName = collection.collectionName
+                            }) {
+                                HStack {
+                                    Text(collection.collectionName)
+                                    if selectedCollectionName == collection.collectionName {
+                                        Spacer()
+                                        Image(systemName: "checkmark")
+                                    }
+                                }
+                            }
+                        }
+                    } label: {
+                        HStack {
+                            Text(selectedCollectionName ?? "Select Collection")
+                                .foregroundColor(selectedCollectionName == nil ? .gray : .primary)
+                            Spacer()
+                            Image(systemName: "chevron.down")
+                        }
+                        .padding()
+                        .background(.gray.opacity(0.2), in: RoundedRectangle(cornerRadius: 10))
+                    }
                     
                     DatePicker("Add Due Date", selection: $dueDate, in: Date()..., displayedComponents: .date)
                         .datePickerStyle(CompactDatePickerStyle())
@@ -53,7 +65,7 @@ struct AddTaskView: View {
                         .padding(.bottom)
                     
                     Button {
-                        
+                        createTask()
                     } label: {
                         ButtonView(text: "Create Task", icon: "arrow.right")
                     }
@@ -76,10 +88,49 @@ struct AddTaskView: View {
     }
     
     func createTask() {
-        if isTextFilled() {
-            let newTask = Task(id: UUID().uuidString, text: text, description: description, dateCreated: Date(), dueDate: dueDate, isCompleted: false, dateCompleted: nil, isDeleted: false, isPinned: false)
-        } else {
+        guard isTextFilled() else {
             helper.showAlertWithMessage("Text field must be filled in.")
+            return
+        }
+        
+        let newTask = Task(
+            id: UUID().uuidString,
+            text: text,
+            description: description,
+            dateCreated: Date(),
+            dueDate: dueDate,
+            isCompleted: false,
+            dateCompleted: nil,
+            isDeleted: false,
+            isPinned: false
+        )
+        addToCollection(newTask: newTask)
+        dismiss()
+    }
+    
+    func addToCollection(newTask: Task) {
+        if let name = selectedCollectionName, let index = list.collections.firstIndex(where: { $0.collectionName == name }) {
+            // Ensure tasks is initialized
+            if list.collections[index].tasks == nil {
+                list.collections[index].tasks = [] // Initialize if nil
+            }
+            list.collections[index].tasks.append(newTask)
+        } else {
+            if let otherIndex = list.collections.firstIndex(where: { $0.collectionName == "Other" }) {
+                // Ensure tasks is initialized
+                if list.collections[otherIndex].tasks == nil {
+                    list.collections[otherIndex].tasks = [] // Initialize if nil
+                }
+                list.collections[otherIndex].tasks.append(newTask)
+            } else {
+                let otherCollection = Collection(id: UUID().uuidString, collectionName: "Other", bgColorHex: "#87CEEB", dateCreated: Date(), tasks: [newTask])
+                list.collections.append(otherCollection)
+            }
+        }
+
+        // Debugging output
+        for collection in list.collections {
+            print("Collection Name: \(collection.collectionName), Tasks Count: \(collection.tasks.count)\nTasks in Collection: \(collection.tasks)")
         }
     }
     
@@ -89,6 +140,6 @@ struct AddTaskView: View {
 }
 
 #Preview {
-    @Previewable @State var list = List(id: UUID().uuidString, listName: "Today", bgColorHex: "#87CEEB", dateCreated: Date(), isDefault: true, tasks: [], notes: [], collections: [])
+    @Previewable @State var list = List(id: UUID().uuidString, listName: "Today", bgColorHex: "#87CEEB", dateCreated: Date(), isDefault: true, collections: [])
     AddTaskView(list: $list, helper: Helper())
 }

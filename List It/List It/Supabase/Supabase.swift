@@ -16,7 +16,7 @@ class Supabase: ObservableObject {
     @Published var password: String = ""
     @Published var confirmPassword: String = ""
     @Published var lists = [
-        List(id: UUID().uuidString, listName: "Today", bgColorHex: "#87CEEB", dateCreated: Date(), isDefault: true, tasks: [], notes: [], collections: [])
+        List(id: UUID().uuidString, listName: "Today", bgColorHex: "#87CEEB", dateCreated: Date(), isDefault: true, collections: [])
     ]
     
     init() {

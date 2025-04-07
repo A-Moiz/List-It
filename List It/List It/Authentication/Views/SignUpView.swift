@@ -38,7 +38,7 @@ struct SignUpView: View {
                 }
                 .padding(.horizontal)
                 
-                OrDivider()
+                CustomDivider(text: "OR")
                 
                 HStack(spacing: 20) {
                     SocialSignInButton(action: signInWithGoogle, icon: "google-icon", backgroundColor: .white)

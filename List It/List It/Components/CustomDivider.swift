@@ -7,8 +7,9 @@
 
 import SwiftUI
 
-struct OrDivider: View {
+struct CustomDivider: View {
     @Environment(\.colorScheme) var colorScheme
+    var text: String
     
     var body: some View {
         HStack {
@@ -16,7 +17,7 @@ struct OrDivider: View {
                 .fill(colorScheme == .dark ? Color.gray.opacity(0.4) : Color.gray.opacity(0.3))
                 .frame(height: 1)
             
-            Text("OR")
+            Text(text)
                 .font(.footnote)
                 .foregroundColor(colorScheme == .dark ? Color.gray.opacity(0.7) : .gray)
                 .padding(.horizontal, 8)
@@ -30,5 +31,5 @@ struct OrDivider: View {
 }
 
 #Preview {
-    OrDivider()
+    CustomDivider(text: "OR")
 }

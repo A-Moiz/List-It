@@ -63,10 +63,6 @@ struct ListView: View {
                             .font(.title3)
                             .bold()
                             .foregroundColor(.white)
-                        
-                        Text("\(list.contentCount) Items")
-                            .font(.subheadline)
-                            .foregroundColor(.white.opacity(0.7))
                     }
                     
                     Spacer()
@@ -80,6 +76,6 @@ struct ListView: View {
 }
 
 #Preview {
-    @Previewable @State var list = List(id: UUID().uuidString, listName: "Today", bgColorHex: "#87CEEB", dateCreated: Date(), isDefault: true, tasks: [], notes: [], collections: [])
+    @Previewable @State var list = List(id: UUID().uuidString, listName: "Today", bgColorHex: "#87CEEB", dateCreated: Date(), isDefault: true, collections: [])
     ListView(list: $list, helper: Helper(), db: Supabase())
 }

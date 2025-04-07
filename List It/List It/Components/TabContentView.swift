@@ -7,9 +7,136 @@
 
 import SwiftUI
 
+//struct TabContentView: View {
+//    @Binding var selectedTab: Tab
+//    @Binding var tabProgress: CGFloat
+//    private var scrollPositionBinding: Binding<Tab?> {
+//        Binding<Tab?>(
+//            get: { selectedTab },
+//            set: { newValue in
+//                if let newTab = newValue {
+//                    selectedTab = newTab
+//                }
+//            }
+//        )
+//    }
+//    @Binding var collection: Collection
+//    
+//    var body: some View {
+//        GeometryReader { geometry in
+//            let size = geometry.size
+//            
+//            ScrollView(.horizontal) {
+//                LazyHStack(spacing: 0) {
+//                    VStack(alignment: .leading) {
+//                        if let tasks = collection.tasks, !tasks.isEmpty {
+//                            ForEach(tasks.indices, id: \.self) { index in
+//                                let taskBinding = Binding<Task>(
+//                                    get: { collection.tasks![index] },
+//                                    set: { newTask in
+//                                        var updatedTasks = collection.tasks!
+//                                        updatedTasks[index] = newTask
+//                                        collection.tasks = updatedTasks
+//                                    }
+//                                )
+//                                
+//                                TaskView(task: taskBinding)
+//                            }
+//                        } else {
+//                            Text("No tasks in this Collection.")
+//                                .font(.subheadline)
+//                                .foregroundColor(.gray)
+//                        }
+//                    }
+//                    .transition(.opacity.combined(with: .move(edge: .top)))
+//                    .id(Tab.task)
+//                    .containerRelativeFrame(.horizontal)
+//                    
+//                    Text("Notes")
+//                        .id(Tab.note)
+//                        .containerRelativeFrame(.horizontal)
+//                }
+//                .padding(.bottom)
+//                .scrollTargetLayout()
+//                .offsetX { value in
+//                    let progress = -value / (size.width * CGFloat(Tab.allCases.count - 1))
+//                    tabProgress = max(min(progress, 1), 0)
+//                }
+//            }
+//            .scrollPosition(id: scrollPositionBinding)
+//            .scrollIndicators(.hidden)
+//            .scrollTargetBehavior(.paging)
+//        }
+//    }
+//}
+
+//struct TabContentView: View {
+//    @Binding var selectedTab: Tab
+//    @Binding var tabProgress: CGFloat
+//    private var scrollPositionBinding: Binding<Tab?> {
+//        Binding<Tab?>(
+//            get: { selectedTab },
+//            set: { newValue in
+//                if let newTab = newValue {
+//                    selectedTab = newTab
+//                }
+//            }
+//        )
+//    }
+//    @Binding var collection: Collection
+//    
+//    var body: some View {
+//        GeometryReader { geometry in
+//            let size = geometry.size
+//            
+//            ScrollView(.horizontal) {
+//                LazyHStack(spacing: 0) {
+//                    VStack(alignment: .leading) {
+//                        ForEach($collection.tasks, id: \.id) { $task in
+//                            TaskView(task: $task)
+//                        }
+//                    }
+//                    .padding()
+//                    .frame(width: size.width, height: size.height)
+//                    .background(Color.gray.opacity(0.1))
+//                    .id(Tab.task)
+//                    
+//                    // NOTES TAB
+//                    VStack(alignment: .leading) {
+//                        Text("Notes Tab Content")
+//                            .font(.headline)
+//                            .foregroundColor(.green)
+//                            .padding(.top)
+//                            
+//                        Text("Notes will appear here")
+//                            .font(.body)
+//                            .padding()
+//                            
+//                        Spacer(minLength: 50)
+//                    }
+//                    .padding()
+//                    .frame(width: size.width, height: size.height)
+//                    .background(Color.gray.opacity(0.2))
+//                    .id(Tab.note)
+//                }
+//                .scrollTargetLayout()
+//                .offsetX { value in
+//                    let progress = -value / (size.width * CGFloat(Tab.allCases.count - 1))
+//                    tabProgress = max(min(progress, 1), 0)
+//                }
+//            }
+//            .scrollPosition(id: scrollPositionBinding)
+//            .scrollIndicators(.hidden)
+//            .scrollTargetBehavior(.paging)
+//        }
+//    }
+//}
+
 struct TabContentView: View {
     @Binding var selectedTab: Tab
     @Binding var tabProgress: CGFloat
+    @Binding var collection: Collection
+    
     private var scrollPositionBinding: Binding<Tab?> {
         Binding<Tab?>(
             get: { selectedTab },
@@ -20,52 +147,61 @@ struct TabContentView: View {
             }
         )
     }
-    @Binding var collection: Collection
-    
+
     var body: some View {
         GeometryReader { geometry in
-            let size = geometry.size
-            
+            let width = geometry.size.width
+
             ScrollView(.horizontal) {
                 LazyHStack(spacing: 0) {
+                    // TASKS TAB
                     VStack(alignment: .leading) {
-                        if let tasks = collection.tasks, !tasks.isEmpty {
-                            ForEach(tasks.indices, id: \.self) { index in
-                                let taskBinding = Binding<Task>(
-                                    get: { collection.tasks![index] },
-                                    set: { newTask in
-                                        var updatedTasks = collection.tasks!
-                                        updatedTasks[index] = newTask
-                                        collection.tasks = updatedTasks
-                                    }
-                                )
-                                
-                                TaskView(task: taskBinding)
-                            }
-                        } else {
-                            Text("No tasks in this Collection.")
-                                .font(.subheadline)
+                        if collection.tasks.isEmpty {
+                            Text("No tasks yet.")
                                 .foregroundColor(.gray)
+                        } else {
+                            ForEach($collection.tasks, id: \.id) { $task in
+                                TaskView(task: $task)
+                                    .onAppear {
+                                        print("Rendering task: \(task.text) in collection: \(collection.collectionName)")
+                                    }
+                            }
                         }
                     }
-                    .transition(.opacity.combined(with: .move(edge: .top)))
+                    .padding()
+                    .frame(width: width)
+                    .background(Color.gray.opacity(0.1))
                     .id(Tab.task)
-                    .containerRelativeFrame(.horizontal)
-                    
-                    Text("Notes")
-                        .id(Tab.note)
-                        .containerRelativeFrame(.horizontal)
+
+                    // NOTES TAB
+                    VStack(alignment: .leading) {
+                        Text("Notes Tab Content")
+                            .font(.headline)
+                            .foregroundColor(.green)
+                            .padding(.top)
+
+                        Text("Notes will appear here")
+                            .font(.body)
+                            .padding()
+
+                        Spacer(minLength: 50)
+                    }
+                    .padding()
+                    .frame(width: width)
+                    .background(Color.gray.opacity(0.2))
+                    .id(Tab.note)
                 }
                 .scrollTargetLayout()
                 .offsetX { value in
-                    let progress = -value / (size.width * CGFloat(Tab.allCases.count - 1))
+                    let progress = -value / (width * CGFloat(Tab.allCases.count - 1))
                     tabProgress = max(min(progress, 1), 0)
                 }
             }
-            .scrollPosition(id: scrollPositionBinding)
-            .scrollIndicators(.hidden)
             .scrollTargetBehavior(.paging)
+            .scrollIndicators(.hidden)
+            .scrollPosition(id: scrollPositionBinding)
         }
+        .frame(height: 250) // <-- Give a fixed height to avoid collapsing
     }
 }
 

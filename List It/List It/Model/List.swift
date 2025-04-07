@@ -14,12 +14,7 @@ struct List {
     var bgColorHex: String
     var dateCreated: Date
     var isDefault: Bool
-    var contentCount: Int {
-        (tasks?.count ?? 0) + (notes?.count ?? 0)
-    }
-    var tasks: [Task]?
-    var notes: [Note]?
-    var collections: [Collection]?
+    var collections: [Collection]
     var bgColor: Color {
         Color(hex: bgColorHex)
     }

@@ -67,8 +67,8 @@ struct AddCollectionView: View {
     func createCollection() {
         if isFieldsFilled() {
             if isValidName() {
-                let newCollection = Collection(id: UUID().uuidString, collectionName: collectionName, bgColorHex: selectedColorHex, dateCreated: Date(), tasks: nil, notes: nil)
-                list.collections?.append(newCollection)
+                let newCollection = Collection(id: UUID().uuidString, collectionName: collectionName, bgColorHex: selectedColorHex, dateCreated: Date(), tasks: [], notes: [])
+                list.collections.append(newCollection)
                 dismiss()
             } else {
                 helper.showAlertWithMessage("You already have a collection with this name for this List, please choose a different name for this collection.")
@@ -83,12 +83,11 @@ struct AddCollectionView: View {
     }
     
     func isValidName() -> Bool {
-        guard let collections = list.collections else { return true }
-        return !collections.contains(where: { $0.collectionName.lowercased() == collectionName.lowercased() })
+        return !list.collections.contains(where: { $0.collectionName.lowercased() == collectionName.lowercased() })
     }
 }
 
 #Preview {
-    @Previewable @State var list = List(id: UUID().uuidString, listName: "Today", bgColorHex: "#87CEEB", dateCreated: Date(), isDefault: true, tasks: [], notes: [], collections: [])
+    @Previewable @State var list = List(id: UUID().uuidString, listName: "Today", bgColorHex: "#87CEEB", dateCreated: Date(), isDefault: true, collections: [])
     AddCollectionView(helper: Helper(), list: $list)
 }

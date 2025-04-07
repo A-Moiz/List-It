@@ -22,80 +22,92 @@ struct ListDetailView: View {
                 AppConstants.background(for: colorScheme)
                     .ignoresSafeArea()
                 
-                VStack {
-                    if let collections = list.collections, !collections.isEmpty {
-                        ScrollView {
-                            VStack(alignment: .leading, spacing: 8) {
-                                ForEach(collections.indices, id: \.self) { index in
-                                    let collectionBinding = Binding<Collection>(
-                                        get: { list.collections![index] },
-                                        set: { newCollection in
-                                            var updatedCollections = list.collections!
-                                            updatedCollections[index] = newCollection
-                                            list.collections = updatedCollections
-                                        }
-                                    )
-                                    
-                                    CollectionView(collection: collectionBinding)
-                                }
-                            }
-                        }
-                        .padding(.horizontal)
-                    } else {
-                        Text("No collections yet")
-                            .foregroundColor(.gray)
-                            .padding()
+                listContentView
+                    .navigationTitle(list.listName)
+                    .navigationBarBackButtonHidden()
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+                    .toolbar {
+                        leadingToolbarItems
+                        trailingToolbarItems
                     }
-                }
-                .navigationTitle(list.listName)
-                .navigationBarBackButtonHidden()
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-                .toolbar {
-                    ToolbarItem(placement: .topBarLeading) {
-                        Button {
-                            backToDashboard = true
-                        } label: {
-                            NavigationBackButton()
-                        }
+                    .background(navigationLink)
+                    .sheet(isPresented: $showAddcollectionView) {
+                        AddCollectionView(helper: helper, list: $list)
+                            .presentationDetents([.height(500)])
+                            .presentationCornerRadius(25)
+                            .interactiveDismissDisabled()
                     }
-                    
-                    ToolbarItem(placement: .navigationBarTrailing) {
-                        Menu {
-                            Button(action: {
-                                showAddTaskView = true
-                                print("Option 1 selected")
-                            }) {
-                                Label("Add Task", systemImage: "pencil")
-                            }
-                            Button(action: {
-                                showAddcollectionView = true
-                                print("Option 1 selected")
-                            }) {
-                                Label("Add Collection", systemImage: "list.bullet")
-                            }
-                        } label: {
-                            Image(systemName: "ellipsis.circle")
-                                .foregroundColor(colorScheme == .light ? .black : .white)
-                        }
+                    .sheet(isPresented: $showAddTaskView) {
+                        AddTaskView(list: $list, helper: helper)
+                            .presentationDetents([.height(500)])
+                            .presentationCornerRadius(25)
+                            .interactiveDismissDisabled()
                     }
-                }
-                .background(
-                    NavigationLink(destination: DashboardView(helper: helper, db: db), isActive: $backToDashboard) {
-                        EmptyView()
-                    }
-                )
-                .sheet(isPresented: $showAddcollectionView) {
-                    AddCollectionView(helper: helper, list: $list)
-                        .presentationDetents([.height(500)])
-                        .presentationCornerRadius(25)
-                        .interactiveDismissDisabled()
-                }
             }
+        }
+    }
+    
+    private var listContentView: some View {
+        VStack {
+            if !list.collections.isEmpty {
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 8) {
+                        collectionsForEachView(collections: list.collections)
+                    }
+                }
+                .padding(.horizontal)
+            } else {
+                Text("No collections yet")
+                    .foregroundColor(.gray)
+                    .padding()
+            }
+        }
+    }
+    
+    private func collectionsForEachView(collections: [Collection]) -> some View {
+        ForEach($list.collections, id: \.id) { $collection in
+            CollectionView(collection: $collection)
+        }
+    }
+    
+    private var leadingToolbarItems: ToolbarItem<(), some View> {
+        ToolbarItem(placement: .topBarLeading) {
+            Button {
+                backToDashboard = true
+            } label: {
+                NavigationBackButton()
+            }
+        }
+    }
+    
+    private var trailingToolbarItems: ToolbarItem<(), some View> {
+        ToolbarItem(placement: .navigationBarTrailing) {
+            Menu {
+                Button(action: {
+                    showAddTaskView = true
+                }) {
+                    Label("Add Task", systemImage: "pencil")
+                }
+                Button(action: {
+                    showAddcollectionView = true
+                }) {
+                    Label("Add Collection", systemImage: "list.bullet")
+                }
+            } label: {
+                Image(systemName: "ellipsis.circle")
+                    .foregroundColor(colorScheme == .light ? .black : .white)
+            }
+        }
+    }
+    
+    private var navigationLink: some View {
+        NavigationLink(destination: DashboardView(helper: helper, db: db), isActive: $backToDashboard) {
+            EmptyView()
         }
     }
 }
 
 #Preview {
-    @Previewable @State var list = List(id: UUID().uuidString, listName: "Today", bgColorHex: "#87CEEB", dateCreated: Date(), isDefault: true, tasks: [], notes: [], collections: [])
+    @Previewable @State var list = List(id: UUID().uuidString, listName: "Today", bgColorHex: "#87CEEB", dateCreated: Date(), isDefault: true, collections: [])
     ListDetailView(list: $list, helper: Helper(), db: Supabase())
 }

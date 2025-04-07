@@ -13,8 +13,8 @@ struct Collection {
     var collectionName: String
     var bgColorHex: String
     var dateCreated: Date
-    var tasks: [Task]?
-    var notes: [Note]?
+    var tasks: [Task] = []
+    var notes: [Note] = []
     var bgColor: Color {
         Color(hex: bgColorHex)
     }
