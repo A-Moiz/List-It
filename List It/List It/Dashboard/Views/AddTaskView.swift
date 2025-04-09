@@ -110,16 +110,14 @@ struct AddTaskView: View {
     
     func addToCollection(newTask: Task) {
         if let name = selectedCollectionName, let index = list.collections.firstIndex(where: { $0.collectionName == name }) {
-            // Ensure tasks is initialized
             if list.collections[index].tasks == nil {
-                list.collections[index].tasks = [] // Initialize if nil
+                list.collections[index].tasks = []
             }
             list.collections[index].tasks.append(newTask)
         } else {
             if let otherIndex = list.collections.firstIndex(where: { $0.collectionName == "Other" }) {
-                // Ensure tasks is initialized
                 if list.collections[otherIndex].tasks == nil {
-                    list.collections[otherIndex].tasks = [] // Initialize if nil
+                    list.collections[otherIndex].tasks = []
                 }
                 list.collections[otherIndex].tasks.append(newTask)
             } else {
@@ -127,8 +125,6 @@ struct AddTaskView: View {
                 list.collections.append(otherCollection)
             }
         }
-
-        // Debugging output
         for collection in list.collections {
             print("Collection Name: \(collection.collectionName), Tasks Count: \(collection.tasks.count)\nTasks in Collection: \(collection.tasks)")
         }

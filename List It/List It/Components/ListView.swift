@@ -44,6 +44,7 @@ struct ListView: View {
     @Binding var list: List
     @ObservedObject var helper: Helper
     @ObservedObject var db: Supabase
+    @Environment(\.colorScheme) var colorScheme
     
     var body: some View {
         NavigationLink(destination: ListDetailView(list: $list, helper: helper, db: db)) {
@@ -57,12 +58,14 @@ struct ListView: View {
                     Image(systemName: "checklist")
                         .resizable()
                         .frame(width: 40, height: 40)
+                        .foregroundStyle(.black)
+                        
                     
                     VStack(alignment: .leading, spacing: 5) {
                         Text(list.listName.description.capitalized)
                             .font(.title3)
                             .bold()
-                            .foregroundColor(.white)
+                            .foregroundStyle(colorScheme == .dark ? .white : .black)
                     }
                     
                     Spacer()

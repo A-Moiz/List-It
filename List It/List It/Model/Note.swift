@@ -8,9 +8,10 @@
 import Foundation
 import SwiftUI
 
-struct Note {
+struct Note: Identifiable {
     var id: String
-    var text: String
+    var title: String
+    var description: String
     var dateCreated: Date
     var isDeleted: Bool
     var bgColorHex: String

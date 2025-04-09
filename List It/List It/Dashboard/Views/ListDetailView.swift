@@ -14,7 +14,9 @@ struct ListDetailView: View {
     @ObservedObject var helper: Helper
     @ObservedObject var db: Supabase
     @State private var showAddTaskView: Bool = false
+    @State private var showAddNoteView: Bool = false
     @State private var showAddcollectionView: Bool = false
+    @State private var showDeletecollectionView: Bool = false
     
     var body: some View {
         NavigationStack {
@@ -43,6 +45,14 @@ struct ListDetailView: View {
                             .presentationCornerRadius(25)
                             .interactiveDismissDisabled()
                     }
+                    .sheet(isPresented: $showAddNoteView) {
+                        AddNoteView(helper: helper, list: $list)
+                            .interactiveDismissDisabled()
+                    }
+                    .sheet(isPresented: $showDeletecollectionView) {
+                        DeleteCollectionView(list: $list, helper: helper, db: db)
+                            .interactiveDismissDisabled()
+                    }
             }
         }
     }
@@ -66,7 +76,7 @@ struct ListDetailView: View {
     
     private func collectionsForEachView(collections: [Collection]) -> some View {
         ForEach($list.collections, id: \.id) { $collection in
-            CollectionView(collection: $collection)
+            CollectionView(collection: $collection, helper: helper, db: db, isDeleteView: false)
         }
     }
     
@@ -89,9 +99,19 @@ struct ListDetailView: View {
                     Label("Add Task", systemImage: "pencil")
                 }
                 Button(action: {
+                    showAddNoteView = true
+                }) {
+                    Label("Add Note", systemImage: "note.text")
+                }
+                Button(action: {
                     showAddcollectionView = true
                 }) {
                     Label("Add Collection", systemImage: "list.bullet")
+                }
+                Button(action: {
+                    showDeletecollectionView = true
+                }) {
+                    Label("Delete Collection(s)", systemImage: "x.circle")
                 }
             } label: {
                 Image(systemName: "ellipsis.circle")
