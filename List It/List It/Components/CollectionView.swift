@@ -190,7 +190,7 @@ struct CollectionView: View {
                                                 .padding(.top, 16)
                                         } else {
                                             ForEach($collection.tasks, id: \.id) { $task in
-                                                TaskView(task: $task)
+                                                TaskView(task: $task, collection: $collection, db: db, helper: helper)
                                                     .padding(.horizontal)
                                                     .transition(.slide)
                                             }

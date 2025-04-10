@@ -66,6 +66,9 @@ import SwiftUI
 
 struct TaskView: View {
     @Binding var task: Task
+    @Binding var collection: Collection
+    @ObservedObject var db: Supabase
+    @ObservedObject var helper: Helper
 
     private static var dateFormatter: DateFormatter = {
         let formatter = DateFormatter()
@@ -75,64 +78,64 @@ struct TaskView: View {
     }()
 
     var body: some View {
-        HStack(spacing: 16) {
-            // Completion toggle
-            Button {
-                task.isCompleted.toggle()
-            } label: {
-                Image(systemName: task.isCompleted ? "checkmark.circle.fill" : "circle")
-                    .foregroundColor(task.isCompleted ? .green : .gray)
-                    .imageScale(.large)
-            }
+        NavigationLink {
+            TaskDetailView(task: $task, collection: $collection, db: db, helper: helper)
+        } label: {
+            HStack(spacing: 16) {
+                Button {
+                    task.isCompleted.toggle()
+                } label: {
+                    Image(systemName: task.isCompleted ? "checkmark.circle.fill" : "circle")
+                        .foregroundColor(task.isCompleted ? .green : .gray)
+                        .imageScale(.large)
+                }
 
-            // Task details
-            VStack(alignment: .leading, spacing: 6) {
-                Text(task.text)
-                    .font(.headline)
-                    .foregroundColor(.primary)
-                    .strikethrough(task.isCompleted, color: .gray)
-
-                if let description = task.description, !description.isEmpty {
-                    Text(description)
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
+                VStack(alignment: .leading, spacing: 6) {
+                    Text(task.text)
+                        .font(.headline)
+                        .foregroundColor(.primary)
                         .strikethrough(task.isCompleted, color: .gray)
-                }
 
-                // Date row
-                HStack(spacing: 4) {
-                    Image(systemName: "calendar")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-
-                    if let dueDate = task.dueDate {
-                        Text("\(Self.dateFormatter.string(from: task.dateCreated)) - \(Self.dateFormatter.string(from: dueDate))")
-                    } else {
-                        Text(Self.dateFormatter.string(from: task.dateCreated))
+                    if let description = task.description, !description.isEmpty {
+                        Text(description)
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                            .strikethrough(task.isCompleted, color: .gray)
                     }
+
+                    HStack(spacing: 4) {
+                        Image(systemName: "calendar")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+
+                        if let dueDate = task.dueDate {
+                            Text("\(Self.dateFormatter.string(from: task.dateCreated)) - \(Self.dateFormatter.string(from: dueDate))")
+                        } else {
+                            Text(Self.dateFormatter.string(from: task.dateCreated))
+                        }
+                    }
+                    .font(.caption)
+                    .foregroundColor(.secondary)
                 }
-                .font(.caption)
-                .foregroundColor(.secondary)
-            }
 
-            Spacer()
+                Spacer()
 
-            // Pin toggle
-            Button {
-                task.isPinned.toggle()
-            } label: {
-                Image(systemName: task.isPinned ? "pin.fill" : "pin")
-                    .foregroundColor(task.isPinned ? .yellow : .gray)
-                    .imageScale(.medium)
+                Button {
+                    task.isPinned.toggle()
+                } label: {
+                    Image(systemName: task.isPinned ? "pin.fill" : "pin")
+                        .foregroundColor(task.isPinned ? .yellow : .gray)
+                        .imageScale(.medium)
+                }
             }
+            .padding()
+            .background(
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(.ultraThinMaterial)
+                    .shadow(color: .black.opacity(0.05), radius: 4, x: 0, y: 2)
+            )
+            .padding(.horizontal, 8)
         }
-        .padding()
-        .background(
-            RoundedRectangle(cornerRadius: 12)
-                .fill(.ultraThinMaterial)
-                .shadow(color: .black.opacity(0.05), radius: 4, x: 0, y: 2)
-        )
-        .padding(.horizontal, 8)
     }
 }
 
@@ -148,5 +151,6 @@ struct TaskView: View {
         isDeleted: false,
         isPinned: false
     )
-    TaskView(task: $task)
+    @State var collection = Collection(id: UUID().uuidString, collectionName: "List It", bgColorHex: "#87CEEB", dateCreated: Date(), tasks: [], notes: [])
+    TaskView(task: $task, collection: $collection, db: Supabase(), helper: Helper())
 }

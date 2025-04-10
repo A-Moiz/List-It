@@ -113,7 +113,6 @@ struct NoteDetailView: View {
                     .ignoresSafeArea()
 
                 VStack(spacing: 20) {
-                    // Title TextField
                     TextField("Enter title...", text: $editedTitle)
                         .font(.title2.bold())
                         .foregroundColor(.primary)
@@ -126,7 +125,6 @@ struct NoteDetailView: View {
                         )
                         .multilineTextAlignment(.center)
 
-                    // Description Editor
                     TransparentTextEditor(text: $editedDescription)
                         .padding(12)
                         .frame(minHeight: 200)
