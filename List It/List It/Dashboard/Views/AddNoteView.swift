@@ -13,6 +13,7 @@ struct AddNoteView: View {
     @State var title: String = ""
     @State var description: String = ""
     @State var selectedColorHex: String = ""
+    @State private var isPinned: Bool = false
     @State private var selectedCollectionName: String? = nil
     @ObservedObject var helper: Helper
     @Binding var list: List
@@ -47,6 +48,12 @@ struct AddNoteView: View {
                         Text("Selected Color: \(selectedColorHex.isEmpty ? "None" : selectedColorHex)")
                             .font(.headline)
                             .foregroundColor(Color(hex: selectedColorHex.isEmpty ? "#A9A9A9" : selectedColorHex))
+                        
+                        Toggle(isOn: $isPinned) {
+                            Label("Pin this note", systemImage: "pin.fill")
+                        }
+                        .toggleStyle(SwitchToggleStyle(tint: .blue))
+                        .padding(.bottom)
                         
                         Menu {
                             ForEach(list.collections, id: \.id) { collection in
@@ -107,7 +114,7 @@ struct AddNoteView: View {
             return
         }
         
-        let newNote = Note(id: UUID().uuidString, title: title, description: description, dateCreated: Date(), isDeleted: false, bgColorHex: selectedColorHex, isPinned: false)
+        let newNote = Note(id: UUID().uuidString, title: title, description: description, dateCreated: Date(), isDeleted: false, bgColorHex: selectedColorHex, isPinned: isPinned)
         
         addToCollection(newNote: newNote)
         dismiss()
@@ -120,14 +127,14 @@ struct AddNoteView: View {
             }
             list.collections[index].notes.append(newNote)
         } else {
-            if let otherIndex = list.collections.firstIndex(where: {$0.collectionName == "Other"}) {
-                if list.collections[otherIndex].notes == nil {
-                    list.collections[otherIndex].notes = []
+            if let generalIndex = list.collections.firstIndex(where: {$0.collectionName == "General"}) {
+                if list.collections[generalIndex].notes == nil {
+                    list.collections[generalIndex].notes = []
                 }
-                list.collections[otherIndex].notes.append(newNote)
+                list.collections[generalIndex].notes.append(newNote)
             } else {
-                let otherCollection = Collection(id: UUID().uuidString, collectionName: "Other", bgColorHex: "#87CEEB", dateCreated: Date(), notes: [newNote])
-                list.collections.append(otherCollection)
+                let generalCollection = Collection(id: UUID().uuidString, collectionName: "General", bgColorHex: "#87CEEB", dateCreated: Date(), notes: [newNote])
+                list.collections.append(generalCollection)
             }
         }
     }

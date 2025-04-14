@@ -84,8 +84,11 @@ struct TaskView: View {
             HStack(spacing: 16) {
                 Button {
                     task.isCompleted.toggle()
+                    if task.isCompleted {
+                        db.moveToCompletedList(task: task, fromCollection: collection)
+                    }
                 } label: {
-                    Image(systemName: task.isCompleted ? "checkmark.circle.fill" : "circle")
+                    Image(systemName: task.isCompleted ? "square.fill" : "square")
                         .foregroundColor(task.isCompleted ? .green : .gray)
                         .imageScale(.large)
                 }

@@ -12,11 +12,13 @@ struct AddTaskView: View {
     @Environment(\.colorScheme) var colorScheme
     @Environment(\.dismiss) var dismiss
     @ObservedObject var helper: Helper
-    // Task Properties
+
     @State var text: String = ""
     @State var description: String = ""
-    @State private var dueDate: Date = Date()
+    @State private var dueDate: Date? = nil
     @State private var selectedCollectionName: String? = nil
+    @State private var addDueDate: Bool = false
+    @State private var isPinned: Bool = false
     
     var body: some View {
         NavigationStack {
@@ -31,6 +33,33 @@ struct AddTaskView: View {
                     
                     CustomTextField(icon: "plus", placeholder: "Add description", text: $description, isPassword: false, showPassword: false)
                         .padding(.bottom)
+                    
+                    Toggle(isOn: $addDueDate) {
+                        Label("Set Due Date", systemImage: "calendar")
+                    }
+                    .toggleStyle(SwitchToggleStyle(tint: .blue))
+
+                    if addDueDate {
+                        DatePicker(
+                            "Due Date",
+                            selection: Binding(
+                                get: { dueDate ?? Date() },
+                                set: { dueDate = $0 }
+                            ),
+                            in: Date()...,
+                            displayedComponents: .date
+                        )
+                        .datePickerStyle(CompactDatePickerStyle())
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(.gray.opacity(0.2), in: RoundedRectangle(cornerRadius: 10))
+                    }
+                    
+                    Toggle(isOn: $isPinned) {
+                        Label("Pin this task", systemImage: "pin.fill")
+                    }
+                    .toggleStyle(SwitchToggleStyle(tint: .blue))
+                    .padding(.bottom)
                     
                     Menu {
                         ForEach(list.collections, id: \.id) { collection in
@@ -56,13 +85,6 @@ struct AddTaskView: View {
                         .padding()
                         .background(.gray.opacity(0.2), in: RoundedRectangle(cornerRadius: 10))
                     }
-                    
-                    DatePicker("Add Due Date", selection: $dueDate, in: Date()..., displayedComponents: .date)
-                        .datePickerStyle(CompactDatePickerStyle())
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(.gray.opacity(0.2), in: RoundedRectangle(cornerRadius: 10))
-                        .padding(.bottom)
                     
                     Button {
                         createTask()
@@ -98,11 +120,11 @@ struct AddTaskView: View {
             text: text,
             description: description,
             dateCreated: Date(),
-            dueDate: dueDate,
+            dueDate: addDueDate ? dueDate : nil,
             isCompleted: false,
             dateCompleted: nil,
             isDeleted: false,
-            isPinned: false
+            isPinned: isPinned
         )
         addToCollection(newTask: newTask)
         dismiss()
@@ -115,14 +137,14 @@ struct AddTaskView: View {
             }
             list.collections[index].tasks.append(newTask)
         } else {
-            if let otherIndex = list.collections.firstIndex(where: { $0.collectionName == "Other" }) {
-                if list.collections[otherIndex].tasks == nil {
-                    list.collections[otherIndex].tasks = []
+            if let generalIndex = list.collections.firstIndex(where: { $0.collectionName == "General" }) {
+                if list.collections[generalIndex].tasks == nil {
+                    list.collections[generalIndex].tasks = []
                 }
-                list.collections[otherIndex].tasks.append(newTask)
+                list.collections[generalIndex].tasks.append(newTask)
             } else {
-                let otherCollection = Collection(id: UUID().uuidString, collectionName: "Other", bgColorHex: "#87CEEB", dateCreated: Date(), tasks: [newTask])
-                list.collections.append(otherCollection)
+                let generalCollection = Collection(id: UUID().uuidString, collectionName: "General", bgColorHex: "#87CEEB", dateCreated: Date(), tasks: [newTask])
+                list.collections.append(generalCollection)
             }
         }
         for collection in list.collections {

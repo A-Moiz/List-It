@@ -16,7 +16,9 @@ class Supabase: ObservableObject {
     @Published var password: String = ""
     @Published var confirmPassword: String = ""
     @Published var lists = [
-        List(id: UUID().uuidString, listName: "Today", bgColorHex: "#87CEEB", dateCreated: Date(), isDefault: true, collections: [])
+        List(id: UUID().uuidString, listName: "Today", bgColorHex: "#FF9500", dateCreated: Date(), isDefault: true, collections: []),
+        List(id: UUID().uuidString, listName: "Completed", bgColorHex: "#34C759", dateCreated: Date(), isDefault: true, collections: []),
+        List(id: UUID().uuidString, listName: "Not Completed", bgColorHex: "#FF3B30", dateCreated: Date(), isDefault: true, collections: [])
     ]
     
     init() {
@@ -73,5 +75,32 @@ class Supabase: ObservableObject {
     
     func passwordsMatch() -> Bool {
         return password == confirmPassword
+    }
+    
+    func moveToCompletedList(task: Task, fromCollection: Collection) {
+        guard let currentListIndex = lists.firstIndex(where: { $0.collections.contains(where: { $0.id == fromCollection.id }) }) else {
+            return
+        }
+        
+        if let collectionIndex = lists[currentListIndex].collections.firstIndex(where: { $0.id == fromCollection.id }),
+           let taskIndex = lists[currentListIndex].collections[collectionIndex].tasks.firstIndex(where: { $0.id == task.id }) {
+            lists[currentListIndex].collections[collectionIndex].tasks.remove(at: taskIndex)
+        }
+        
+        guard let completedListIndex = lists.firstIndex(where: { $0.listName == "Completed" }) else { return }
+
+        if let completedCollectionIndex = lists[completedListIndex].collections.firstIndex(where: { $0.collectionName == fromCollection.collectionName }) {
+            lists[completedListIndex].collections[completedCollectionIndex].tasks.append(task)
+        } else {
+            let newCollection = Collection(
+                id: UUID().uuidString,
+                collectionName: fromCollection.collectionName,
+                bgColorHex: fromCollection.bgColorHex,
+                dateCreated: Date(),
+                tasks: [task],
+                notes: []
+            )
+            lists[completedListIndex].collections.append(newCollection)
+        }
     }
 }
