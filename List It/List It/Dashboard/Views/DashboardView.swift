@@ -62,7 +62,13 @@ struct DashboardView: View {
                     ScrollView {
                         VStack(spacing: 15) {
                             ForEach(filteredLists, id: \.id) { list in
-                                listView(for: list)
+                                if let index = db.lists.firstIndex(where: { $0.id == list.id }) {
+                                    let binding = Binding<List>(
+                                        get: { db.lists[index] },
+                                        set: { db.lists[index] = $0 }
+                                    )
+                                    ListView(list: binding, helper: helper, db: db)
+                                }
                             }
                         }
                         .padding(.horizontal, 15)
@@ -76,27 +82,6 @@ struct DashboardView: View {
                     .presentationCornerRadius(25)
                     .interactiveDismissDisabled()
             }
-        }
-    }
-    
-    @ViewBuilder
-    func listView(for list: List) -> some View {
-        guard let index = db.lists.firstIndex(where: { $0.id == list.id }) else {
-            return AnyView(EmptyView())
-        }
-
-        let listBinding = Binding<List>(
-            get: { db.lists[index] },
-            set: { db.lists[index] = $0 }
-        )
-
-        switch list.type {
-        case .regular:
-            return AnyView(ListView(list: listBinding, helper: helper, db: db))
-        case .completed:
-            return AnyView(CompletedListView(list: listBinding, helper: helper, db: db))
-        case .notCompleted:
-            return AnyView(NotCompletedListView())
         }
     }
 }

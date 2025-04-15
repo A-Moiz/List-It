@@ -59,17 +59,23 @@ struct ListDetailView: View {
     
     private var listContentView: some View {
         VStack {
-            if !list.collections.isEmpty {
-                ScrollView {
-                    VStack(alignment: .leading, spacing: 8) {
-                        collectionsForEachView(collections: list.collections)
-                    }
-                }
-                .padding(.horizontal)
+            if list.listName.lowercased() == "completed" {
+                CompletedListView(list: $list, helper: helper, db: db)
+            } else if list.listName.lowercased() == "not completed" {
+                NotCompletedListView(db: db, helper: helper)
             } else {
-                Text("No collections yet")
-                    .foregroundColor(.gray)
-                    .padding()
+                if !list.collections.isEmpty {
+                    ScrollView {
+                        VStack(alignment: .leading, spacing: 8) {
+                            collectionsForEachView(collections: list.collections)
+                        }
+                    }
+                    .padding(.horizontal)
+                } else {
+                    Text("No collections yet")
+                        .foregroundColor(.gray)
+                        .padding()
+                }
             }
         }
     }
