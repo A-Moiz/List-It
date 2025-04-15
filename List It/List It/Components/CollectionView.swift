@@ -272,6 +272,7 @@ import SwiftUI
 
 struct CollectionView: View {
     @Binding var collection: Collection
+    @Binding var list: List
     @State private var isExpanded: Bool = false
     @State private var selectedTab: Tab = .task
     @State private var tabProgress: CGFloat = 0
@@ -384,7 +385,7 @@ struct CollectionView: View {
                 } else {
                     ForEach(sortedTasks, id: \.id) { task in
                         if let index = collection.tasks.firstIndex(where: { $0.id == task.id }) {
-                            TaskView(task: $collection.tasks[index], collection: $collection, db: db, helper: helper)
+                            TaskView(task: $collection.tasks[index], collection: $collection, list: $list, db: db, helper: helper)
                                 .padding(.horizontal)
                                 .transition(.slide)
                         }
@@ -442,5 +443,6 @@ struct CollectionView: View {
         Note(id: UUID().uuidString, title: "Watering", description: "Don't forget to water the plants.", dateCreated: Date(), isDeleted: false, bgColorHex: "#FFCC00", isPinned: false)
     ]
     @State var collection = Collection(id: UUID().uuidString, collectionName: "List It", bgColorHex: "#87CEEB", dateCreated: Date(), tasks: sampleTasks, notes: sampleNotes)
-    CollectionView(collection: $collection, helper: Helper(), db: Supabase(), isDeleteView: false)
+    @State var list = List(id: UUID().uuidString, listName: "Today", bgColorHex: "#87CEEB", dateCreated: Date(), type: .regular, collections: [])
+    CollectionView(collection: $collection, list: $list, helper: Helper(), db: Supabase(), isDeleteView: false)
 }

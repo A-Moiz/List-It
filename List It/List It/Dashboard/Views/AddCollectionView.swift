@@ -88,6 +88,6 @@ struct AddCollectionView: View {
 }
 
 #Preview {
-    @Previewable @State var list = List(id: UUID().uuidString, listName: "Today", bgColorHex: "#87CEEB", dateCreated: Date(), isDefault: true, collections: [])
+    @Previewable @State var list = List(id: UUID().uuidString, listName: "Today", bgColorHex: "#87CEEB", dateCreated: Date(), type: .regular, collections: [])
     AddCollectionView(helper: Helper(), list: $list)
 }

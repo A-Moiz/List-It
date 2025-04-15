@@ -67,6 +67,7 @@ import SwiftUI
 struct TaskView: View {
     @Binding var task: Task
     @Binding var collection: Collection
+    @Binding var list: List
     @ObservedObject var db: Supabase
     @ObservedObject var helper: Helper
 
@@ -84,9 +85,7 @@ struct TaskView: View {
             HStack(spacing: 16) {
                 Button {
                     task.isCompleted.toggle()
-                    if task.isCompleted {
-                        db.moveToCompletedList(task: task, fromCollection: collection)
-                    }
+                    db.moveToCompletedList(task: task, fromList: list)
                 } label: {
                     Image(systemName: task.isCompleted ? "square.fill" : "square")
                         .foregroundColor(task.isCompleted ? .green : .gray)
@@ -155,5 +154,6 @@ struct TaskView: View {
         isPinned: false
     )
     @State var collection = Collection(id: UUID().uuidString, collectionName: "List It", bgColorHex: "#87CEEB", dateCreated: Date(), tasks: [], notes: [])
-    TaskView(task: $task, collection: $collection, db: Supabase(), helper: Helper())
+    @State var list = List(id: UUID().uuidString, listName: "Today", bgColorHex: "#87CEEB", dateCreated: Date(), type: .regular, collections: [])
+    TaskView(task: $task, collection: $collection, list: $list, db: Supabase(), helper: Helper())
 }

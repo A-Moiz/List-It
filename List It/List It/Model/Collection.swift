@@ -8,7 +8,7 @@
 import Foundation
 import SwiftUI
 
-struct Collection {
+struct Collection: Identifiable {
     var id: String
     var collectionName: String
     var bgColorHex: String
