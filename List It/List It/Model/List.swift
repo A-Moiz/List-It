@@ -21,4 +21,5 @@ struct List {
     var bgColor: Color {
         Color(hex: bgColorHex)
     }
+    var isPinned: Bool
 }
