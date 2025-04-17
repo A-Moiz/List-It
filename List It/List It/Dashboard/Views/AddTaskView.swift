@@ -158,6 +158,6 @@ struct AddTaskView: View {
 }
 
 #Preview {
-    @Previewable @State var list = List(id: UUID().uuidString, listName: "Today", bgColorHex: "#87CEEB", dateCreated: Date(), type: .regular, collections: [])
+    @Previewable @State var list = List(id: UUID().uuidString, listIcon: "calendar", listName: "Today", isDefault: true, bgColorHex: "#87CEEB", dateCreated: Date(), type: .regular, collections: [])
     AddTaskView(list: $list, helper: Helper())
 }

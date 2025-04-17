@@ -10,7 +10,9 @@ import SwiftUI
 
 struct List {
     var id: String
+    var listIcon: String
     var listName: String
+    var isDefault: Bool
     var bgColorHex: String
     var dateCreated: Date
     var type: ListType

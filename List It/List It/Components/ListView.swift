@@ -22,12 +22,18 @@ struct ListView: View {
                     .shadow(color: .gray, radius: 5, x: 0, y: 2)
                 
                 HStack(spacing: 15) {
-                    Image(systemName: "checklist")
-                        .resizable()
-                        .frame(width: 40, height: 40)
-                        .foregroundStyle(.black)
+                    if list.isDefault {
+                        Image(systemName: list.listIcon)
+                            .resizable()
+                            .frame(width: 40, height: 40)
+                            .foregroundStyle(.black)
+                    } else {
+                        Image(systemName: "checklist")
+                            .resizable()
+                            .frame(width: 40, height: 40)
+                            .foregroundStyle(.black)
+                    }
                         
-                    
                     VStack(alignment: .leading, spacing: 5) {
                         Text(list.listName.description.capitalized)
                             .font(.title3)
@@ -46,6 +52,6 @@ struct ListView: View {
 }
 
 #Preview {
-    @Previewable @State var list = List(id: UUID().uuidString, listName: "Today", bgColorHex: "#87CEEB", dateCreated: Date(), type: .regular, collections: [])
+    @Previewable @State var list = List(id: UUID().uuidString, listIcon: "calendar", listName: "Today", isDefault: true, bgColorHex: "#87CEEB", dateCreated: Date(), type: .regular, collections: [])
     ListView(list: $list, helper: Helper(), db: Supabase())
 }

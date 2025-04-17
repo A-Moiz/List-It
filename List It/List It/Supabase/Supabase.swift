@@ -16,9 +16,9 @@ class Supabase: ObservableObject {
     @Published var password: String = ""
     @Published var confirmPassword: String = ""
     @Published var lists = [
-        List(id: UUID().uuidString, listName: "Today", bgColorHex: "#FF9500", dateCreated: Date(), type: .regular, collections: []),
-        List(id: UUID().uuidString, listName: "Completed", bgColorHex: "#34C759", dateCreated: Date(), type: .completed([]), collections: []),
-        List(id: UUID().uuidString, listName: "Not Completed", bgColorHex: "#FF3B30", dateCreated: Date(), type: .notCompleted([]), collections: [])
+        List(id: UUID().uuidString, listIcon: "calendar", listName: "Today", isDefault: true, bgColorHex: "#FF9500", dateCreated: Date(), type: .regular, collections: []),
+        List(id: UUID().uuidString, listIcon: "checkmark.circle.fill", listName: "Completed", isDefault: true, bgColorHex: "#34C759", dateCreated: Date(), type: .completed([]), collections: []),
+        List(id: UUID().uuidString, listIcon: "x.circle.fill", listName: "Not Completed", isDefault: true, bgColorHex: "#FF3B30", dateCreated: Date(), type: .notCompleted([]), collections: [])
     ]
     
     init() {
