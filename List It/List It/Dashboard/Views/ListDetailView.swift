@@ -30,7 +30,10 @@ struct ListDetailView: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
                     .toolbar {
                         leadingToolbarItems
-                        trailingToolbarItems
+                        
+                        if !list.isDefault {
+                            trailingToolbarItems
+                        }
                     }
                     .background(navigationLink)
                     .sheet(isPresented: $showAddcollectionView) {
