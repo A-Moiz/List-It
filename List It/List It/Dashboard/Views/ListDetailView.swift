@@ -31,7 +31,7 @@ struct ListDetailView: View {
                     .toolbar {
                         leadingToolbarItems
                         
-                        if !list.isDefault {
+                        if !["completed", "not completed", "today"].contains(list.listName.lowercased()) {
                             trailingToolbarItems
                         }
                     }
