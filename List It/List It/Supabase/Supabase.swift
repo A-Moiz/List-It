@@ -82,26 +82,69 @@ class Supabase: ObservableObject {
         guard let fromListIndex = lists.firstIndex(where: { $0.id == fromList.id }) else {
             return
         }
-
-        // 2. Remove the task from the source list
-        if let taskIndex = lists[fromListIndex].tasks?.firstIndex(where: { $0.id == task.id }) {
-            lists[fromListIndex].tasks?.remove(at: taskIndex)
+        
+        // 2. Remove the task from its collection in the source list
+        var taskRemovedFromCollection = false
+        
+        // Loop through each collection in the source list
+        for collectionIndex in 0..<(lists[fromListIndex].collections.count) {
+            if let taskIndex = lists[fromListIndex].collections[collectionIndex].tasks.firstIndex(where: { $0.id == task.id }) {
+                // Remove the task from the collection
+                lists[fromListIndex].collections[collectionIndex].tasks.remove(at: taskIndex)
+                taskRemovedFromCollection = true
+                break
+            }
         }
-
-        // 3. Find the 'Completed' list
+        
+        // 3. If task wasn't in a collection, remove it from the list's direct tasks
+        if !taskRemovedFromCollection {
+            if let taskIndex = lists[fromListIndex].tasks?.firstIndex(where: { $0.id == task.id }) {
+                lists[fromListIndex].tasks?.remove(at: taskIndex)
+            }
+        }
+        
+        // 4. Find the 'Completed' list
         guard let completedListIndex = lists.firstIndex(where: { $0.listName == "Completed" }) else {
             return
         }
-
-        // 4. Append task to completed list with updated properties
+        
+        // 5. Append task to completed list with updated properties
         var completedTask = task
         completedTask.isCompleted = true
         completedTask.dateCompleted = Date()
-
+        
         if lists[completedListIndex].tasks != nil {
             lists[completedListIndex].tasks?.append(completedTask)
         } else {
             lists[completedListIndex].tasks = [completedTask]
         }
     }
+    
+//    func moveToCompletedList(task: Task, fromList: List) {
+//        // 1. Find the index of the source list
+//        guard let fromListIndex = lists.firstIndex(where: { $0.id == fromList.id }) else {
+//            return
+//        }
+//
+//        // 2. Remove the task from the source list
+//        if let taskIndex = lists[fromListIndex].tasks?.firstIndex(where: { $0.id == task.id }) {
+//            lists[fromListIndex].tasks?.remove(at: taskIndex)
+//        }
+//
+//        // 3. Find the 'Completed' list
+//        guard let completedListIndex = lists.firstIndex(where: { $0.listName == "Completed" }) else {
+//            return
+//        }
+//
+//        // 4. Append task to completed list with updated properties
+//        var completedTask = task
+//        completedTask.isCompleted = true
+//        completedTask.dateCompleted = Date()
+//
+//        if lists[completedListIndex].tasks != nil {
+//            lists[completedListIndex].tasks?.append(completedTask)
+//        } else {
+//            lists[completedListIndex].tasks = [completedTask]
+//        }
+//    }
 }
