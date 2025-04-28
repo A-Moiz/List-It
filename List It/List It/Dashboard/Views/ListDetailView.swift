@@ -31,9 +31,13 @@ struct ListDetailView: View {
                     .toolbar {
                         leadingToolbarItems
                         
-                        if !["completed", "not completed", "today"].contains(list.listName.lowercased()) {
+                        if !list.isDefault {
                             trailingToolbarItems
                         }
+                        
+//                        if !["completed", "not completed", "today", "tomorrow", "priority"].contains(list.listName.lowercased()) {
+//                            trailingToolbarItems
+//                        }
                     }
                     .background(navigationLink)
                     .sheet(isPresented: $showAddcollectionView) {
@@ -65,7 +69,15 @@ struct ListDetailView: View {
             if list.listName.lowercased() == "completed" {
                 CompletedListView(list: $list, helper: helper, db: db)
             } else if list.listName.lowercased() == "not completed" {
-                NotCompletedListView(db: db, helper: helper)
+                NotCompletedListView(helper: helper, db: db)
+            } else if list.listName.lowercased() == "today" {
+                TodayListView(helper: helper, db: db)
+            } else if list.listName.lowercased() == "tomorrow" {
+                TomorrowListView(helper: helper, db: db)
+            } else if list.listName.lowercased() == "priority" {
+                PriorityListView(helper: helper, db: db)
+            } else if list.listName.lowercased() == "overdue" {
+                OverdueListView(helper: helper, db: db)
             } else {
                 if !list.collections.isEmpty {
                     ScrollView {

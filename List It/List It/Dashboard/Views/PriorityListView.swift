@@ -1,13 +1,13 @@
 //
-//  NotCompletedListView.swift
+//  PriorityListView.swift
 //  List It
 //
-//  Created by Abdul Moiz on 15/04/2025.
+//  Created by Abdul Moiz on 28/04/2025.
 //
 
 import SwiftUI
 
-struct NotCompletedListView: View {
+struct PriorityListView: View {
     @ObservedObject var helper: Helper
     @ObservedObject var db: Supabase
     @Environment(\.colorScheme) var colorScheme
@@ -18,7 +18,7 @@ struct NotCompletedListView: View {
         return formatter
     }
     
-    private var notCompletedTasks: [(task: Task, listName: String, collectionName: String)] {
+    private var pinnedTasks: [(task: Task, listName: String, collectionName: String)] {
         var allTasks: [(task: Task, listName: String, collectionName: String)] = []
         
         for list in db.lists {
@@ -37,9 +37,9 @@ struct NotCompletedListView: View {
             }
         }
         
-        // Only tasks that are NOT completed and NOT deleted
+        // Only pinned, not deleted, and not completed
         return allTasks.filter { taskInfo in
-            !taskInfo.task.isDeleted && !taskInfo.task.isCompleted
+            taskInfo.task.isPinned && !taskInfo.task.isDeleted && !taskInfo.task.isCompleted
         }
     }
     
@@ -49,20 +49,22 @@ struct NotCompletedListView: View {
                 AppConstants.background(for: colorScheme)
                     .ignoresSafeArea()
                 
+                // Break down into smaller components to help type checking
                 mainContentView
             }
-            .navigationTitle("Incomplete Tasks")
+            .navigationTitle("Priority Tasks")
             .navigationBarTitleDisplayMode(.inline)
         }
     }
     
+    // Extract header to separate view
     private var headerView: some View {
         HStack {
             VStack(alignment: .leading) {
-                Text("Incomplete")
+                Text("Priorities")
                     .font(.system(size: 28, weight: .bold))
                 
-                Text("Tasks you haven't completed yet")
+                Text("Important tasks at a glance")
                     .font(.subheadline)
                     .foregroundColor(.gray)
             }
@@ -71,32 +73,33 @@ struct NotCompletedListView: View {
             
             ZStack {
                 Circle()
-                    .fill(Color.blue.opacity(0.2))
+                    .fill(Color.orange.opacity(0.2))
                     .frame(width: 40, height: 40)
                 
-                Text("\(notCompletedTasks.count)")
+                Text("\(pinnedTasks.count)")
                     .font(.system(size: 18, weight: .semibold))
-                    .foregroundColor(.blue)
+                    .foregroundColor(.orange)
             }
         }
         .padding(.horizontal)
         .padding(.top)
     }
     
+    // Empty state view
     private var emptyStateView: some View {
         VStack {
             Spacer()
             
-            Image(systemName: "checkmark.circle")
+            Image(systemName: "pin.slash")
                 .font(.system(size: 50))
                 .foregroundColor(.gray)
                 .padding()
             
-            Text("All tasks completed")
+            Text("No pinned tasks")
                 .font(.title3)
                 .foregroundColor(.gray)
             
-            Text("You're all caught up!")
+            Text("Pin tasks you find important!")
                 .font(.subheadline)
                 .foregroundColor(.gray.opacity(0.8))
             
@@ -105,10 +108,11 @@ struct NotCompletedListView: View {
         .frame(maxWidth: .infinity)
     }
     
+    // Task list view
     private var taskListView: some View {
         ScrollView {
             LazyVStack(spacing: 16) {
-                ForEach(notCompletedTasks, id: \.task.id) { taskInfo in
+                ForEach(pinnedTasks, id: \.task.id) { taskInfo in
                     TodayTaskCard(
                         task: taskInfo.task,
                         listName: taskInfo.listName,
@@ -123,11 +127,12 @@ struct NotCompletedListView: View {
         }
     }
     
+    // Combine all views
     private var mainContentView: some View {
         VStack(alignment: .leading) {
             headerView
             
-            if notCompletedTasks.isEmpty {
+            if pinnedTasks.isEmpty {
                 emptyStateView
             } else {
                 taskListView
@@ -137,5 +142,5 @@ struct NotCompletedListView: View {
 }
 
 #Preview {
-    NotCompletedListView(helper: Helper(), db: Supabase())
+    PriorityListView(helper: Helper(), db: Supabase())
 }

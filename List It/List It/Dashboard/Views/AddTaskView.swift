@@ -12,10 +12,10 @@ struct AddTaskView: View {
     @Environment(\.colorScheme) var colorScheme
     @Environment(\.dismiss) var dismiss
     @ObservedObject var helper: Helper
-
+    
     @State var text: String = ""
     @State var description: String = ""
-    @State private var dueDate: Date? = nil
+    @State private var dueDate: Date = Date()
     @State private var selectedCollectionName: String? = nil
     @State private var addDueDate: Bool = false
     @State private var isPinned: Bool = false
@@ -38,14 +38,11 @@ struct AddTaskView: View {
                         Label("Set Due Date", systemImage: "calendar")
                     }
                     .toggleStyle(SwitchToggleStyle(tint: .blue))
-
+                    
                     if addDueDate {
                         DatePicker(
                             "Due Date",
-                            selection: Binding(
-                                get: { dueDate ?? Date() },
-                                set: { dueDate = $0 }
-                            ),
+                            selection: $dueDate,
                             in: Date()...,
                             displayedComponents: .date
                         )

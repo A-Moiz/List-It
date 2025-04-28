@@ -16,9 +16,12 @@ class Supabase: ObservableObject {
     @Published var password: String = ""
     @Published var confirmPassword: String = ""
     @Published var lists = [
-        List(id: UUID().uuidString, listIcon: "calendar", listName: "Today", isDefault: true, bgColorHex: "#FF9500", dateCreated: Date(), type: .regular, collections: [], isPinned: false),
-        List(id: UUID().uuidString, listIcon: "checkmark.circle.fill", listName: "Completed", isDefault: true, bgColorHex: "#34C759", dateCreated: Date(), type: .completed([]), collections: [], isPinned: false),
-        List(id: UUID().uuidString, listIcon: "x.circle.fill", listName: "Not Completed", isDefault: true, bgColorHex: "#FF3B30", dateCreated: Date(), type: .notCompleted([]), collections: [], isPinned: false)
+        List(id: UUID().uuidString, listIcon: "sun.max", listName: "Today", isDefault: true, bgColorHex: "#FF9500", dateCreated: Date(), type: .regular, collections: [], isPinned: false),
+        List(id: UUID().uuidString, listIcon: "sunrise", listName: "Tomorrow", isDefault: true, bgColorHex: "#007AFF", dateCreated: Date(), type: .regular, collections: [], isPinned: false),
+        List(id: UUID().uuidString, listIcon: "checkmark.square.fill", listName: "Completed", isDefault: true, bgColorHex: "#34C759", dateCreated: Date(), type: .completed([]), collections: [], isPinned: false),
+        List(id: UUID().uuidString, listIcon: "square", listName: "Not Completed", isDefault: true, bgColorHex: "#FF3B30", dateCreated: Date(), type: .notCompleted([]), collections: [], isPinned: false),
+        List(id: UUID().uuidString, listIcon: "clock.arrow.circlepath", listName: "Overdue", isDefault: true, bgColorHex: "#FF2D55", dateCreated: Date(), type: .notCompleted([]), collections: [], isPinned: false),
+        List(id: UUID().uuidString, listIcon: "flag.fill", listName: "Priority", isDefault: true, bgColorHex: "#5856D6", dateCreated: Date(), type: .notCompleted([]), collections: [], isPinned: false)
     ]
     
     init() {

@@ -1,13 +1,13 @@
 //
-//  NotCompletedListView.swift
+//  OverdueListView.swift
 //  List It
 //
-//  Created by Abdul Moiz on 15/04/2025.
+//  Created by Abdul Moiz on 28/04/2025.
 //
 
 import SwiftUI
 
-struct NotCompletedListView: View {
+struct OverdueListView: View {
     @ObservedObject var helper: Helper
     @ObservedObject var db: Supabase
     @Environment(\.colorScheme) var colorScheme
@@ -18,7 +18,7 @@ struct NotCompletedListView: View {
         return formatter
     }
     
-    private var notCompletedTasks: [(task: Task, listName: String, collectionName: String)] {
+    private var overdueTasks: [(task: Task, listName: String, collectionName: String)] {
         var allTasks: [(task: Task, listName: String, collectionName: String)] = []
         
         for list in db.lists {
@@ -29,7 +29,7 @@ struct NotCompletedListView: View {
                 }
             }
             
-            // Tasks in collections
+            // Tasks inside collections
             for collection in list.collections {
                 for task in collection.tasks {
                     allTasks.append((task: task, listName: list.listName, collectionName: collection.collectionName))
@@ -37,9 +37,15 @@ struct NotCompletedListView: View {
             }
         }
         
-        // Only tasks that are NOT completed and NOT deleted
+        let today = Calendar.current.startOfDay(for: Date())
+        
+        // Filter: Task must have a due date, due date is before today, not completed, not deleted
         return allTasks.filter { taskInfo in
-            !taskInfo.task.isDeleted && !taskInfo.task.isCompleted
+            if let dueDate = taskInfo.task.dueDate {
+                return dueDate < today && !taskInfo.task.isCompleted && !taskInfo.task.isDeleted
+            } else {
+                return false
+            }
         }
     }
     
@@ -51,7 +57,7 @@ struct NotCompletedListView: View {
                 
                 mainContentView
             }
-            .navigationTitle("Incomplete Tasks")
+            .navigationTitle("Overdue Tasks")
             .navigationBarTitleDisplayMode(.inline)
         }
     }
@@ -59,10 +65,10 @@ struct NotCompletedListView: View {
     private var headerView: some View {
         HStack {
             VStack(alignment: .leading) {
-                Text("Incomplete")
+                Text("Overdue")
                     .font(.system(size: 28, weight: .bold))
                 
-                Text("Tasks you haven't completed yet")
+                Text("Tasks past their due date")
                     .font(.subheadline)
                     .foregroundColor(.gray)
             }
@@ -71,12 +77,12 @@ struct NotCompletedListView: View {
             
             ZStack {
                 Circle()
-                    .fill(Color.blue.opacity(0.2))
+                    .fill(Color.red.opacity(0.2))
                     .frame(width: 40, height: 40)
                 
-                Text("\(notCompletedTasks.count)")
+                Text("\(overdueTasks.count)")
                     .font(.system(size: 18, weight: .semibold))
-                    .foregroundColor(.blue)
+                    .foregroundColor(.red)
             }
         }
         .padding(.horizontal)
@@ -87,16 +93,16 @@ struct NotCompletedListView: View {
         VStack {
             Spacer()
             
-            Image(systemName: "checkmark.circle")
+            Image(systemName: "calendar.badge.exclamationmark")
                 .font(.system(size: 50))
                 .foregroundColor(.gray)
                 .padding()
             
-            Text("All tasks completed")
+            Text("No overdue tasks")
                 .font(.title3)
                 .foregroundColor(.gray)
             
-            Text("You're all caught up!")
+            Text("Stay on top of your schedule!")
                 .font(.subheadline)
                 .foregroundColor(.gray.opacity(0.8))
             
@@ -108,7 +114,7 @@ struct NotCompletedListView: View {
     private var taskListView: some View {
         ScrollView {
             LazyVStack(spacing: 16) {
-                ForEach(notCompletedTasks, id: \.task.id) { taskInfo in
+                ForEach(overdueTasks, id: \.task.id) { taskInfo in
                     TodayTaskCard(
                         task: taskInfo.task,
                         listName: taskInfo.listName,
@@ -127,7 +133,7 @@ struct NotCompletedListView: View {
         VStack(alignment: .leading) {
             headerView
             
-            if notCompletedTasks.isEmpty {
+            if overdueTasks.isEmpty {
                 emptyStateView
             } else {
                 taskListView
@@ -137,5 +143,5 @@ struct NotCompletedListView: View {
 }
 
 #Preview {
-    NotCompletedListView(helper: Helper(), db: Supabase())
+    OverdueListView(helper: Helper(), db: Supabase())
 }
