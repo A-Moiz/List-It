@@ -18,8 +18,8 @@ struct PriorityListView: View {
         return formatter
     }
     
-    private var pinnedTasks: [(task: Task, listName: String, collectionName: String)] {
-        var allTasks: [(task: Task, listName: String, collectionName: String)] = []
+    private var pinnedTasks: [(task: ToDoTask, listName: String, collectionName: String)] {
+        var allTasks: [(task: ToDoTask, listName: String, collectionName: String)] = []
         
         for list in db.lists {
             // Direct tasks

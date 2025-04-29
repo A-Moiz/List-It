@@ -18,8 +18,8 @@ struct OverdueListView: View {
         return formatter
     }
     
-    private var overdueTasks: [(task: Task, listName: String, collectionName: String)] {
-        var allTasks: [(task: Task, listName: String, collectionName: String)] = []
+    private var overdueTasks: [(task: ToDoTask, listName: String, collectionName: String)] {
+        var allTasks: [(task: ToDoTask, listName: String, collectionName: String)] = []
         
         for list in db.lists {
             // Direct tasks

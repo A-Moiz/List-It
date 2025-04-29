@@ -8,7 +8,20 @@
 import Foundation
 import SwiftUI
 
-struct Note: Identifiable {
+//struct Note: Identifiable {
+//    var id: String
+//    var title: String
+//    var description: String
+//    var dateCreated: Date
+//    var isDeleted: Bool
+//    var bgColorHex: String
+//    var isPinned: Bool
+//    var bgColor: Color {
+//        Color(hex: bgColorHex)
+//    }
+//}
+
+struct Note: Identifiable, Codable {
     var id: String
     var title: String
     var description: String
@@ -16,6 +29,7 @@ struct Note: Identifiable {
     var isDeleted: Bool
     var bgColorHex: String
     var isPinned: Bool
+    
     var bgColor: Color {
         Color(hex: bgColorHex)
     }

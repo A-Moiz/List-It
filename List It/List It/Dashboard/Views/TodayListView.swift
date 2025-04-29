@@ -23,10 +23,10 @@ struct TodayListView: View {
     }
 
     // Restructured to simplify - return a simple array of task data
-    private var todayTasks: [(task: Task, listName: String, collectionName: String)] {
+    private var todayTasks: [(task: ToDoTask, listName: String, collectionName: String)] {
         let todayDate = Calendar.current.startOfDay(for: Date())
         
-        var allTasks: [(task: Task, listName: String, collectionName: String)] = []
+        var allTasks: [(task: ToDoTask, listName: String, collectionName: String)] = []
         
         // Go through each list
         for list in db.lists {
@@ -153,7 +153,7 @@ struct TodayListView: View {
 }
 
 struct TodayTaskCard: View {
-    let task: Task
+    let task: ToDoTask
     let listName: String
     let collectionName: String
     @ObservedObject var helper: Helper
@@ -161,7 +161,7 @@ struct TodayTaskCard: View {
     @Environment(\.colorScheme) var colorScheme
     @State private var isCompleted: Bool
     
-    init(task: Task, listName: String, collectionName: String, helper: Helper, db: Supabase) {
+    init(task: ToDoTask, listName: String, collectionName: String, helper: Helper, db: Supabase) {
         self.task = task
         self.listName = listName
         self.collectionName = collectionName

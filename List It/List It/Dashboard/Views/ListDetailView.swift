@@ -34,10 +34,6 @@ struct ListDetailView: View {
                         if !list.isDefault {
                             trailingToolbarItems
                         }
-                        
-//                        if !["completed", "not completed", "today", "tomorrow", "priority"].contains(list.listName.lowercased()) {
-//                            trailingToolbarItems
-//                        }
                     }
                     .background(navigationLink)
                     .sheet(isPresented: $showAddcollectionView) {
@@ -149,6 +145,6 @@ struct ListDetailView: View {
 }
 
 #Preview {
-    @Previewable @State var list = List(id: UUID().uuidString, listIcon: "calendar", listName: "Today", isDefault: true, bgColorHex: "#87CEEB", dateCreated: Date(), type: .regular, collections: [], isPinned: false)
+    @Previewable @State var list = List(id: UUID().uuidString, listIcon: "calendar", listName: "Today", isDefault: true, bgColorHex: "#87CEEB", dateCreated: Date(), collections: [], isPinned: false)
     ListDetailView(list: $list, helper: Helper(), db: Supabase())
 }

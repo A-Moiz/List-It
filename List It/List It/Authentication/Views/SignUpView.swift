@@ -13,6 +13,7 @@ struct SignUpView: View {
     @ObservedObject var helper: Helper
     @State private var isNavigating = false
     @State var showEmailVerificationView: Bool = false
+    @State private var userId: String = ""
     @Environment(\.colorScheme) var colorScheme
     
     var body: some View {
@@ -83,7 +84,7 @@ struct SignUpView: View {
                 .hidden()
         )
         .sheet(isPresented: $showEmailVerificationView, content: {
-            EmailConfirmationView()
+            EmailConfirmationView(db: db, helper: helper, email: db.email, name: db.name, userId: userId)
                 .presentationDetents([.height(350)])
                 .presentationCornerRadius(25)
                 .interactiveDismissDisabled()
@@ -98,32 +99,14 @@ struct SignUpView: View {
     }
     
     func checkDetails() {
-        if !db.detailsFilled() {
-            helper.showAlertWithMessage("All fields must be filled in")
-            return
+        db.createUser { success, message, userId in
+            if success, let userId = userId {
+                self.userId = userId
+                showEmailVerificationView = true
+            } else if let message = message {
+                helper.showAlertWithMessage(message)
+            }
         }
-        
-        if !db.isValidName() {
-            helper.showAlertWithMessage("Invalid Name")
-            return
-        }
-        
-        if !db.isValidEmail() {
-            helper.showAlertWithMessage("Invalid Email")
-            return
-        }
-        
-        if !db.isValidPassword() {
-            helper.showAlertWithMessage("Password must be at least 6 characters long")
-            return
-        }
-        
-        if !db.passwordsMatch() {
-            helper.showAlertWithMessage("Passwords do not match")
-            return
-        }
-        
-        helper.showAlertWithMessage("Account Ready to be made.")
     }
     
     func signInWithGoogle() {
@@ -133,7 +116,6 @@ struct SignUpView: View {
     func signInWithApple() {
         print("Sign in with Apple tapped")
     }
-    
 }
 
 #Preview {

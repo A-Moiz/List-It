@@ -130,6 +130,6 @@ struct DeleteCollectionView: View {
         Collection(id: UUID().uuidString, collectionName: "English", bgColorHex: "#87CEEB", dateCreated: Date(), tasks: [], notes: []),
         Collection(id: UUID().uuidString, collectionName: "Maths", bgColorHex: "#87CEEB", dateCreated: Date(), tasks: [], notes: [])
     ]
-    @State var list = List(id: UUID().uuidString, listIcon: "calendar", listName: "Today", isDefault: true, bgColorHex: "#87CEEB", dateCreated: Date(), type: .regular, collections: sampleCollections, isPinned: false)
+    @State var list = List(id: UUID().uuidString, listIcon: "calendar", listName: "Today", isDefault: true, bgColorHex: "#87CEEB", dateCreated: Date(), collections: sampleCollections, isPinned: false)
     DeleteCollectionView(list: $list, helper: Helper(), db: Supabase())
 }

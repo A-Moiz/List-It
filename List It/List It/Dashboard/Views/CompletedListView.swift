@@ -19,7 +19,7 @@ struct CompletedListView: View {
         return formatter
     }
 
-    var groupedTasks: [Date: [Task]] {
+    var groupedTasks: [Date: [ToDoTask]] {
         let completedTasks = (list.tasks ?? []).filter {
             $0.isCompleted && !$0.isDeleted && $0.dateCompleted != nil
         }
@@ -115,19 +115,19 @@ struct CompletedListView: View {
 
 #Preview {
     let sampleTasks = [
-        Task(id: UUID().uuidString, text: "Buy groceries", description: "do this", dateCreated: Date(), dueDate: nil, isCompleted: true, dateCompleted: Date(), isDeleted: false, isPinned: false),
-        Task(id: UUID().uuidString, text: "Mow the lawn", description: nil, dateCreated: Date(), dueDate: nil, isCompleted: true, dateCompleted: Calendar.current.date(from: DateComponents(year: 2025, month: 3, day: 20)), isDeleted: false, isPinned: false),
-        Task(id: UUID().uuidString, text: "Read SwiftUI book", description: nil, dateCreated: Date(), dueDate: nil, isCompleted: true, dateCompleted: Calendar.current.date(from: DateComponents(year: 2024, month: 12, day: 25)), isDeleted: false, isPinned: false),
-        Task(id: UUID().uuidString, text: "Buy groceries", description: nil, dateCreated: Date(), dueDate: nil, isCompleted: true, dateCompleted: Date(), isDeleted: false, isPinned: false),
-        Task(id: UUID().uuidString, text: "Mow the lawn", description: nil, dateCreated: Date(), dueDate: nil, isCompleted: true, dateCompleted: Calendar.current.date(from: DateComponents(year: 2025, month: 3, day: 20)), isDeleted: false, isPinned: false),
-        Task(id: UUID().uuidString, text: "Read SwiftUI book", description: nil, dateCreated: Date(), dueDate: nil, isCompleted: true, dateCompleted: Calendar.current.date(from: DateComponents(year: 2024, month: 12, day: 25)), isDeleted: false, isPinned: false),
-        Task(id: UUID().uuidString, text: "Buy groceries", description: nil, dateCreated: Date(), dueDate: nil, isCompleted: true, dateCompleted: Date(), isDeleted: false, isPinned: false),
-        Task(id: UUID().uuidString, text: "Mow the lawn", description: nil, dateCreated: Date(), dueDate: nil, isCompleted: true, dateCompleted: Calendar.current.date(from: DateComponents(year: 2025, month: 3, day: 20)), isDeleted: false, isPinned: false),
-        Task(id: UUID().uuidString, text: "Read SwiftUI book", description: nil, dateCreated: Date(), dueDate: nil, isCompleted: true, dateCompleted: Calendar.current.date(from: DateComponents(year: 2024, month: 12, day: 25)), isDeleted: false, isPinned: false),
-        Task(id: UUID().uuidString, text: "Buy groceries", description: nil, dateCreated: Date(), dueDate: nil, isCompleted: true, dateCompleted: Date(), isDeleted: false, isPinned: false),
-        Task(id: UUID().uuidString, text: "Mow the lawn", description: nil, dateCreated: Date(), dueDate: nil, isCompleted: true, dateCompleted: Calendar.current.date(from: DateComponents(year: 2025, month: 3, day: 20)), isDeleted: false, isPinned: false),
-        Task(id: UUID().uuidString, text: "Read SwiftUI book", description: nil, dateCreated: Date(), dueDate: nil, isCompleted: true, dateCompleted: Calendar.current.date(from: DateComponents(year: 2024, month: 11, day: 25)), isDeleted: false, isPinned: false)
+        ToDoTask(id: UUID().uuidString, text: "Buy groceries", description: "do this", dateCreated: Date(), dueDate: nil, isCompleted: true, dateCompleted: Date(), isDeleted: false, isPinned: false),
+        ToDoTask(id: UUID().uuidString, text: "Mow the lawn", description: nil, dateCreated: Date(), dueDate: nil, isCompleted: true, dateCompleted: Calendar.current.date(from: DateComponents(year: 2025, month: 3, day: 20)), isDeleted: false, isPinned: false),
+        ToDoTask(id: UUID().uuidString, text: "Read SwiftUI book", description: nil, dateCreated: Date(), dueDate: nil, isCompleted: true, dateCompleted: Calendar.current.date(from: DateComponents(year: 2024, month: 12, day: 25)), isDeleted: false, isPinned: false),
+        ToDoTask(id: UUID().uuidString, text: "Buy groceries", description: nil, dateCreated: Date(), dueDate: nil, isCompleted: true, dateCompleted: Date(), isDeleted: false, isPinned: false),
+        ToDoTask(id: UUID().uuidString, text: "Mow the lawn", description: nil, dateCreated: Date(), dueDate: nil, isCompleted: true, dateCompleted: Calendar.current.date(from: DateComponents(year: 2025, month: 3, day: 20)), isDeleted: false, isPinned: false),
+        ToDoTask(id: UUID().uuidString, text: "Read SwiftUI book", description: nil, dateCreated: Date(), dueDate: nil, isCompleted: true, dateCompleted: Calendar.current.date(from: DateComponents(year: 2024, month: 12, day: 25)), isDeleted: false, isPinned: false),
+        ToDoTask(id: UUID().uuidString, text: "Buy groceries", description: nil, dateCreated: Date(), dueDate: nil, isCompleted: true, dateCompleted: Date(), isDeleted: false, isPinned: false),
+        ToDoTask(id: UUID().uuidString, text: "Mow the lawn", description: nil, dateCreated: Date(), dueDate: nil, isCompleted: true, dateCompleted: Calendar.current.date(from: DateComponents(year: 2025, month: 3, day: 20)), isDeleted: false, isPinned: false),
+        ToDoTask(id: UUID().uuidString, text: "Read SwiftUI book", description: nil, dateCreated: Date(), dueDate: nil, isCompleted: true, dateCompleted: Calendar.current.date(from: DateComponents(year: 2024, month: 12, day: 25)), isDeleted: false, isPinned: false),
+        ToDoTask(id: UUID().uuidString, text: "Buy groceries", description: nil, dateCreated: Date(), dueDate: nil, isCompleted: true, dateCompleted: Date(), isDeleted: false, isPinned: false),
+        ToDoTask(id: UUID().uuidString, text: "Mow the lawn", description: nil, dateCreated: Date(), dueDate: nil, isCompleted: true, dateCompleted: Calendar.current.date(from: DateComponents(year: 2025, month: 3, day: 20)), isDeleted: false, isPinned: false),
+        ToDoTask(id: UUID().uuidString, text: "Read SwiftUI book", description: nil, dateCreated: Date(), dueDate: nil, isCompleted: true, dateCompleted: Calendar.current.date(from: DateComponents(year: 2024, month: 11, day: 25)), isDeleted: false, isPinned: false)
     ]
-    @State var list = List(id: UUID().uuidString, listIcon: "calendar", listName: "Today", isDefault: true, bgColorHex: "#87CEEB", dateCreated: Date(), type: .regular, collections: [], tasks: sampleTasks, isPinned: false)
+    @State var list = List(id: UUID().uuidString, listIcon: "calendar", listName: "Today", isDefault: true, bgColorHex: "#87CEEB", dateCreated: Date(), collections: [], tasks: sampleTasks, isPinned: false)
     CompletedListView(list: $list, helper: Helper(), db: Supabase())
 }

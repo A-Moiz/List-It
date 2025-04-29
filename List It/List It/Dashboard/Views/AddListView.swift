@@ -67,7 +67,7 @@ struct AddListView: View {
     func createList() {
         if isFieldsFilled() {
             if isValidName() {
-                let newList = List(id: UUID().uuidString, listIcon: "checklist", listName: listName, isDefault: false, bgColorHex: selectedColorHex, dateCreated: Date(), type: .regular, collections: [], isPinned: false)
+                let newList = List(id: UUID().uuidString, listIcon: "checklist", listName: listName, isDefault: false, bgColorHex: selectedColorHex, dateCreated: Date(), collections: [], isPinned: false)
                 lists.append(newList)
                 dismiss()
             } else {
@@ -89,7 +89,7 @@ struct AddListView: View {
 
 #Preview {
     @Previewable @State var lists = [
-        List(id: UUID().uuidString, listIcon: "calendar", listName: "Today", isDefault: true, bgColorHex: "#87CEEB", dateCreated: Date(), type: .regular, collections: [], isPinned: false)
+        List(id: UUID().uuidString, listIcon: "calendar", listName: "Today", isDefault: true, bgColorHex: "#87CEEB", dateCreated: Date(), collections: [], isPinned: false)
     ]
     AddListView(helper: Helper(), lists: $lists)
 }

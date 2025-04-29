@@ -142,7 +142,7 @@ import SwiftUI
 struct TaskDetailView: View {
     @Environment(\.colorScheme) var colorScheme
     @Environment(\.dismiss) var dismiss
-    @Binding var task: Task
+    @Binding var task: ToDoTask
     @Binding var collection: Collection
     @ObservedObject var db: Supabase
     @ObservedObject var helper: Helper
@@ -483,7 +483,7 @@ extension View {
 }
 
 #Preview {
-    @Previewable @State var task = Task(
+    @Previewable @State var task = ToDoTask(
         id: UUID().uuidString,
         text: "Buy Milk",
         description: "Buy from Tesco",

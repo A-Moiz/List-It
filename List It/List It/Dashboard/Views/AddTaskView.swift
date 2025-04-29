@@ -112,7 +112,7 @@ struct AddTaskView: View {
             return
         }
         
-        let newTask = Task(
+        let newTask = ToDoTask(
             id: UUID().uuidString,
             text: text,
             description: description,
@@ -127,7 +127,7 @@ struct AddTaskView: View {
         dismiss()
     }
     
-    func addToCollection(newTask: Task) {
+    func addToCollection(newTask: ToDoTask) {
         if let name = selectedCollectionName, let index = list.collections.firstIndex(where: { $0.collectionName == name }) {
             if list.collections[index].tasks == nil {
                 list.collections[index].tasks = []
@@ -155,6 +155,6 @@ struct AddTaskView: View {
 }
 
 #Preview {
-    @Previewable @State var list = List(id: UUID().uuidString, listIcon: "calendar", listName: "Today", isDefault: true, bgColorHex: "#87CEEB", dateCreated: Date(), type: .regular, collections: [], isPinned: false)
+    @Previewable @State var list = List(id: UUID().uuidString, listIcon: "calendar", listName: "Today", isDefault: true, bgColorHex: "#87CEEB", dateCreated: Date(), collections: [], isPinned: false)
     AddTaskView(list: $list, helper: Helper())
 }

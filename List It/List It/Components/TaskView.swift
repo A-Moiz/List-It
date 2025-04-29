@@ -142,7 +142,7 @@ import SwiftUI
 //}
 
 struct TaskView: View {
-    @Binding var task: Task
+    @Binding var task: ToDoTask
     @Binding var collection: Collection
     @Binding var list: List
     @ObservedObject var db: Supabase
@@ -279,7 +279,7 @@ struct TaskView: View {
 }
 
 #Preview {
-    @Previewable @State var task = Task(
+    @Previewable @State var task = ToDoTask(
         id: UUID().uuidString,
         text: "Buy Milk",
         description: "Buy from Tesco",
@@ -291,6 +291,6 @@ struct TaskView: View {
         isPinned: false
     )
     @State var collection = Collection(id: UUID().uuidString, collectionName: "List It", bgColorHex: "#87CEEB", dateCreated: Date(), tasks: [], notes: [])
-    @State var list = List(id: UUID().uuidString, listIcon: "calendar", listName: "Today", isDefault: true, bgColorHex: "#87CEEB", dateCreated: Date(), type: .regular, collections: [], isPinned: false)
+    @State var list = List(id: UUID().uuidString, listIcon: "calendar", listName: "Today", isDefault: true, bgColorHex: "#87CEEB", dateCreated: Date(), collections: [], isPinned: false)
     TaskView(task: $task, collection: $collection, list: $list, db: Supabase(), helper: Helper())
 }

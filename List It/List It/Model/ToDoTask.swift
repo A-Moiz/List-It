@@ -7,7 +7,19 @@
 
 import Foundation
 
-struct Task {
+//struct ToDoTask {
+//    var id: String
+//    var text: String
+//    var description: String?
+//    var dateCreated: Date
+//    var dueDate: Date?
+//    var isCompleted: Bool
+//    var dateCompleted: Date?
+//    var isDeleted: Bool
+//    var isPinned: Bool
+//}
+
+struct ToDoTask: Codable {
     var id: String
     var text: String
     var description: String?

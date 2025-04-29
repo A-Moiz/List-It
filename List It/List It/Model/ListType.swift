@@ -9,6 +9,6 @@ import Foundation
 
 enum ListType {
     case regular
-    case completed([Task])
-    case notCompleted([Task])
+    case completed([ToDoTask])
+    case notCompleted([ToDoTask])
 }

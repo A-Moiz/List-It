@@ -18,8 +18,8 @@ struct NotCompletedListView: View {
         return formatter
     }
     
-    private var notCompletedTasks: [(task: Task, listName: String, collectionName: String)] {
-        var allTasks: [(task: Task, listName: String, collectionName: String)] = []
+    private var notCompletedTasks: [(task: ToDoTask, listName: String, collectionName: String)] {
+        var allTasks: [(task: ToDoTask, listName: String, collectionName: String)] = []
         
         for list in db.lists {
             // Direct tasks
