@@ -103,47 +103,54 @@ class Supabase: ObservableObject {
         return password == confirmPassword
     }
     
-    func createUser(completion: @escaping (Bool, String?, String?) -> Void) {
-        guard detailsFilled() else {
-            completion(false, "All fields must be filled in", nil)
-            return
-        }
-        
-        guard isValidName() else {
-            completion(false, "Invalid Name", nil)
-            return
-        }
-        
-        guard isValidEmail() else {
-            completion(false, "Invalid Email", nil)
-            return
-        }
-        
-        guard isStrongPassword() else {
-            completion(false, "Password must be at least 6 characters long and contain at least 1 letter and 1 number", nil)
-            return
-        }
-        
-        guard passwordsMatch() else {
-            completion(false, "Passwords do not match", nil)
-            return
-        }
-        
-        Task {
-            do {
-                let response = try await client.auth.signUp(email: email, password: password)
-                let userId = response.user.id.uuidString
-                
-                DispatchQueue.main.async {
-                    completion(true, nil, userId)
-                }
-            } catch {
-                DispatchQueue.main.async {
-                    completion(false, error.localizedDescription, nil)
+        func createUser(completion: @escaping (Bool, String?, String?) -> Void) {
+            guard detailsFilled() else {
+                completion(false, "All fields must be filled in", nil)
+                return
+            }
+    
+            guard isValidName() else {
+                completion(false, "Invalid Name", nil)
+                return
+            }
+    
+            guard isValidEmail() else {
+                completion(false, "Invalid Email", nil)
+                return
+            }
+    
+            guard isStrongPassword() else {
+                completion(false, "Password must be at least 6 characters long and contain at least 1 letter and 1 number", nil)
+                return
+            }
+    
+            guard passwordsMatch() else {
+                completion(false, "Passwords do not match", nil)
+                return
+            }
+    
+            Task {
+                do {
+                    let userMetadata: [String: AnyJSON] = ["full_name": .string(name)]
+                    let response = try await client.auth.signUp(
+                        email: email,
+                        password: password,
+                        data: userMetadata
+                    )
+                    let userId = response.user.id.uuidString
+//                    let response = try await client.auth.signUp(email: email, password: password)
+//                    let userId = response.user.id.uuidString
+    
+                    DispatchQueue.main.async {
+                        completion(true, nil, userId)
+                    }
+                } catch {
+                    DispatchQueue.main.async {
+                        completion(false, error.localizedDescription, nil)
+                    }
                 }
             }
         }
-    }
     
     func moveToCompletedList(task: ToDoTask, fromList: List) {
         // 1. Find the index of the source list
