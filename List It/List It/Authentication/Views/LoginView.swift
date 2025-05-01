@@ -12,6 +12,8 @@ struct LoginView: View {
     @ObservedObject var helper: Helper
     @Environment(\.colorScheme) var colorScheme
     @State private var isNavigating = false
+    @AppStorage("isSignedIn") var isSignedIn: Bool = false
+    @State private var showForgotPasswordView: Bool = false
     
     var body: some View {
         NavigationStack {
@@ -31,7 +33,7 @@ struct LoginView: View {
                     .padding(.horizontal)
                     
                     Button {
-                        print("Forgot Password Tapped")
+                        showForgotPasswordView = true
                     } label: {
                         Text("Forgot Password?")
                             .font(.footnote)
@@ -41,6 +43,14 @@ struct LoginView: View {
                     }
                     
                     Button {
+                        db.loginUser { success, message in
+                            if success {
+                                isSignedIn = true
+                                print("Signed in")
+                            } else if let message = message {
+                                helper.showAlertWithMessage(message)
+                            }
+                        }
                     } label: {
                         ButtonView(text: "SIGN IN", icon: "arrow.right")
                     }
@@ -88,12 +98,27 @@ struct LoginView: View {
                 }
                 .hidden()
             )
+            .alert(isPresented: $helper.showAlert) {
+                Alert(title: Text(""), message: Text(helper.alertMessage), dismissButton: .default(Text("OK")))
+            }
+            .sheet(isPresented: $showForgotPasswordView) {
+                ForgotPasswordView(db: db, helper: helper)
+                    .presentationDetents([.height(500)])
+                    .presentationCornerRadius(25)
+                    .interactiveDismissDisabled()
+            }
         }
     }
     
     func resetFields() {
         db.email = ""
         db.password = ""
+    }
+    
+    func checkFields() {
+        if !db.isValidEmail() {
+            helper.showAlertWithMessage("")
+        }
     }
 }
 
