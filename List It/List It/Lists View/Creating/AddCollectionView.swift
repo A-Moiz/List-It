@@ -205,7 +205,7 @@ struct AddCollectionView: View {
                 let newCollection = Collection(id: UUID().uuidString, createdAt: trimmedDate, collectionName: collectionName, bgColorHex: selectedColorHex, listID: list.id, userID: "")
                 db.saveCollection(newCollection: newCollection) { success, error in
                     if !success {
-                        helper.showAlertWithMessage("Failed to create General collection within List: \(error)")
+                        helper.showAlertWithMessage("Failed to create General Collection within List: \(error ?? "Unknown error")")
                     } else {
                         db.fetchUserCollections { success, errorMessage in
                             if !success, let error = errorMessage {

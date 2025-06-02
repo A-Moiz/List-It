@@ -289,9 +289,9 @@ struct AddTaskView: View {
             listID: list.id
         )
         
-        db.saveTask(newTask: newTask) { success, errorMessage in
+        db.saveTask(newTask: newTask) { success, error in
             if !success {
-                helper.showAlertWithMessage("Error creating Task: \(errorMessage)")
+                helper.showAlertWithMessage("Error creating Task: \(error ?? "Unknown error")")
             } else {
                 db.fetchUserTasks { success, errorMessage in
                     if !success, let error = errorMessage {

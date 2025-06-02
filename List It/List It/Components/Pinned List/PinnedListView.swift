@@ -35,7 +35,7 @@ struct PinnedListView: View {
                         withAnimation {
                             db.deleteList(list: list) { success, error in
                                 if !success {
-                                    helper.showAlertWithMessage("Error deleting List: \(error)")
+                                    helper.showAlertWithMessage("Error deleting List: \(error ?? "Unknown error")")
                                 } else {
                                     db.fetchUserLists { success, errorMessage in
                                         if !success, let error = errorMessage {
@@ -54,7 +54,7 @@ struct PinnedListView: View {
                     withAnimation {
                         db.updatePinStatus(list: list, isPinned: false) { success, error in
                             if !success {
-                                helper.showAlertWithMessage("Error unpinning List: \(error)")
+                                helper.showAlertWithMessage("Error unpinning List: \(error ?? "Unknown error")")
                             } else {
                                 self.list.isPinned = false
                                 

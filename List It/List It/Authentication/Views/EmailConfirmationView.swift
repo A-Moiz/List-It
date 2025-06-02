@@ -267,7 +267,7 @@ struct EmailConfirmationView: View {
                     Task {
                         db.insertUserIntoDatabase(userId: userId, fullName: name, email: email) { success, error in
                             if !success {
-                                helper.showAlertWithMessage("Error: \(error)")
+                                helper.showAlertWithMessage("Error added to Database: \(error ?? "Unknown error")")
                             } else {
                                 Task {
                                     await checkEmailVerification()
@@ -359,7 +359,7 @@ struct EmailConfirmationView: View {
         let signInSuccess = await withCheckedContinuation { continuation in
             db.signInUser(email: email, password: password) { success, error in
                 if !success {
-                    helper.showAlertWithMessage("Sign up failed: \(error)")
+                    helper.showAlertWithMessage("Sign up failed: \(error ?? "Unknown error")")
                 }
                 continuation.resume(returning: success)
             }
@@ -376,7 +376,7 @@ struct EmailConfirmationView: View {
                 await withCheckedContinuation { continuation in
                     db.fetchUserLists { success, errorMessage in
                         if !success, let error = errorMessage {
-                            helper.showAlertWithMessage("Error with sign up process: \(error)")
+                            helper.showAlertWithMessage("Error with sign up process: \(error ?? "Unknown error")")
                         }
                         continuation.resume()
                     }
@@ -387,7 +387,7 @@ struct EmailConfirmationView: View {
                 await withCheckedContinuation { continuation in
                     db.fetchUserCollections { success, errorMessage in
                         if !success, let error = errorMessage {
-                            helper.showAlertWithMessage("Error with sign up process: \(error)")
+                            helper.showAlertWithMessage("Error with sign up process: \(error ?? "Unknown error")")
                         }
                         continuation.resume()
                     }
@@ -398,7 +398,7 @@ struct EmailConfirmationView: View {
                 await withCheckedContinuation { continuation in
                     db.fetchUserTasks { success, errorMessage in
                         if !success, let error = errorMessage {
-                            helper.showAlertWithMessage("Error with sign up process: \(error)")
+                            helper.showAlertWithMessage("Error with sign up process: \(error ?? "Unknown error")")
                         }
                         continuation.resume()
                     }
@@ -409,7 +409,7 @@ struct EmailConfirmationView: View {
                 await withCheckedContinuation { continuation in
                     db.fetchUserNotes { success, errorMessage in
                         if !success, let error = errorMessage {
-                            helper.showAlertWithMessage("Error with sign up process: \(error)")
+                            helper.showAlertWithMessage("Error with sign up process: \(error ?? "Unknown error")")
                         }
                         continuation.resume()
                     }
@@ -434,7 +434,7 @@ struct EmailConfirmationView: View {
             helper.showAlertWithMessage("Verification email resent! Please check your inbox and click the verification link.")
             verificationStatus = .pending
         } catch {
-            helper.showAlertWithMessage("Error resending verification email: \(error.localizedDescription)")
+            helper.showAlertWithMessage("Error resending verification email: \(error.localizedDescription ?? "Unknown error")")
         }
     }
     
@@ -448,13 +448,13 @@ struct EmailConfirmationView: View {
                 .execute()
             
         } catch {
-            helper.showAlertWithMessage("Could not remove user from database: \(error.localizedDescription)")
+            helper.showAlertWithMessage("Error signing out: \(error.localizedDescription ?? "Unknown error")")
         }
         
         do {
             try await db.client.auth.signOut()
         } catch {
-            helper.showAlertWithMessage("Error signing out from authentication: \(error.localizedDescription)")
+            helper.showAlertWithMessage("Error signing out: \(error.localizedDescription ?? "Unknown error")")
         }
         await MainActor.run {
             isSignedIn = false

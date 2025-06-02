@@ -82,7 +82,7 @@ struct NoteView: View {
                 let newPinStatus = !note.isPinned
                 db.updateNotePinStatus(note: note, isPinned: newPinStatus) { success, error in
                     if !success {
-                        helper.showAlertWithMessage("Error pinning Note: \(error)")
+                        helper.showAlertWithMessage("Error pinning Note: \(error ?? "Unknown error")")
                     }
                 }
                 note.isPinned = newPinStatus
@@ -97,7 +97,7 @@ struct NoteView: View {
                     withAnimation {
                         db.moveNote(note: note, newCollectionID: collection.id) { success, error in
                             if !success {
-                                helper.showAlertWithMessage("Error moving Note to new Collection: \(error)")
+                                helper.showAlertWithMessage("Error moving Note to new Collection: \(error ?? "Unknown error")")
                             } else {
                                 db.fetchUserNotes { success, errorMessage in
                                     if !success, let error = errorMessage {
@@ -118,7 +118,7 @@ struct NoteView: View {
         Button(role: .destructive) {
             db.deleteNote(note: note) { success, error in
                 if !success {
-                    helper.showAlertWithMessage("Error deleting Note: \(error)")
+                    helper.showAlertWithMessage("Error deleting Note: \(error ?? "Unknown error")")
                 } else {
                     db.fetchUserNotes { success, errorMessage in
                         if !success, let error = errorMessage {

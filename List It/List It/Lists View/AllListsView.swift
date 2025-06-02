@@ -337,7 +337,7 @@ struct AllListsView: View {
         await withCheckedContinuation { continuation in
             db.fetchCurrentUser { success, error in
                 if !success {
-                    helper.showAlertWithMessage("Error fetching user details. Please refresh the page. \(error)")
+                    helper.showAlertWithMessage("Error fetching User details. Please refresh the page. \(error ?? "Unknown error")")
                 }
                 continuation.resume()
             }

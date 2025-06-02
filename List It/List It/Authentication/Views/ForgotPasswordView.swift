@@ -43,7 +43,7 @@ struct ForgotPasswordView: View {
                             if success {
                                 helper.showAlertWithMessage("If there is an account associated with \(db.resetEmail), a reset link will be sent to your email.")
                             } else {
-                                helper.showAlertWithMessage("Error resetting password: \(error)")
+                                helper.showAlertWithMessage("Error resetting password: \(error ?? "Unknown error")")
                             }
                         }
                     } label: {

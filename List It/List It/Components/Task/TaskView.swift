@@ -108,7 +108,7 @@ struct TaskView: View {
             withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
                 db.completeTask(task: task, dateCompleted: Date()) { success, error in
                     if !success {
-                        helper.showAlertWithMessage("Error marking task as completed: \(error)")
+                        helper.showAlertWithMessage("Error marking Task as completed: \(error ?? "Unknown error")")
                     } else {
                         task.isCompleted = true
                     }
@@ -123,7 +123,7 @@ struct TaskView: View {
                 let newPinStatus = !task.isPinned
                 db.updateTaskPinStatus(task: task, isPinned: newPinStatus) { success, error in
                     if !success {
-                        helper.showAlertWithMessage("Error pinning List: \(error)")
+                        helper.showAlertWithMessage("Error pinning Task: \(error ?? "Unknown error")")
                     }
                 }
                 task.isPinned = newPinStatus
@@ -160,7 +160,7 @@ struct TaskView: View {
             withAnimation {
                 db.deleteTask(task: task) { success, error in
                     if !success {
-                        helper.showAlertWithMessage("Error deleting Task: \(error)")
+                        helper.showAlertWithMessage("Error deleting Task: \(error ?? "Unknown error")")
                     } else {
                         db.fetchUserTasks { success, errorMessage in
                             if !success, let error = errorMessage {

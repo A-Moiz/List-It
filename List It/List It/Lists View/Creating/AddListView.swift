@@ -187,7 +187,7 @@ struct AddListView: View {
                 db.saveList(newList: newList, generalCollection: generalCollection) { success, error in
                     isLoading = false
                     if !success {
-                        helper.showAlertWithMessage("Failed to save List: \(error)")
+                        helper.showAlertWithMessage("Failed to save List: \(error ?? "Unknown error")")
                     } else {
                         db.fetchUserLists { success, errorMessage in
                             if !success, let error = errorMessage {

@@ -48,11 +48,11 @@ struct UpdateNameView: View {
                             withAnimation {
                                 db.updateName(name: editedName) { success, error in
                                     if !success {
-                                        helper.showAlertWithMessage("Error updating name: \(error)")
+                                        helper.showAlertWithMessage("Error updating Name: \(error ?? "Unknown error")")
                                     } else {
                                         db.fetchCurrentUser { success, error in
                                             if !success {
-                                                helper.showAlertWithMessage("Error fetching updates: \(error)")
+                                                helper.showAlertWithMessage("Error fetching updated: \(error ?? "Unknown error")")
                                             }
                                         }
                                         dismiss()

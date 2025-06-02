@@ -155,7 +155,7 @@ struct CollectionView: View {
                     withAnimation {
                         db.deleteCollection(collection: collection) { success, error in
                             if !success {
-                                helper.showAlertWithMessage("Error deleting Collection: \(error)")
+                                helper.showAlertWithMessage("Error deleting Collection: \(error ?? "Unknown error")")
                             } else {
                                 db.fetchUserCollections { success, errorMessage in
                                     if !success, let error = errorMessage {

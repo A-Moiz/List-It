@@ -35,7 +35,7 @@ struct NoteMetadataCardView: View {
                                 let newPinStatus = !note.isPinned
                                 db.updateNotePinStatus(note: note, isPinned: newPinStatus) { success, error in
                                     if !success {
-                                        helper.showAlertWithMessage("Error updating Note: \(error)")
+                                        helper.showAlertWithMessage("Error updating Note: \(error ?? "Unknown error")")
                                     }
                                 }
                                 note.isPinned = newPinStatus

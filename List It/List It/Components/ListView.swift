@@ -121,7 +121,7 @@ struct ListView: View {
                                 
                                 db.updatePinStatus(list: list, isPinned: newPinStatus) { success, error in
                                     if !success {
-                                        helper.showAlertWithMessage("Error updating List: \(error)")
+                                        helper.showAlertWithMessage("Error updating List: \(error ?? "Unknown error")")
                                     }
                                 }
                                 self.list.isPinned = newPinStatus

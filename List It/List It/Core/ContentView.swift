@@ -30,7 +30,7 @@ struct ContentView: View {
     func fetchingAllData() {
         db.fetchCurrentUser { success, error in
             if !success {
-                helper.showAlertWithMessage("Error fetching user details: \(error)")
+                helper.showAlertWithMessage("Error fetching User details: \(error ?? "Unknown error")")
             }
         }
         db.fetchUserLists { success, errorMessage in
