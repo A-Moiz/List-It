@@ -31,6 +31,26 @@ enum AppConstants {
         )
     }
     
+    struct BlurView: UIViewRepresentable {
+        var style: UIBlurEffect.Style
+
+        func makeUIView(context: Context) -> UIVisualEffectView {
+            UIVisualEffectView(effect: UIBlurEffect(style: style))
+        }
+
+        func updateUIView(_ uiView: UIVisualEffectView, context: Context) {
+            uiView.effect = UIBlurEffect(style: style)
+        }
+    }
+    
+    static func trimmedToMinute(_ date: Date) -> Date? {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd HH:mm"
+        formatter.timeZone = TimeZone(secondsFromGMT: 0)
+        let string = formatter.string(from: date)
+        return formatter.date(from: string)
+    }
+    
     static let listColorHexes: [String] = [
         "#FF3B30", // red
         "#007AFF", // blue

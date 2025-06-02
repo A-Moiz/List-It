@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct PageTitle: View {
+    // MARK: - Properties
     @State var textOne: String
     @State var textTwo: String
     @Environment(\.colorScheme) var colorScheme

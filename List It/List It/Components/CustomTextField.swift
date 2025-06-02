@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct CustomTextField: View {
+    // MARK: - Properties
     @State var icon: String
     @State var placeholder: String
     @Binding var text: String
@@ -15,7 +16,7 @@ struct CustomTextField: View {
     @State var showPassword: Bool
     @State var isEditing = false
     @Environment(\.colorScheme) var colorScheme
-    
+
     var textfieldBG: some View {
         RoundedRectangle(cornerRadius: 12)
             .stroke(isEditing ? AppConstants.accentColor(for: colorScheme) : (colorScheme == .dark ? Color.gray.opacity(0.5) : Color.gray.opacity(0.3)), lineWidth: isEditing ? 2 : 1)
@@ -24,6 +25,7 @@ struct CustomTextField: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
+            /// Floating label
             if isEditing || !text.isEmpty {
                 Text(placeholder)
                     .font(.caption)
@@ -32,6 +34,7 @@ struct CustomTextField: View {
                     .transition(.move(edge: .top).combined(with: .opacity))
             }
             
+            // MARK: - Textfield
             HStack(spacing: 12) {
                 Image(systemName: icon)
                     .foregroundStyle(isEditing ? AppConstants.accentColor(for: colorScheme) : Color.gray)
@@ -45,11 +48,12 @@ struct CustomTextField: View {
                         .foregroundStyle(colorScheme == .dark ? .white : .primary)
                 }
                 
+                // MARK: - Password Visibility
                 if isPassword {
                     Button(action: {
                         showPassword.toggle()
                     }) {
-                        Image(systemName: showPassword ? "eye.fill" : "eye.slash.fill")
+                        Image(systemName: showPassword ? "eye.slash.fill" : "eye.fill")
                             .foregroundColor(.gray)
                     }
                 }
@@ -70,10 +74,10 @@ struct CustomTextField: View {
     }
 }
 
-#Preview {
-    @Previewable @State var icon: String = "person"
-    @Previewable @State var placeholder: String = "Name"
-    @Previewable @State var text: String = ""
-    @Previewable @State var isPassword: Bool = false
-    CustomTextField(icon: icon, placeholder: placeholder, text: $text, isPassword: isPassword, showPassword: false)
-}
+//#Preview {
+//    @Previewable @State var icon: String = "person"
+//    @Previewable @State var placeholder: String = "Name"
+//    @Previewable @State var text: String = ""
+//    @Previewable @State var isPassword: Bool = false
+//    CustomTextField(icon: icon, placeholder: placeholder, text: $text, isPassword: isPassword, showPassword: false)
+//}

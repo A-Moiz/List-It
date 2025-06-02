@@ -8,7 +8,6 @@
 
 /* Begin PBXBuildFile section */
 		967FEEFB2D9D9E020059E87A /* Lottie in Frameworks */ = {isa = PBXBuildFile; productRef = 967FEEFA2D9D9E020059E87A /* Lottie */; };
-		967FEF9C2D9DAD680059E87A /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = 967FEF9B2D9DAD680059E87A /* GoogleSignIn */; };
 		967FEF9E2D9DAD680059E87A /* GoogleSignInSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 967FEF9D2D9DAD680059E87A /* GoogleSignInSwift */; };
 		96894FF92D997B2100B71113 /* Auth in Frameworks */ = {isa = PBXBuildFile; productRef = 96894FF82D997B2100B71113 /* Auth */; };
 		96894FFB2D997B2100B71113 /* Functions in Frameworks */ = {isa = PBXBuildFile; productRef = 96894FFA2D997B2100B71113 /* Functions */; };
@@ -66,7 +65,6 @@
 			files = (
 				967FEF9E2D9DAD680059E87A /* GoogleSignInSwift in Frameworks */,
 				96894FFD2D997B2100B71113 /* PostgREST in Frameworks */,
-				967FEF9C2D9DAD680059E87A /* GoogleSignIn in Frameworks */,
 				967FEEFB2D9D9E020059E87A /* Lottie in Frameworks */,
 				96894FFB2D997B2100B71113 /* Functions in Frameworks */,
 				968950032D997B2100B71113 /* Supabase in Frameworks */,
@@ -140,7 +138,6 @@
 				968950002D997B2100B71113 /* Storage */,
 				968950022D997B2100B71113 /* Supabase */,
 				967FEEFA2D9D9E020059E87A /* Lottie */,
-				967FEF9B2D9DAD680059E87A /* GoogleSignIn */,
 				967FEF9D2D9DAD680059E87A /* GoogleSignInSwift */,
 			);
 			productName = "List It";
@@ -434,11 +431,13 @@
 				DEVELOPMENT_TEAM = N8K7U35P26;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "List-It-Info.plist";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -463,11 +462,13 @@
 				DEVELOPMENT_TEAM = N8K7U35P26;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "List-It-Info.plist";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -626,11 +627,6 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 967FEEF92D9D9E020059E87A /* XCRemoteSwiftPackageReference "lottie-ios" */;
 			productName = Lottie;
-		};
-		967FEF9B2D9DAD680059E87A /* GoogleSignIn */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 967FEF9A2D9DAD680059E87A /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
-			productName = GoogleSignIn;
 		};
 		967FEF9D2D9DAD680059E87A /* GoogleSignInSwift */ = {
 			isa = XCSwiftPackageProductDependency;

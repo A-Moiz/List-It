@@ -8,11 +8,13 @@
 import SwiftUI
 
 struct ButtonView: View {
+    // MARK: - Properties
     @State var text: String
     @State var icon: String
     @Environment(\.colorScheme) var colorScheme
     
     var body: some View {
+        // MARK: - Custom button component
         HStack {
             Text(text)
                 .fontWeight(.bold)
@@ -32,7 +34,7 @@ struct ButtonView: View {
                 endPoint: .trailing
             )
         )
-        .foregroundColor(.white)
+        .foregroundStyle(Color.white)
         .cornerRadius(16)
         .shadow(
             color: colorScheme == .dark ?
@@ -43,6 +45,6 @@ struct ButtonView: View {
     }
 }
 
-#Preview {
-    ButtonView(text: "SIGN UP", icon: "arrow.right")
-}
+//#Preview {
+//    ButtonView(text: "SIGN UP", icon: "arrow.right")
+//}

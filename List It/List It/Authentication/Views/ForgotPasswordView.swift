@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct ForgotPasswordView: View {
+    // MARK: - Properties
     @ObservedObject var db: Supabase
     @ObservedObject var helper: Helper
     @Environment(\.colorScheme) var colorScheme
@@ -20,6 +21,7 @@ struct ForgotPasswordView: View {
                     .ignoresSafeArea()
                 
                 VStack(spacing: 25) {
+                    // MARK: - Custom title
                     PageTitle(textOne: "Reset", textTwo: "Password")
                     
                     Text("Enter your email and we'll send you a link to reset your password.")
@@ -30,23 +32,18 @@ struct ForgotPasswordView: View {
                     
                     Spacer()
                     
+                    // MARK: - Email text field
                     VStack(spacing: 20) {
-                        CustomTextField(
-                            icon: "envelope.fill",
-                            placeholder: "Email",
-                            text: $db.resetEmail,
-                            isPassword: false,
-                            showPassword: false
-                        )
+                        CustomTextField(icon: "envelope.fill", placeholder: "Email", text: $db.resetEmail, isPassword: false, showPassword: false)
+                            .padding(.horizontal)
                     }
-                    .padding(.horizontal)
                     
                     Button {
-                        db.sendResetEmail { success, message in
-                            if success, let message = message {
-                                helper.showAlertWithMessage(message)
-                            } else if let message = message {
-                                helper.showAlertWithMessage(message)
+                        db.sendResetEmail(email: db.resetEmail) { success, error in
+                            if success {
+                                helper.showAlertWithMessage("If there is an account associated with \(db.resetEmail), a reset link will be sent to your email.")
+                            } else {
+                                helper.showAlertWithMessage("Error resetting password: \(error)")
                             }
                         }
                     } label: {
@@ -73,6 +70,6 @@ struct ForgotPasswordView: View {
     }
 }
 
-#Preview {
-    ForgotPasswordView(db: Supabase(), helper: Helper())
-}
+//#Preview {
+//    ForgotPasswordView(db: Supabase(), helper: Helper())
+//}

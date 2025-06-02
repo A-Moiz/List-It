@@ -8,31 +8,14 @@
 import Foundation
 import SwiftUI
 
-//struct List {
-//    var id: String
-//    var listIcon: String
-//    var listName: String
-//    var isDefault: Bool
-//    var bgColorHex: String
-//    var dateCreated: Date
-//    var type: ListType
-//    var collections: [Collection]
-//    var tasks: [ToDoTask]?
-//    var bgColor: Color {
-//        Color(hex: bgColorHex)
-//    }
-//    var isPinned: Bool
-//}
-
-struct List: Codable {
+struct List: Codable, Identifiable {
     var id: String
+    var createdAt: Date
     var listIcon: String
     var listName: String
     var isDefault: Bool
     var bgColorHex: String
-    var dateCreated: Date
-    var collections: [Collection]
-    var tasks: [ToDoTask]?
+    var userId: String
 
     var bgColor: Color {
         Color(hex: bgColorHex)
@@ -42,13 +25,12 @@ struct List: Codable {
 
     enum CodingKeys: String, CodingKey {
         case id
+        case createdAt = "created_at"
         case listIcon = "list_icon"
         case listName = "list_name"
         case isDefault = "is_default"
         case bgColorHex = "bg_color_hex"
-        case dateCreated = "date_created"
-        case collections
-        case tasks
         case isPinned = "is_pinned"
+        case userId = "user_id"
     }
 }

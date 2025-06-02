@@ -7,7 +7,24 @@
 
 import Foundation
 import SwiftUI
+import AuthenticationServices
 
+class Helper: ObservableObject  {
+    // MARK: - Properties
+    @Published var alertMessage: String = ""
+    @Published var showAlert: Bool = false
+    static let sharedHelper = Helper()
+    
+    // MARK: - Displaying alert function
+    func showAlertWithMessage(_ message: String) {
+        DispatchQueue.main.async {
+            self.alertMessage = message
+            self.showAlert = true
+        }
+    }
+}
+
+// MARK: - Extension for custom color using hex code
 extension Color {
     init(hex: String) {
         let hex = hex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
@@ -33,13 +50,26 @@ extension Color {
     }
 }
 
-class Helper: ObservableObject  {
-    @Published var alertMessage: String = ""
-    @Published var showAlert: Bool = false
-    static let sharedHelper = Helper()
-    
-    func showAlertWithMessage(_ message: String) {
-        self.alertMessage = message
-        self.showAlert = true
+// MARK: - Extension for placeholder text in custom TextEditor
+extension View {
+    func placeholder<Content: View>(
+        when shouldShow: Bool,
+        alignment: Alignment = .leading,
+        @ViewBuilder placeholder: () -> Content
+    ) -> some View {
+        ZStack(alignment: alignment) {
+            placeholder().opacity(shouldShow ? 1 : 0)
+            self
+        }
+    }
+}
+
+// MARK: - Custom button style
+struct PressedButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(configuration.isPressed ? 0.96 : 1.0)
+            .opacity(configuration.isPressed ? 0.9 : 1.0)
+            .animation(.easeInOut(duration: 0.1), value: configuration.isPressed)
     }
 }

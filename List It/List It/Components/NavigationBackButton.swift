@@ -8,7 +8,9 @@
 import SwiftUI
 
 struct NavigationBackButton: View {
+    // MARK: - Properties
     @Environment(\.colorScheme) var colorScheme
+
     var body: some View {
         Image(systemName: "chevron.left")
             .font(.system(size: 16, weight: .semibold))

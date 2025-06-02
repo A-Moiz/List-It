@@ -9,12 +9,14 @@ import SwiftUI
 import AuthenticationServices
 
 struct SignUpView: View {
+    // MARK: - Properties
     @ObservedObject var db: Supabase
     @ObservedObject var helper: Helper
     @State private var isNavigating = false
     @State var showEmailVerificationView: Bool = false
     @State private var userId: String = ""
     @Environment(\.colorScheme) var colorScheme
+    @AppStorage("isSignedIn") var isSignedIn: Bool = false
     
     var body: some View {
         ZStack {
@@ -22,16 +24,43 @@ struct SignUpView: View {
                 .ignoresSafeArea()
             
             VStack(spacing: 25) {
+                // MARK: - Page title
                 PageTitle(textOne: "Create", textTwo: "Account")
                 
+                // MARK: - Sign up text fields
                 VStack(spacing: 16) {
-                    CustomTextField(icon: "person.fill", placeholder: "Name", text: $db.name, isPassword: false, showPassword: false)
-                    CustomTextField(icon: "envelope.fill", placeholder: "Email", text: $db.email, isPassword: false, showPassword: false)
-                    CustomTextField(icon: "lock.fill", placeholder: "Password", text: $db.password, isPassword: true, showPassword: false)
-                    CustomTextField(icon: "lock.fill", placeholder: "Confirm Password", text: $db.confirmPassword, isPassword: true, showPassword: false)
+                    CustomTextField(
+                        icon: "person.fill",
+                        placeholder: "Name",
+                        text: $db.name,
+                        isPassword: false,
+                        showPassword: false
+                    )
+                    CustomTextField(
+                        icon: "envelope.fill",
+                        placeholder: "Email",
+                        text: $db.email,
+                        isPassword: false,
+                        showPassword: false
+                    )
+                    CustomTextField(
+                        icon: "lock.fill",
+                        placeholder: "Password",
+                        text: $db.password,
+                        isPassword: true,
+                        showPassword: false
+                    )
+                    CustomTextField(
+                        icon: "lock.fill",
+                        placeholder: "Confirm Password",
+                        text: $db.confirmPassword,
+                        isPassword: true,
+                        showPassword: false
+                    )
                 }
                 .padding(.horizontal)
                 
+                // MARK: - Sign up button
                 Button {
                     checkDetails()
                 } label: {
@@ -39,16 +68,9 @@ struct SignUpView: View {
                 }
                 .padding(.horizontal)
                 
-                CustomDivider(text: "OR")
-                
-                HStack(spacing: 20) {
-                    SocialSignInButton(action: signInWithGoogle, icon: "google-icon", backgroundColor: .white)
-                    
-                    SocialSignInButton(action: signInWithApple, icon: "applelogo", isSystemIcon: true, backgroundColor: .black)
-                }
-                
                 Spacer()
                 
+                // MARK: - Link to login page
                 HStack {
                     Text("Already have an account?")
                     NavigationLink(destination: LoginView(db: db, helper: helper)) {
@@ -64,13 +86,17 @@ struct SignUpView: View {
             .padding(.vertical)
         }
         .alert(isPresented: $helper.showAlert) {
-            Alert(title: Text(""), message: Text(helper.alertMessage), dismissButton: .default(Text("OK")))
+            Alert(
+                title: Text(""),
+                message: Text(helper.alertMessage),
+                dismissButton: .default(Text("OK"))
+            )
         }
         .navigationBarBackButtonHidden()
         .toolbar {
             ToolbarItem(placement: .topBarLeading) {
                 Button {
-                    resetFields()
+                    db.resetFields()
                     isNavigating = true
                 } label: {
                     NavigationBackButton()
@@ -78,46 +104,56 @@ struct SignUpView: View {
             }
         }
         .background(
-            NavigationLink(destination: WelcomeView(db: db, helper: helper), isActive: $isNavigating) {
+            NavigationLink(
+                destination: WelcomeView(db: db, helper: helper),
+                isActive: $isNavigating
+            ) {
                 EmptyView()
             }
                 .hidden()
         )
         .sheet(isPresented: $showEmailVerificationView, content: {
-            EmailConfirmationView(db: db, helper: helper, email: db.email, name: db.name, userId: userId)
-                .presentationDetents([.height(350)])
-                .presentationCornerRadius(25)
-                .interactiveDismissDisabled()
+            EmailConfirmationView(
+                db: db,
+                helper: helper,
+                email: db.email,
+                name: db.name,
+                userId: userId,
+                password: db.password
+            )
+            .presentationDetents([.height(600)])
+            .presentationCornerRadius(25)
+            .interactiveDismissDisabled()
         })
-    }
-    
-    func resetFields() {
-        db.name = ""
-        db.email = ""
-        db.password = ""
-        db.confirmPassword = ""
-    }
-    
-    func checkDetails() {
-        db.createUser { success, message, userId in
-            if success, let userId = userId {
-                self.userId = userId
-                showEmailVerificationView = true
-            } else if let message = message {
-                helper.showAlertWithMessage(message)
-            }
+        .onAppear {
+            db.resetFields()
         }
     }
     
-    func signInWithGoogle() {
-        print("Sign in with Google tapped")
-    }
-    
-    func signInWithApple() {
-        print("Sign in with Apple tapped")
+    // MARK: - Checking email + create user
+    func checkDetails() {
+        db.checkEmailExists(email: db.email) { emailExists, errorMessage in
+            if let error = errorMessage {
+                helper.showAlertWithMessage(error)
+                return
+            }
+            
+            if emailExists {
+                helper.showAlertWithMessage("This email is already registered. Please use a different email or sign in instead.")
+                return
+            }
+            
+            db.createUser { success, message, userId in
+                if success, let userId = userId {
+                    self.userId = userId
+                    showEmailVerificationView = true
+                } else if let message = message {
+                    helper.showAlertWithMessage(message)
+                }
+            }
+        }
     }
 }
-
-#Preview {
-    SignUpView(db: Supabase(), helper: Helper())
-}
+//#Preview {
+//    SignUpView(db: Supabase(), helper: Helper())
+//}
