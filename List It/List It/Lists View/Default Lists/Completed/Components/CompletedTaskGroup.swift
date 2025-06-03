@@ -17,7 +17,7 @@ struct CompletedTaskGroup: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
-            DateHeaderView(date: date, dateFormatter: dateFormatter, groupedTasks: groupedTasks)
+            DateHeaderView(date: date, dateFormatter: dateFormatter, groupedTasks: groupedTasks, db: db)
             
             VStack(spacing: 16) {
                 ForEach(Array((groupedTasks[date] ?? []).enumerated()), id: \.element.id) { index, task in

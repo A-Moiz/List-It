@@ -319,9 +319,8 @@ struct AddNoteView: View {
         let matchedCollection = db.collections.first {
             $0.collectionName == (selectedCollectionName ?? "General") && $0.listID == list.id
         }
-        
-        let trimmedDate = AppConstants.trimmedToMinute(Date()) ?? Date()
-        let newNote = Note(id: UUID().uuidString, createdAt: trimmedDate, title: title, description: description, isDeleted: false, bgColorHex: selectedColorHex, isPinned: isPinned, collectionID: matchedCollection?.id ?? "", userID: "", listID: list.id)
+        let createdDate = db.dateAndTime(Date())
+        let newNote = Note(id: UUID().uuidString, createdAt: createdDate ?? Date(), title: title, description: description, isDeleted: false, bgColorHex: selectedColorHex, isPinned: isPinned, collectionID: matchedCollection?.id ?? "", userID: "", listID: list.id)
         
         db.saveNote(newNote: newNote) { success, errorMessage in
             if !success, let error = errorMessage {

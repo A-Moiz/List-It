@@ -14,16 +14,21 @@ struct PriorityTaskCard: View {
     let listAccentColor: Color
     let colorScheme: ColorScheme
     @ObservedObject var db: Supabase
-
+    
     private var collectionName: String {
         db.collections.first(where: { $0.id == task.collectionID })?.collectionName ?? "Unknown"
     }
     
     private var isOverdue: Bool {
         guard let dueDate = task.dueDate else { return false }
-        return dueDate < Date()
+        
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+        let taskDueDay = calendar.startOfDay(for: dueDate)
+        
+        return taskDueDay < today
     }
-
+    
     var body: some View {
         HStack(spacing: 12) {
             // MARK: - Priority icon
@@ -61,7 +66,7 @@ struct PriorityTaskCard: View {
                             )
                     }
                 }
-
+                
                 HStack(spacing: 8) {
                     if let desc = task.description, !desc.isEmpty {
                         Text(desc)
@@ -103,13 +108,13 @@ struct PriorityTaskCard: View {
             RoundedRectangle(cornerRadius: 12)
                 .fill(
                     colorScheme == .dark
-                        ? Color(.systemGray5).opacity(0.8)
-                        : Color.white.opacity(0.9)
+                    ? Color(.systemGray5).opacity(0.8)
+                    : Color.white.opacity(0.9)
                 )
                 .shadow(
                     color: colorScheme == .dark
-                        ? .black.opacity(0.3)
-                        : .orange.opacity(0.1),
+                    ? .black.opacity(0.3)
+                    : .orange.opacity(0.1),
                     radius: 4,
                     y: 2
                 )

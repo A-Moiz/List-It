@@ -68,14 +68,34 @@ struct CompletedListView: View {
         let notDeletedTasks = justCompletedTasks.filter { !$0.isDeleted }
         let withDateTasks = notDeletedTasks.filter { $0.dateCompleted != nil }
 
-        return Dictionary(grouping: justCompletedTasks) { task in
+        return Dictionary(grouping: withDateTasks) { task in // Use withDateTasks instead of justCompletedTasks
             if let completedDate = task.dateCompleted {
-                return Calendar.current.startOfDay(for: completedDate)
+                // Create a local calendar to ensure proper timezone handling
+                var localCalendar = Calendar.current
+                localCalendar.timeZone = TimeZone.current
+                return localCalendar.startOfDay(for: completedDate)
             } else {
-                return Calendar.current.startOfDay(for: task.createdAt)
+                // Fallback to createdAt if dateCompleted is somehow nil
+                var localCalendar = Calendar.current
+                localCalendar.timeZone = TimeZone.current
+                return localCalendar.startOfDay(for: task.createdAt)
             }
         }
     }
+//    var groupedTasks: [Date: [ToDoTask]] {
+//        let allTasks = db.userTasks ?? []
+//        let justCompletedTasks = allTasks.filter { $0.isCompleted }
+//        let notDeletedTasks = justCompletedTasks.filter { !$0.isDeleted }
+//        let withDateTasks = notDeletedTasks.filter { $0.dateCompleted != nil }
+//
+//        return Dictionary(grouping: justCompletedTasks) { task in
+//            if let completedDate = task.dateCompleted {
+//                return Calendar.current.startOfDay(for: completedDate)
+//            } else {
+//                return Calendar.current.startOfDay(for: task.createdAt)
+//            }
+//        }
+//    }
 
     var body: some View {
         NavigationStack {

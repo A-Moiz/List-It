@@ -181,9 +181,9 @@ struct AddListView: View {
         if isFieldsFilled() {
             if isValidName() {
                 isLoading = true
-                let trimmedDate = AppConstants.trimmedToMinute(Date()) ?? Date()
-                let newList = List(id: UUID().uuidString, createdAt: trimmedDate, listIcon: "checklist", listName: listName, isDefault: false, bgColorHex: selectedColorHex, userId: "", isPinned: false)
-                let generalCollection = Collection(id: UUID().uuidString, createdAt: trimmedDate, collectionName: "General", bgColorHex: selectedColorHex, listID: newList.id, userID: "")
+                let createdAt = db.dateAndTime(Date())
+                let newList = List(id: UUID().uuidString, createdAt: createdAt ?? Date(), listIcon: "checklist", listName: listName, isDefault: false, bgColorHex: selectedColorHex, userId: "", isPinned: false)
+                let generalCollection = Collection(id: UUID().uuidString, createdAt: createdAt ?? Date(), collectionName: "General", bgColorHex: selectedColorHex, listID: newList.id, userID: "")
                 db.saveList(newList: newList, generalCollection: generalCollection) { success, error in
                     isLoading = false
                     if !success {

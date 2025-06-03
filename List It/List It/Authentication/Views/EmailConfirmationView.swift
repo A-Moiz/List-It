@@ -55,11 +55,25 @@ struct EmailConfirmationView: View {
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("Cancel") {
-                        Task {
-                            await signOutAndDismiss()
+                        guard !userId.isEmpty else {
+                            helper.showAlertWithMessage("User ID is empty")
+                            return
+                        }
+                        db.deleteAccountById(userId: userId) { success, error in
+                            DispatchQueue.main.async {
+                                if success {
+                                    db.resetFields()
+                                    isSignedIn = false
+                                    dismiss()
+                                } else {
+                                    helper.showAlertWithMessage("Cleanup error: \(error ?? "Unknown error")")
+                                    db.resetFields()
+                                    isSignedIn = false
+                                    dismiss()
+                                }
+                            }
                         }
                     }
-                    .foregroundStyle(.secondary)
                 }
             }
         }
@@ -143,7 +157,6 @@ struct EmailConfirmationView: View {
                             .playing(loopMode: .loop)
                             .frame(width: geometry.size.width, height: 240)
                         } else {
-                            // Fallback animation
                             VStack(spacing: 16) {
                                 Image(systemName: "envelope.fill")
                                     .font(.system(size: 60))
@@ -299,22 +312,6 @@ struct EmailConfirmationView: View {
                 }
                 .disabled(isCheckingVerification)
                 .opacity(isCheckingVerification ? 0.7 : 1.0)
-                
-                Button {
-                    Task {
-                        await resendVerificationEmail()
-                    }
-                } label: {
-                    HStack(spacing: 8) {
-                        Image(systemName: "arrow.clockwise")
-                            .font(.system(size: 16, weight: .medium))
-                        
-                        Text("Resend verification email")
-                            .font(.system(size: 16, weight: .medium))
-                    }
-                    .foregroundStyle(.blue)
-                    .padding(.vertical, 12)
-                }
             }
             .padding(.bottom, 32)
         }
@@ -422,44 +419,6 @@ struct EmailConfirmationView: View {
         await MainActor.run {
             isSignedIn = true
         }
-    }
-    
-    // MARK: - Resend verification email (Callback Route Compatible)
-    func resendVerificationEmail() async {
-        do {
-            try await db.client.auth.resend(
-                email: email,
-                type: .signup
-            )
-            helper.showAlertWithMessage("Verification email resent! Please check your inbox and click the verification link.")
-            verificationStatus = .pending
-        } catch {
-            helper.showAlertWithMessage("Error resending verification email: \(error.localizedDescription ?? "Unknown error")")
-        }
-    }
-    
-    // MARK: - Sign out and clean up user data
-    func signOutAndDismiss() async {
-        do {
-            let deleteResponse = try await db.client.database
-                .from("users")
-                .delete()
-                .eq("email", value: email)
-                .execute()
-            
-        } catch {
-            helper.showAlertWithMessage("Error signing out: \(error.localizedDescription ?? "Unknown error")")
-        }
-        
-        do {
-            try await db.client.auth.signOut()
-        } catch {
-            helper.showAlertWithMessage("Error signing out: \(error.localizedDescription ?? "Unknown error")")
-        }
-        await MainActor.run {
-            isSignedIn = false
-        }
-        dismiss()
     }
 }
 

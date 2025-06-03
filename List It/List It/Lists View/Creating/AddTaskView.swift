@@ -273,10 +273,10 @@ struct AddTaskView: View {
             $0.collectionName == (selectedCollectionName ?? "General") && $0.listID == list.id
         }
         
-        let trimmedDate = AppConstants.trimmedToMinute(Date()) ?? Date()
+        let createdAt = db.dateAndTime(Date())
         let newTask = ToDoTask(
             id: UUID().uuidString,
-            createdAt: trimmedDate,
+            createdAt: createdAt ?? Date(),
             text: text,
             description: description,
             dueDate: addDueDate ? dueDate : nil,

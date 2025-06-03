@@ -201,8 +201,8 @@ struct AddCollectionView: View {
     func createCollection() {
         if isFieldsFilled() {
             if isValidName() {
-                let trimmedDate = AppConstants.trimmedToMinute(Date()) ?? Date()
-                let newCollection = Collection(id: UUID().uuidString, createdAt: trimmedDate, collectionName: collectionName, bgColorHex: selectedColorHex, listID: list.id, userID: "")
+                let createdDate = db.dateAndTime(Date())
+                let newCollection = Collection(id: UUID().uuidString, createdAt: createdDate ?? Date(), collectionName: collectionName, bgColorHex: selectedColorHex, listID: list.id, userID: "")
                 db.saveCollection(newCollection: newCollection) { success, error in
                     if !success {
                         helper.showAlertWithMessage("Failed to create General Collection within List: \(error ?? "Unknown error")")

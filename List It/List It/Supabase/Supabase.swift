@@ -44,7 +44,6 @@ class Supabase: ObservableObject {
     
     // MARK: - Date formatter
     func formattedDate(_ date: Date) -> String {
-        //let formatter = DateFormatter()
         formatter.dateStyle = .long
         formatter.timeStyle = .short
         return formatter.string(from: date)
@@ -52,7 +51,6 @@ class Supabase: ObservableObject {
     
     // MARK: - Date formatter
     func dateFormatterWithoutTime(_ date: Date) -> String {
-        //let formatter = DateFormatter()
         formatter.dateStyle = .long
         formatter.timeStyle = .none
         return formatter.string(from: date)
@@ -60,10 +58,25 @@ class Supabase: ObservableObject {
     
     // MARK: - Full date formatter
     func fullDateFormatter() -> DateFormatter {
-        //let formatter = DateFormatter()
         formatter.dateFormat = "dd MMMM yyyy"
         return formatter
         
+    }
+    
+    // MARK: - Medium date style
+    func formattedDateString(from date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.timeZone = TimeZone.current
+        formatter.dateStyle = .medium
+        return formatter.string(from: date)
+    }
+    
+    // MARK: - Date and Time
+    func dateAndTime(_ date: Date) -> Date? {
+        formatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
+        formatter.timeZone = TimeZone(secondsFromGMT: 0)
+        let string = formatter.string(from: date)
+        return formatter.date(from: string)
     }
     
     // MARK: - Sign in user
@@ -1058,6 +1071,42 @@ class Supabase: ObservableObject {
             } catch {
                 await MainActor.run {
                     completion(false, "Failed to pin Note: \(error.localizedDescription)")
+                }
+            }
+        }
+    }
+    
+    // MARK: - Delete Account
+    func deleteAccount(completion: @escaping (Bool, String?) -> Void) {
+        Task {
+            do {
+                let _ = try await client.rpc("delete_user_account").execute()
+                
+                await MainActor.run {
+                    completion(true, nil)
+                }
+                
+            } catch {
+                await MainActor.run {
+                    completion(false, "Error deleting account: \(error.localizedDescription)")
+                }
+            }
+        }
+    }
+    
+    // MARK: - Delete Account by ID
+    func deleteAccountById(userId: String, completion: @escaping (Bool, String?) -> Void) {
+        Task {
+            do {
+                let _ = try await client.rpc("delete_user_by_id", params: ["user_id_param": userId]).execute()
+                
+                await MainActor.run {
+                    completion(true, nil)
+                }
+                
+            } catch {
+                await MainActor.run {
+                    completion(false, "Error deleting account: \(error.localizedDescription)")
                 }
             }
         }
