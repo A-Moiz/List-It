@@ -62,6 +62,7 @@ struct SignUpView: View {
                 
                 // MARK: - Sign up button
                 Button {
+                    db.email = db.email.trimmingCharacters(in: .whitespacesAndNewlines)
                     checkDetails()
                 } label: {
                     ButtonView(text: "SIGN UP", icon: "arrow.right")

@@ -17,7 +17,7 @@ struct ListDetailView: View {
     @State private var showAddTaskView: Bool = false
     @State private var showAddNoteView: Bool = false
     @State private var showAddcollectionView: Bool = false
-    @State private var showDeletecollectionView: Bool = false
+    @State private var collectionSortOption: CollectionSortOption = .dateCreated
     
     var body: some View {
         NavigationStack {
@@ -111,7 +111,10 @@ struct ListDetailView: View {
     
     // MARK: - Collection views
     private func collectionsForEachView() -> some View {
-        ForEach(db.collections.indices.filter { db.collections[$0].listID == list.id }, id: \.self) { index in
+        ForEach(
+            sortedCollectionIndices(),
+            id: \.self
+        ) { index in
             CollectionView(
                 collection: $db.collections[index],
                 list: $list,
@@ -140,15 +143,46 @@ struct ListDetailView: View {
                 }) {
                     Label("Add Collection", systemImage: "list.bullet")
                 }
-                Button(action: {
-                    showDeletecollectionView = true
-                }) {
-                    Label("Delete Collection(s)", systemImage: "x.circle")
+                Menu {
+                    ForEach(CollectionSortOption.allCases, id: \.self) { option in
+                        Button {
+                            collectionSortOption = option
+                        } label: {
+                            HStack {
+                                Text(option.rawValue)
+                                if collectionSortOption == option {
+                                    Spacer()
+                                    Image(systemName: "checkmark")
+                                }
+                            }
+                        }
+                    }
+                } label: {
+                    HStack(spacing: 4) {
+                        Image(systemName: "arrow.up.arrow.down")
+                        Text("Sort")
+                    }
+                    .font(.subheadline)
+                    .foregroundColor(.blue)
                 }
             } label: {
                 Image(systemName: "ellipsis.circle")
                     .foregroundColor(colorScheme == .light ? .black : .white)
             }
+        }
+    }
+    
+    // MARK: - Sorting function
+    private func sortedCollectionIndices() -> [Int] {
+        let filteredIndices = db.collections.indices.filter { db.collections[$0].listID == list.id }
+        
+        switch collectionSortOption {
+        case .dateCreated:
+            return filteredIndices.sorted { db.collections[$0].createdAt < db.collections[$1].createdAt }
+        case .nameAscending:
+            return filteredIndices.sorted { db.collections[$0].collectionName < db.collections[$1].collectionName }
+        case .nameDescending:
+            return filteredIndices.sorted { db.collections[$0].collectionName > db.collections[$1].collectionName }
         }
     }
 }

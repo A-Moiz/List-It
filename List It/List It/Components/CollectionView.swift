@@ -18,6 +18,7 @@ struct CollectionView: View {
     @ObservedObject var db: Supabase
     @Environment(\.colorScheme) var colorScheme
     @Namespace private var animation
+    @State private var showUpdateView: Bool = false
     
     // MARK: - Computed properties
     private var scrollPositionBinding: Binding<Tab?> {
@@ -172,8 +173,27 @@ struct CollectionView: View {
                 Label("Cannot delete General collection", systemImage: "lock")
                     .foregroundColor(.secondary)
             }
+            
+            if collection.collectionName.lowercased() == "general" {
+                Label("Cannot update default Collection", systemImage: "exclamationmark.arrow.trianglehead.2.clockwise.rotate.90")
+                    .foregroundStyle(.secondary)
+            } else {
+                Button {
+                    withAnimation {
+                        showUpdateView = true
+                    }
+                } label: {
+                    Label("Update Collection", systemImage: "arrow.trianglehead.2.clockwise.rotate.90")
+                }
+            }
         }
         .animation(.easeInOut(duration: 0.3), value: isExpanded)
+        .sheet(isPresented: $showUpdateView) {
+            UpdateCollectionView(helper: helper, db: db, collection: collection)
+                .presentationDetents([.height(500)])
+                .presentationCornerRadius(25)
+                .interactiveDismissDisabled()
+        }
     }
 }
 

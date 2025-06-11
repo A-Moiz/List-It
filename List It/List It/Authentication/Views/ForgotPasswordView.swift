@@ -39,6 +39,7 @@ struct ForgotPasswordView: View {
                     }
                     
                     Button {
+                        db.resetEmail = db.resetEmail.trimmingCharacters(in: .whitespacesAndNewlines)
                         db.sendResetEmail(email: db.resetEmail) { success, error in
                             if success {
                                 helper.showAlertWithMessage("If there is an account associated with \(db.resetEmail), a reset link will be sent to your email.")

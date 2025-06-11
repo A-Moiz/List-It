@@ -1,22 +1,22 @@
 //
-//  AddCollectionView.swift
+//  UpdateCollectionView.swift
 //  List It
 //
-//  Created by Abdul Moiz on 01/04/2025.
+//  Created by Abdul Moiz on 10/06/2025.
 //
 
 import SwiftUI
 
-struct AddListView: View {
+struct UpdateCollectionView: View {
     // MARK: - Properties
-    @State var listName: String = ""
+    @State var collectionName: String = ""
     @State var selectedColorHex: String = ""
     @ObservedObject var helper: Helper
     @ObservedObject var db: Supabase
     @Environment(\.dismiss) var dismiss
     @Environment(\.colorScheme) var colorScheme
-    @Binding var lists: [List]
     @State var isLoading: Bool = false
+    let collection: Collection
     
     var body: some View {
         NavigationStack {
@@ -28,26 +28,26 @@ struct AddListView: View {
                     VStack(spacing: 24) {
                         // MARK: - Header Section
                         VStack(spacing: 8) {
-                            Image(systemName: "checklist.checked")
+                            Image(systemName: "pencil.circle")
                                 .font(.system(size: 40))
                                 .foregroundStyle(
                                     LinearGradient(colors: [.blue, .purple], startPoint: .topLeading, endPoint: .bottomTrailing)
                                 )
                             
-                            Text("Create New List")
+                            Text("Update Collection")
                                 .font(.title2)
                                 .fontWeight(.semibold)
                                 .foregroundColor(.primary)
                         }
                         .padding(.top, 20)
                         
-                        // MARK: - List Content Card
+                        // MARK: - Collection Content Card
                         VStack(spacing: 20) {
-                            // MARK: - List Name Input
+                            // MARK: - Collection Name Input
                             InputField(
                                 icon: "checklist",
                                 placeholder: "What's your list called?",
-                                text: $listName
+                                text: $collectionName
                             )
                         }
                         .padding(20)
@@ -107,19 +107,19 @@ struct AddListView: View {
                                 .shadow(color: .black.opacity(0.05), radius: 10, x: 0, y: 5)
                         )
                         
-                        // MARK: - Create Button
-                        Button(action: createList) {
+                        // MARK: - Update Button
+                        Button(action: updateList) {
                             HStack(spacing: 12) {
                                 if isLoading {
                                     ProgressView()
                                         .progressViewStyle(CircularProgressViewStyle(tint: .white))
                                         .scaleEffect(0.8)
                                 } else {
-                                    Image(systemName: "plus.circle.fill")
+                                    Image(systemName: "checkmark.circle.fill")
                                         .font(.title3)
                                 }
                                 
-                                Text(isLoading ? "Creating List..." : "Create List")
+                                Text(isLoading ? "Updating Collection..." : "Update Collection")
                                     .font(.headline)
                                     .fontWeight(.semibold)
                             }
@@ -148,8 +148,6 @@ struct AddListView: View {
                     .padding(.horizontal, 20)
                 }
             }
-            .navigationTitle("")
-            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     Button {
@@ -174,65 +172,45 @@ struct AddListView: View {
                 )
             }
         }
+        .onAppear {
+            collectionName = collection.collectionName
+            selectedColorHex = collection.bgColorHex
+        }
     }
     
-    // MARK: - Creating List function
-    func createList() {
+    // MARK: - Update List function
+    func updateList() {
         if isFieldsFilled() {
             if isValidName() {
                 isLoading = true
-                let createdAt = db.dateAndTime(Date())
-                let newList = List(id: UUID().uuidString, createdAt: createdAt ?? Date(), listIcon: "checklist", listName: listName, isDefault: false, bgColorHex: selectedColorHex, userId: "", isPinned: false)
-                let generalCollection = Collection(id: UUID().uuidString, createdAt: createdAt ?? Date(), collectionName: "General", bgColorHex: selectedColorHex, listID: newList.id, userID: "")
-                db.saveList(newList: newList, generalCollection: generalCollection) { success, error in
-                    isLoading = false
-                    if !success {
-                        helper.showAlertWithMessage("Failed to save List: \(error ?? "Unknown error")")
+                db.updateCollection(collection: collection, name: collectionName, bgColorHex: selectedColorHex) { success, error in
+                    if !success, let errorMessage = error {
+                        isLoading = false
+                        helper.showAlertWithMessage("\(errorMessage)")
                     } else {
-                        db.fetchUserLists { success, errorMessage in
-                            if !success, let error = errorMessage {
-                                helper.showAlertWithMessage("Error fetching user lists: \(error)")
-                            } else {
-                                lists = db.lists
-                            }
-                        }
                         db.fetchUserCollections { success, errorMessage in
                             if !success, let error = errorMessage {
-                                helper.showAlertWithMessage("Error fetching collections: \(error)")
-                            }
-                        }
-                        db.fetchUserTasks { success, errorMessage in
-                            if !success, let error = errorMessage {
-                                helper.showAlertWithMessage("Error fetching and displaying new task: \(error)")
+                                helper.showAlertWithMessage("Error fetching Collections: \(error)")
                             }
                         }
                         dismiss()
                     }
                 }
             } else {
-                helper.showAlertWithMessage("You already have a list with this name, please choose a different name for your new list.")
+                helper.showAlertWithMessage("You already have a Collection with this name, please choose a different name.")
             }
         } else {
-            helper.showAlertWithMessage("Please enter a name and choose a color for your List.")
+            helper.showAlertWithMessage("Please enter a name and choose a color for your Collection.")
         }
     }
     
     // MARK: - Checking if fields are blank
     func isFieldsFilled() -> Bool {
-        return !listName.isEmpty && !selectedColorHex.isEmpty
+        return !collectionName.isEmpty && !selectedColorHex.isEmpty
     }
     
     // MARK: - Check if name is taken
     func isValidName() -> Bool {
-        return !lists.contains(where: {
-            $0.listName.lowercased().trimmingCharacters(in: .whitespacesAndNewlines) == listName.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
-        })
+        return !db.collections.contains(where: { $0.collectionName.lowercased() == collectionName.lowercased() && $0.id != collection.id })
     }
 }
-
-//#Preview {
-//    @Previewable @State var lists = [
-//        List(id: UUID().uuidString, listIcon: "calendar", listName: "Today", isDefault: true, bgColorHex: "#87CEEB", userId: "", isPinned: false)
-//    ]
-//    AddListView(helper: Helper(), db: Supabase(), lists: $lists)
-//}

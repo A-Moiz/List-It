@@ -1,13 +1,13 @@
 //
-//  AddCollectionView.swift
+//  UpdateListView.swift
 //  List It
 //
-//  Created by Abdul Moiz on 01/04/2025.
+//  Created by Abdul Moiz on 10/06/2025.
 //
 
 import SwiftUI
 
-struct AddListView: View {
+struct UpdateListView: View {
     // MARK: - Properties
     @State var listName: String = ""
     @State var selectedColorHex: String = ""
@@ -15,8 +15,8 @@ struct AddListView: View {
     @ObservedObject var db: Supabase
     @Environment(\.dismiss) var dismiss
     @Environment(\.colorScheme) var colorScheme
-    @Binding var lists: [List]
     @State var isLoading: Bool = false
+    let list: List
     
     var body: some View {
         NavigationStack {
@@ -28,13 +28,13 @@ struct AddListView: View {
                     VStack(spacing: 24) {
                         // MARK: - Header Section
                         VStack(spacing: 8) {
-                            Image(systemName: "checklist.checked")
+                            Image(systemName: "pencil.circle")
                                 .font(.system(size: 40))
                                 .foregroundStyle(
                                     LinearGradient(colors: [.blue, .purple], startPoint: .topLeading, endPoint: .bottomTrailing)
                                 )
                             
-                            Text("Create New List")
+                            Text("Update List")
                                 .font(.title2)
                                 .fontWeight(.semibold)
                                 .foregroundColor(.primary)
@@ -107,19 +107,19 @@ struct AddListView: View {
                                 .shadow(color: .black.opacity(0.05), radius: 10, x: 0, y: 5)
                         )
                         
-                        // MARK: - Create Button
-                        Button(action: createList) {
+                        // MARK: - Update Button
+                        Button(action: updateList) {
                             HStack(spacing: 12) {
                                 if isLoading {
                                     ProgressView()
                                         .progressViewStyle(CircularProgressViewStyle(tint: .white))
                                         .scaleEffect(0.8)
                                 } else {
-                                    Image(systemName: "plus.circle.fill")
+                                    Image(systemName: "checkmark.circle.fill")
                                         .font(.title3)
                                 }
                                 
-                                Text(isLoading ? "Creating List..." : "Create List")
+                                Text(isLoading ? "Updating List..." : "Update List")
                                     .font(.headline)
                                     .fontWeight(.semibold)
                             }
@@ -148,8 +148,6 @@ struct AddListView: View {
                     .padding(.horizontal, 20)
                 }
             }
-            .navigationTitle("")
-            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     Button {
@@ -174,43 +172,32 @@ struct AddListView: View {
                 )
             }
         }
+        .onAppear {
+            listName = list.listName
+            selectedColorHex = list.bgColorHex
+        }
     }
     
-    // MARK: - Creating List function
-    func createList() {
+    // MARK: - Update List function
+    func updateList() {
         if isFieldsFilled() {
             if isValidName() {
                 isLoading = true
-                let createdAt = db.dateAndTime(Date())
-                let newList = List(id: UUID().uuidString, createdAt: createdAt ?? Date(), listIcon: "checklist", listName: listName, isDefault: false, bgColorHex: selectedColorHex, userId: "", isPinned: false)
-                let generalCollection = Collection(id: UUID().uuidString, createdAt: createdAt ?? Date(), collectionName: "General", bgColorHex: selectedColorHex, listID: newList.id, userID: "")
-                db.saveList(newList: newList, generalCollection: generalCollection) { success, error in
-                    isLoading = false
-                    if !success {
-                        helper.showAlertWithMessage("Failed to save List: \(error ?? "Unknown error")")
+                db.updateList(list: list, name: listName, bgColorHex: selectedColorHex) { success, error in
+                    if !success, let errorMessage = error {
+                        isLoading = false
+                        helper.showAlertWithMessage("\(errorMessage)")
                     } else {
                         db.fetchUserLists { success, errorMessage in
                             if !success, let error = errorMessage {
-                                helper.showAlertWithMessage("Error fetching user lists: \(error)")
-                            } else {
-                                lists = db.lists
-                            }
-                        }
-                        db.fetchUserCollections { success, errorMessage in
-                            if !success, let error = errorMessage {
-                                helper.showAlertWithMessage("Error fetching collections: \(error)")
-                            }
-                        }
-                        db.fetchUserTasks { success, errorMessage in
-                            if !success, let error = errorMessage {
-                                helper.showAlertWithMessage("Error fetching and displaying new task: \(error)")
+                                helper.showAlertWithMessage("Error fetching user Lists: \(error)")
                             }
                         }
                         dismiss()
                     }
                 }
             } else {
-                helper.showAlertWithMessage("You already have a list with this name, please choose a different name for your new list.")
+                helper.showAlertWithMessage("You already have a list with this name, please choose a different name.")
             }
         } else {
             helper.showAlertWithMessage("Please enter a name and choose a color for your List.")
@@ -224,15 +211,6 @@ struct AddListView: View {
     
     // MARK: - Check if name is taken
     func isValidName() -> Bool {
-        return !lists.contains(where: {
-            $0.listName.lowercased().trimmingCharacters(in: .whitespacesAndNewlines) == listName.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
-        })
+        return !db.lists.contains(where: { $0.listName.lowercased() == listName.lowercased() && $0.id != list.id })
     }
 }
-
-//#Preview {
-//    @Previewable @State var lists = [
-//        List(id: UUID().uuidString, listIcon: "calendar", listName: "Today", isDefault: true, bgColorHex: "#87CEEB", userId: "", isPinned: false)
-//    ]
-//    AddListView(helper: Helper(), db: Supabase(), lists: $lists)
-//}

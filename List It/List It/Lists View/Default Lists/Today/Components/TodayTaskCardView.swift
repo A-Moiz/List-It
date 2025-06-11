@@ -96,17 +96,6 @@ struct TodayTaskCardView: View {
                             .font(.caption)
                             .foregroundColor(.secondary)
                     }
-                    
-                    Spacer()
-                    
-                    HStack(spacing: 6) {
-                        Image(systemName: "clock.fill")
-                            .foregroundColor(listAccentColor)
-                            .font(.caption)
-                        Text(list.createdAt.formatted(date: .omitted, time: .shortened))
-                            .font(.caption.weight(.medium))
-                            .foregroundColor(listAccentColor)
-                    }
                 }
             }
             .padding(.horizontal, 20)

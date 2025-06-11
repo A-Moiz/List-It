@@ -72,7 +72,7 @@ struct PriorityTaskCard: View {
                         Text(desc)
                             .font(.caption2)
                             .foregroundColor(.secondary)
-                            .lineLimit(1)
+                            .lineLimit(3)
                         
                         Text("•")
                             .font(.caption2)
@@ -82,16 +82,20 @@ struct PriorityTaskCard: View {
                     Text(collectionName)
                         .font(.caption2.weight(.medium))
                         .foregroundColor(listAccentColor)
-                    
-                    if let dueDate = task.dueDate {
-                        Text("•")
+                }
+                
+                // MARK: - Due date
+                if let dueDate = task.dueDate {
+                    HStack(spacing: 5) {
+                        Image(systemName: "calendar.badge.clock")
                             .font(.caption2)
-                            .foregroundColor(.secondary)
+                            .foregroundColor(isOverdue ? .red : .secondary)
                         
-                        Text(dueDate.formatted(date: .abbreviated, time: .shortened))
+                        Text("Due: \(dueDate.formatted(date: .abbreviated, time: .omitted))")
                             .font(.caption2)
                             .foregroundColor(isOverdue ? .red : .secondary)
                     }
+                    .padding(.top, 2)
                 }
             }
             

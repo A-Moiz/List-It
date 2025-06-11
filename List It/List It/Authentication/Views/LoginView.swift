@@ -48,6 +48,7 @@ struct LoginView: View {
                     
                     // MARK: - Sign in button
                     Button {
+                        db.email = db.email.trimmingCharacters(in: .whitespacesAndNewlines)
                         db.loginUser { success, message in
                             if success {
                                 isSignedIn = true

@@ -15,6 +15,7 @@ struct ListView: View {
     @Environment(\.colorScheme) var colorScheme
     @State private var localIsPinned: Bool = false
     @State private var isUpdating: Bool = false
+    @State private var showUpdateView: Bool = false
     
     var body: some View {
         NavigationLink(destination: ListDetailView(list: $list, helper: helper, db: db)) {
@@ -52,7 +53,7 @@ struct ListView: View {
                     
                     // MARK: - List title and info
                     VStack(alignment: .center, spacing: 10) {
-                        Text(list.listName.description.capitalized)
+                        Text(list.listName)
                             .font(.system(size: 14, weight: .semibold))
                             .foregroundStyle(colorScheme == .dark ? .white : .black)
                             .lineLimit(1)
@@ -139,6 +140,19 @@ struct ListView: View {
                         Label(localIsPinned ? "Unpin List" : "Pin List", systemImage: localIsPinned ? "pin.fill" : "pin")
                     }
                 }
+                
+                if list.isDefault {
+                    Label("Cannot update default List", systemImage: "exclamationmark.arrow.trianglehead.2.clockwise.rotate.90")
+                        .foregroundStyle(.secondary)
+                } else {
+                    Button {
+                        withAnimation {
+                            showUpdateView = true
+                        }
+                    } label: {
+                        Label("Update List", systemImage: "arrow.trianglehead.2.clockwise.rotate.90")
+                    }
+                }
             }
             .alert(isPresented: $helper.showAlert) {
                 Alert(title: Text(""), message: Text(helper.alertMessage), dismissButton: .default(Text("OK")))
@@ -150,6 +164,12 @@ struct ListView: View {
         }
         .onChange(of: list.isPinned) { newValue in
             localIsPinned = newValue
+        }
+        .sheet(isPresented: $showUpdateView) {
+            UpdateListView(helper: helper, db: db, list: list)
+                .presentationDetents([.height(500)])
+                .presentationCornerRadius(25)
+                .interactiveDismissDisabled()
         }
         .id(list.id)
     }

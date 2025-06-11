@@ -739,6 +739,94 @@ class Supabase: ObservableObject {
         }
     }
     
+    // MARK: - Update List
+    func updateList(list: List, name: String, bgColorHex: String, completion: @escaping (Bool, String?) -> Void) {
+        Task {
+            do {
+                let _ = try await client
+                    .from("list")
+                    .update([
+                        "list_name": name,
+                        "bg_color_hex": bgColorHex
+                    ])
+                    .eq("id", value: list.id)
+                    .execute()
+                
+                await MainActor.run {
+                    if let index = self.lists.firstIndex(where: { $0.id == list.id }) {
+                        self.lists[index].listName = name
+                        self.lists[index].bgColorHex = bgColorHex
+                    }
+                    completion(true, nil)
+                    
+                    self.updateGeneralCollectionColor(listId: list.id, bgColorHex: bgColorHex) { success, error in
+                        if !success, let  errorMessage = error {
+                            completion(false, "Error updating General collection inside List: \(errorMessage)")
+                        }
+                        completion(true, nil)
+                    }
+                }
+            } catch {
+                await MainActor.run {
+                    completion(false, "Failed to update List: \(error.localizedDescription)")
+                }
+            }
+        }
+    }
+    
+    // MARK: - Update General collection in List
+    func updateGeneralCollectionColor(listId: String, bgColorHex: String, completion: @escaping (Bool, String?) -> Void) {
+        Task {
+            do {
+                let _ = try await client
+                    .from("collection")
+                    .update(["bg_color_hex": bgColorHex])
+                    .eq("list_id", value: listId)
+                    .eq("collection_name", value: "General")
+                    .execute()
+                
+                await MainActor.run {
+                    if let index = self.collections.firstIndex(where: { $0.listID == listId && $0.collectionName == "General" }) {
+                        self.collections[index].bgColorHex = bgColorHex
+                    }
+                    completion(true, nil)
+                }
+            } catch {
+                await MainActor.run {
+                    completion(false, "Failed to update General collection color: \(error.localizedDescription)")
+                }
+            }
+        }
+    }
+    
+    // MARK: - Update Collection
+    func updateCollection(collection: Collection, name: String, bgColorHex: String, completion: @escaping (Bool, String?) -> Void) {
+        Task {
+            do {
+                let _ = try await client
+                    .from("collection")
+                    .update([
+                        "collection_name": name,
+                        "bg_color_hex": bgColorHex
+                    ])
+                    .eq("id", value: collection.id)
+                    .execute()
+                
+                await MainActor.run {
+                    if let index = self.collections.firstIndex(where: { $0.id == collection.id }) {
+                        self.collections[index].collectionName = name
+                        self.collections[index].bgColorHex = bgColorHex
+                    }
+                    completion(true, nil)
+                }
+            } catch {
+                await MainActor.run {
+                    completion(false, "Failed to update Collection: \(error.localizedDescription)")
+                }
+            }
+        }
+    }
+    
     // MARK: - Updating Note
     func updateNote(note: Note, title: String, description: String, selectedColorHex: String, completion: @escaping (Bool, String?) -> Void) {
         Task {

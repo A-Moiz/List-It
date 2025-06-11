@@ -216,7 +216,7 @@ struct AddCollectionView: View {
                     }
                 }
             } else {
-                helper.showAlertWithMessage("You already have a collection with this name for this List, please choose a different name for your new collection.")
+                helper.showAlertWithMessage("You already have a Collection with this name within this List, please choose a different name for your new Collection.")
             }
         } else {
             helper.showAlertWithMessage("Please enter a name and choose a color your new Collection.")
@@ -230,7 +230,10 @@ struct AddCollectionView: View {
     
     // MARK: - Check if collection already exists
     func isValidName() -> Bool {
-        return !db.collections.contains(where: { $0.collectionName.lowercased() == collectionName.lowercased() })
+        return !db.collections.contains(where: {
+            $0.collectionName.lowercased().trimmingCharacters(in: .whitespacesAndNewlines) ==
+            collectionName.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
+        })
     }
 }
 

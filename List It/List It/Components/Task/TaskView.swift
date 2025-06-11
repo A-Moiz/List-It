@@ -63,7 +63,7 @@ struct TaskView: View {
                             .font(.system(size: 12))
                             .foregroundStyle(dueDate < Date() ? Color.red : Color.secondary)
                     } else {
-                        Text("Created \(db.formattedDate(task.createdAt))")
+                        Text("Created \(db.dateFormatterWithoutTime(task.createdAt))")
                             .font(.system(size: 12))
                             .foregroundStyle(Color.secondary)
                     }
