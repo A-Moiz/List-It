@@ -501,14 +501,10 @@ class Supabase: ObservableObject {
     // MARK: - Fetching user tasks
     func fetchUserTasks(completion: @escaping (Bool, String?) -> Void) {
         Task {
-            DispatchQueue.main.async {
-                self.userTasks = []
-            }
-            
             do {
                 guard let userID = try? await client.auth.session.user.id else {
                     completion(false, "No user ID found, you will now be signed out. Please sign in again.")
-                    self.signOutUser() { success, error in
+                    self.signOutUser { success, error in
                         if !success {
                             completion(false, "Error signing out user. Please sign out manually and sign in again.")
                         }
@@ -545,10 +541,11 @@ class Supabase: ObservableObject {
                         debugDescription: "Cannot decode date: \(dateString)"
                     )
                 }
+                
                 let response = try decoder.decode([ToDoTask].self, from: raw.data)
                 
                 DispatchQueue.main.async {
-                    self.userTasks.append(contentsOf: response)
+                    self.userTasks = response
                     completion(true, nil)
                 }
             } catch {
@@ -591,13 +588,10 @@ class Supabase: ObservableObject {
     // MARK: - Fetching user notes
     func fetchUserNotes(completion: @escaping (Bool, String?) -> Void) {
         Task {
-            DispatchQueue.main.async {
-                self.userNotes = []
-            }
             do {
                 guard let userID = try? await client.auth.session.user.id else {
                     completion(false, "No user ID found, you will now be signed out. Please sign in again.")
-                    self.signOutUser() { success, error in
+                    self.signOutUser { success, error in
                         if !success {
                             completion(false, "Error signing out user. Please sign out manually and sign in again.")
                         }
@@ -611,14 +605,17 @@ class Supabase: ObservableObject {
                     .eq("user_id", value: userID)
                     .execute()
                 
+                let formatter = DateFormatter()
                 formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss"
                 formatter.timeZone = TimeZone(secondsFromGMT: 0)
+                
+                let decoder = JSONDecoder()
                 decoder.dateDecodingStrategy = .formatted(formatter)
                 
                 let response = try decoder.decode([Note].self, from: raw.data)
                 
                 DispatchQueue.main.async {
-                    self.userNotes.append(contentsOf: response)
+                    self.userNotes = response
                     completion(true, nil)
                 }
             } catch {

@@ -29,9 +29,20 @@ struct AllListsView: View {
     ]
     
     var combinedLists: [List] {
-        let defaultLists = db.defaultLists.sorted(by: { $0.createdAt < $1.createdAt })
-        let userLists = db.lists.sorted(by: { $1.createdAt > $0.createdAt })
-        return defaultLists + userLists
+        let defaultLists = db.defaultLists.sorted { $0.createdAt < $1.createdAt }
+        let userLists = db.lists.sorted { $1.createdAt > $0.createdAt }
+        
+        var seen = Set<String>()
+        var result: [List] = []
+        
+        for list in defaultLists + userLists {
+            if !seen.contains(list.id) {
+                result.append(list)
+                seen.insert(list.id)
+            }
+        }
+        
+        return result
     }
     
     var filteredLists: [List] {

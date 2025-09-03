@@ -35,10 +35,10 @@ struct NoteListView: View {
                         GridItem(.flexible(), spacing: 10),
                         GridItem(.flexible(), spacing: 10)
                     ], spacing: 10) {
-                        ForEach(sortedNotes, id: \.id) { note in
-                            if let originalIndex = db.userNotes.firstIndex(where: { $0.id == note.id }) {
+                        ForEach(sortedNotes) { note in
+                            if let binding = binding(for: note) {
                                 NoteView(
-                                    note: $db.userNotes[originalIndex],
+                                    note: binding,
                                     collection: $collection,
                                     list: $list,
                                     helper: helper,
@@ -66,6 +66,13 @@ struct NoteListView: View {
     
     func sortFunc(_ a: Note, _ b: Note) -> Bool {
         return a.createdAt > b.createdAt
+    }
+    
+    private func binding(for note: Note) -> Binding<Note>? {
+        guard let index = db.userNotes.firstIndex(where: { $0.id == note.id }) else {
+            return nil
+        }
+        return $db.userNotes[index]
     }
 }
 
