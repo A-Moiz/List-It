@@ -19,7 +19,7 @@ struct TodayListView: View {
         let calendar = Calendar.current
         let today = Date()
         
-        let todayTasks = (db.userTasks ?? []).filter {
+        let todayTasks = (db.userTasks).filter {
             !$0.isCompleted &&
             !$0.isDeleted &&
             $0.dueDate != nil &&

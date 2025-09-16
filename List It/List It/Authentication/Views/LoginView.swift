@@ -90,12 +90,9 @@ struct LoginView: View {
                     }
                 }
             }
-            .background(
-                NavigationLink(destination: WelcomeView(db: db, helper: helper), isActive: $isNavigating) {
-                    EmptyView()
-                }
-                    .hidden()
-            )
+            .navigationDestination(isPresented: $isNavigating) {
+                WelcomeView(db: db, helper: helper)
+            }
             .alert(isPresented: $helper.showAlert) {
                 Alert(title: Text(""), message: Text(helper.alertMessage), dismissButton: .default(Text("OK")))
             }

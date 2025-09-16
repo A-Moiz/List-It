@@ -140,7 +140,7 @@ struct CollectionView: View {
                             .tag(Tab.note)
                     }
                     .tabViewStyle(.page(indexDisplayMode: .never))
-                    .onChange(of: selectedTab) { newValue in
+                    .onChange(of: selectedTab) { oldValue, newValue in
                         withAnimation {
                             selectedTab = newValue
                         }

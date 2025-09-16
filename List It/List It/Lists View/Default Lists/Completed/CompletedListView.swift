@@ -16,7 +16,7 @@ struct CompletedListView: View {
     
     // MARK: - Completion Percentage
     private var completionPercentage: Double {
-        let allTasks = db.userTasks ?? []
+        let allTasks = db.userTasks
         let activeTasks = allTasks.filter { !$0.isDeleted }
         
         guard !activeTasks.isEmpty else { return 0.0 }
@@ -63,7 +63,7 @@ struct CompletedListView: View {
     
     // MARK: - Grouping tasks by date
     var groupedTasks: [Date: [ToDoTask]] {
-        let allTasks = db.userTasks ?? []
+        let allTasks = db.userTasks
         let justCompletedTasks = allTasks.filter { $0.isCompleted }
         let notDeletedTasks = justCompletedTasks.filter { !$0.isDeleted }
         let withDateTasks = notDeletedTasks.filter { $0.dateCompleted != nil }
@@ -152,7 +152,7 @@ struct CompletedListView: View {
             AppConstants.background(for: colorScheme)
                 .ignoresSafeArea()
             
-            let completedTasksExist = !(db.userTasks ?? []).filter({ $0.isCompleted }).isEmpty
+            let completedTasksExist = !(db.userTasks).filter({ $0.isCompleted }).isEmpty
             // MARK: - Empty view if no completed tasks
             if !completedTasksExist {
                 EmptyStateView(

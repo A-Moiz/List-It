@@ -10,6 +10,7 @@ import Supabase
 import AuthenticationServices
 import GoogleSignIn
 
+@MainActor
 class Supabase: ObservableObject {
     // MARK: - Properties
     static let shared = Supabase()
@@ -85,7 +86,7 @@ class Supabase: ObservableObject {
             do {
                 let response = try await client.auth.signIn(email: email, password: password)
                 
-                let userResponse: [AppUser] = try await client.database
+                let userResponse: [AppUser] = try await client
                     .from("users")
                     .select()
                     .eq("id", value: response.user.id)
@@ -115,7 +116,7 @@ class Supabase: ObservableObject {
     func checkEmailExists(email: String, completion: @escaping (Bool, String?) -> Void) {
         Task {
             do {
-                let response = try await client.database
+                let response = try await client
                     .from("users")
                     .select("id, email")
                     .eq("email", value: email)
@@ -236,7 +237,7 @@ class Supabase: ObservableObject {
                     "email": .string(email)
                 ]
                 
-                _ = try await client.database
+                _ = try await client
                     .from("users")
                     .insert([userData])
                     .execute()
@@ -298,7 +299,7 @@ class Supabase: ObservableObject {
                 
                 let userID = session.user.id
                 
-                let response: [AppUser] = try await client.database
+                let response: [AppUser] = try await client
                     .from("users")
                     .select()
                     .eq("id", value: userID)
@@ -340,14 +341,14 @@ class Supabase: ObservableObject {
                 var listToSave = newList
                 listToSave.userId = userID.uuidString
                 
-                _ = try await client.database
+                _ = try await client
                     .from("list")
                     .insert([listToSave])
                     .execute()
                 
                 saveCollection(newCollection: generalCollection) { succes, error in
                     if !succes {
-                        completion(false, "Error creating General collection: \(error)")
+                        completion(false, "Error creating General collection: \(error ?? "Unknown Error")")
                     }
                 }
                 
@@ -375,7 +376,7 @@ class Supabase: ObservableObject {
                 var collectionToSave = newCollection
                 collectionToSave.userID = userID.uuidString
                 
-                _ = try await client.database
+                _ = try await client
                     .from("collection")
                     .insert([collectionToSave])
                     .execute()
@@ -404,7 +405,7 @@ class Supabase: ObservableObject {
                 var taskToSave = newTask
                 taskToSave.userID = userID.uuidString
                 
-                _ = try await client.database
+                _ = try await client
                     .from("task")
                     .insert([taskToSave])
                     .execute()
@@ -433,7 +434,7 @@ class Supabase: ObservableObject {
                     return
                 }
                 
-                let raw = try await client.database
+                let raw = try await client
                     .from("list")
                     .select()
                     .eq("user_id", value: userID)
@@ -474,7 +475,7 @@ class Supabase: ObservableObject {
                     return
                 }
                 
-                let raw = try await client.database
+                let raw = try await client
                     .from("collection")
                     .select()
                     .eq("user_id", value: userID)
@@ -512,7 +513,7 @@ class Supabase: ObservableObject {
                     return
                 }
                 
-                let raw = try await client.database
+                let raw = try await client
                     .from("task")
                     .select()
                     .eq("user_id", value: userID)
@@ -525,17 +526,24 @@ class Supabase: ObservableObject {
                 decoder.dateDecodingStrategy = .custom { decoder in
                     let container = try decoder.singleValueContainer()
                     let dateString = try container.decode(String.self)
+
+                    // Local ISO8601 formatter
+                    let isoFormatter = ISO8601DateFormatter()
+                    isoFormatter.formatOptions = [.withInternetDateTime]
+
                     if let date = isoFormatter.date(from: dateString) {
                         return date
                     }
-                    
+
+                    // Fallback formatter
                     let fallbackFormatter = DateFormatter()
                     fallbackFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss"
                     fallbackFormatter.timeZone = TimeZone(secondsFromGMT: 0)
-                    
+
                     if let date = fallbackFormatter.date(from: dateString) {
                         return date
                     }
+
                     throw DecodingError.dataCorruptedError(
                         in: container,
                         debugDescription: "Cannot decode date: \(dateString)"
@@ -573,7 +581,7 @@ class Supabase: ObservableObject {
                 var noteToSave = newNote
                 noteToSave.userID = userID.uuidString
                 
-                _ = try await client.database
+                _ = try await client
                     .from("note")
                     .insert([noteToSave])
                     .execute()
@@ -599,7 +607,7 @@ class Supabase: ObservableObject {
                     return
                 }
                 
-                let raw = try await client.database
+                let raw = try await client
                     .from("note")
                     .select()
                     .eq("user_id", value: userID)
@@ -1053,7 +1061,7 @@ class Supabase: ObservableObject {
     func updatePinStatus(list: List, isPinned: Bool, completion: @escaping (Bool, String?) -> Void) {
         Task {
             do {
-                let currentUserID = try await client.auth.session.user.id
+                _ = try await client.auth.session.user.id
                 let _ = try await client
                     .from("list")
                     .update(["is_pinned": isPinned])
@@ -1078,7 +1086,7 @@ class Supabase: ObservableObject {
     func updateTaskPinStatus(task: ToDoTask, isPinned: Bool, completion: @escaping (Bool, String?) -> Void) {
         Task {
             do {
-                let currentUserID = try? await client.auth.session.user.id
+                _ = try? await client.auth.session.user.id
                 let _ = try await client
                     .from("task")
                     .update(["is_pinned": isPinned])
@@ -1140,7 +1148,7 @@ class Supabase: ObservableObject {
     func updateNotePinStatus(note: Note, isPinned: Bool, completion: @escaping (Bool, String?) -> Void) {
         Task {
             do {
-                let currentUserID = try? await client.auth.session.user.id
+                _ = try? await client.auth.session.user.id
                 let _ = try await client
                     .from("note")
                     .update(["is_pinned": isPinned])

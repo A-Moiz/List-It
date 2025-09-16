@@ -159,7 +159,7 @@ struct AddTaskView: View {
                                 isOn: $addDueDate,
                                 accentColor: .blue
                             )
-                            .onChange(of: addDueDate) { newValue in
+                            .onChange(of: addDueDate) { oldValue, newValue in
                                 if newValue && dueDate == nil {
                                     dueDate = Date()
                                 } else if !newValue {

@@ -162,7 +162,7 @@ struct ListView: View {
         .onAppear {
             localIsPinned = list.isPinned
         }
-        .onChange(of: list.isPinned) { newValue in
+        .onChange(of: list.isPinned) { oldValue, newValue in
             localIsPinned = newValue
         }
         .sheet(isPresented: $showUpdateView) {

@@ -19,7 +19,7 @@ struct OverdueListView: View {
         let calendar = Calendar.current
         let today = calendar.startOfDay(for: Date())
 
-        let overdueTasks = (db.userTasks ?? []).filter {
+        let overdueTasks = (db.userTasks).filter {
             !$0.isCompleted &&
             !$0.isDeleted &&
             $0.dueDate != nil &&

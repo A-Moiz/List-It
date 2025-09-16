@@ -16,7 +16,7 @@ struct PriorityListView: View {
 
     // MARK: - Filters pinned tasks
     var pinnedTasksGroupedByListID: [String: [ToDoTask]] {
-        let pinnedTasks = (db.userTasks ?? []).filter {
+        let pinnedTasks = (db.userTasks).filter {
             !$0.isCompleted &&
             !$0.isDeleted &&
             $0.isPinned

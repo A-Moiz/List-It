@@ -19,7 +19,7 @@ struct TomorrowListView: View {
         let calendar = Calendar.current
         let tomorrow = calendar.date(byAdding: .day, value: 1, to: Date())!
 
-        let tomorrowTasks = (db.userTasks ?? []).filter {
+        let tomorrowTasks = (db.userTasks).filter {
             !$0.isCompleted &&
             !$0.isDeleted &&
             $0.dueDate != nil &&

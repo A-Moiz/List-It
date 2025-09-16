@@ -16,7 +16,7 @@ struct NotCompletedListView: View {
 
     // MARK: - Grouping tasks by list ID
     var notCompletedTasksGroupedByListID: [String: [ToDoTask]] {
-        let incompleteTasks = (db.userTasks ?? []).filter {
+        let incompleteTasks = (db.userTasks).filter {
             !$0.isCompleted && !$0.isDeleted
         }
 
@@ -47,7 +47,7 @@ struct NotCompletedListView: View {
                 AppConstants.background(for: colorScheme)
                     .ignoresSafeArea()
 
-                if (db.userTasks ?? []).filter({ !$0.isCompleted && !$0.isDeleted }).isEmpty {
+                if (db.userTasks).filter({ !$0.isCompleted && !$0.isDeleted }).isEmpty {
                     EmptyStateView(
                         icon: "checklist.unchecked",
                         collectionColor: .gray,

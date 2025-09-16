@@ -369,51 +369,59 @@ struct AllListsView: View {
         await withTaskGroup(of: Void.self) { group in
             group.addTask {
                 await withCheckedContinuation { continuation in
-                    db.fetchUserLists { success, errorMessage in
-                        if !success, let error = errorMessage {
-                            helper.showAlertWithMessage("Error loading user Lists: \(error)")
+                    Task { @MainActor in
+                        db.fetchUserLists { success, errorMessage in
+                            if !success, let error = errorMessage {
+                                helper.showAlertWithMessage("Error loading user Lists: \(error)")
+                            }
+                            continuation.resume()
                         }
-                        continuation.resume()
                     }
                 }
             }
             
             group.addTask {
                 await withCheckedContinuation { continuation in
-                    db.fetchUserCollections { success, errorMessage in
-                        if !success, let error = errorMessage {
-                            helper.showAlertWithMessage("Error fetching user Collections: \(error)")
+                    Task { @MainActor in
+                        db.fetchUserCollections { success, errorMessage in
+                            if !success, let error = errorMessage {
+                                helper.showAlertWithMessage("Error fetching user Collections: \(error)")
+                            }
+                            continuation.resume()
                         }
-                        continuation.resume()
                     }
                 }
             }
             
             group.addTask {
                 await withCheckedContinuation { continuation in
-                    db.fetchUserTasks { success, errorMessage in
-                        if !success, let error = errorMessage {
-                            helper.showAlertWithMessage("Error fetching user Tasks: \(error)")
+                    Task { @MainActor in
+                        db.fetchUserTasks { success, errorMessage in
+                            if !success, let error = errorMessage {
+                                helper.showAlertWithMessage("Error fetching user Tasks: \(error)")
+                            }
+                            continuation.resume()
                         }
-                        continuation.resume()
                     }
                 }
             }
             
             group.addTask {
                 await withCheckedContinuation { continuation in
-                    db.fetchUserNotes { success, errorMessage in
-                        if !success, let error = errorMessage {
-                            if error.contains("No user ID found") {
-                                helper.showAlertWithMessage("No user Notes found: \(error)")
-                            } else {
-                                helper.showAlertWithMessage("Error fetching notes: \(error)")
-                                DispatchQueue.main.async {
-                                    helper.showAlertWithMessage("Error fetching Notes: \(error)")
+                    Task { @MainActor in
+                        db.fetchUserNotes { success, errorMessage in
+                            if !success, let error = errorMessage {
+                                if error.contains("No user ID found") {
+                                    helper.showAlertWithMessage("No user Notes found: \(error)")
+                                } else {
+                                    helper.showAlertWithMessage("Error fetching notes: \(error)")
+                                    DispatchQueue.main.async {
+                                        helper.showAlertWithMessage("Error fetching Notes: \(error)")
+                                    }
                                 }
                             }
+                            continuation.resume()
                         }
-                        continuation.resume()
                     }
                 }
             }
@@ -427,57 +435,67 @@ struct AllListsView: View {
         await withTaskGroup(of: Void.self) { group in
             group.addTask {
                 await withCheckedContinuation { continuation in
-                    db.fetchCurrentUser { success, error in
-                        if !success {
-                            helper.showAlertWithMessage("Error fetching user details: \(error)")
-                        }
-                        continuation.resume()
-                    }
-                }
-            }
-            
-            group.addTask {
-                await withCheckedContinuation { continuation in
-                    db.fetchUserLists { success, errorMessage in
-                        if !success, let error = errorMessage {
-                            helper.showAlertWithMessage("Error fetching user Lists: \(error)")
-                        }
-                        continuation.resume()
-                    }
-                }
-            }
-            
-            group.addTask {
-                await withCheckedContinuation { continuation in
-                    db.fetchUserCollections { success, errorMessage in
-                        if !success, let error = errorMessage {
-                            helper.showAlertWithMessage("Error fetching Collections: \(error)")
-                        }
-                        continuation.resume()
-                    }
-                }
-            }
-            
-            group.addTask {
-                await withCheckedContinuation { continuation in
-                    db.fetchUserTasks { success, errorMessage in
-                        if !success, let error = errorMessage {
-                            helper.showAlertWithMessage("Error fetching and displaying new Task: \(error)")
-                        }
-                        continuation.resume()
-                    }
-                }
-            }
-            
-            group.addTask {
-                await withCheckedContinuation { continuation in
-                    db.fetchUserNotes { success, errorMessage in
-                        if !success, let error = errorMessage {
-                            if !error.contains("No user ID found") {
-                                helper.showAlertWithMessage("Error fetching and displaying new Note: \(error)")
+                    Task { @MainActor in
+                        db.fetchCurrentUser { success, error in
+                            if !success {
+                                helper.showAlertWithMessage("Error fetching user details: \(error ?? "Unknown Error")")
                             }
+                            continuation.resume()
                         }
-                        continuation.resume()
+                    }
+                }
+            }
+            
+            group.addTask {
+                await withCheckedContinuation { continuation in
+                    Task { @MainActor in
+                        db.fetchUserLists { success, errorMessage in
+                            if !success, let error = errorMessage {
+                                helper.showAlertWithMessage("Error fetching user Lists: \(error)")
+                            }
+                            continuation.resume()
+                        }
+                    }
+                }
+            }
+            
+            group.addTask {
+                await withCheckedContinuation { continuation in
+                    Task { @MainActor in
+                        db.fetchUserCollections { success, errorMessage in
+                            if !success, let error = errorMessage {
+                                helper.showAlertWithMessage("Error fetching Collections: \(error)")
+                            }
+                            continuation.resume()
+                        }
+                    }
+                }
+            }
+            
+            group.addTask {
+                await withCheckedContinuation { continuation in
+                    Task { @MainActor in
+                        db.fetchUserTasks { success, errorMessage in
+                            if !success, let error = errorMessage {
+                                helper.showAlertWithMessage("Error fetching and displaying new Task: \(error)")
+                            }
+                            continuation.resume()
+                        }
+                    }
+                }
+            }
+            
+            group.addTask {
+                await withCheckedContinuation { continuation in
+                    Task { @MainActor in
+                        db.fetchUserNotes { success, errorMessage in
+                            if !success, let error = errorMessage {
+                                if !error.contains("No user ID found") {
+                                    helper.showAlertWithMessage("Error fetching and displaying new Note: \(error)")
+                                }
+                            }
+                            continuation.resume()
+                        }
                     }
                 }
             }

@@ -327,7 +327,7 @@ struct EmailConfirmationView: View {
     // MARK: - Check database for user record (Callback Route Compatible)
     func checkUserInDatabase() async {
         do {
-            let response = try await db.client.database
+            let response = try await db.client
                 .from("users")
                 .select("id, email, full_name")
                 .eq("email", value: email)
@@ -351,6 +351,7 @@ struct EmailConfirmationView: View {
     }
     
     // MARK: - Load user data and redirect to AllListsView
+    @MainActor
     func loadUserDataAndRedirect() async {
         isLoadingUserData = true
         let signInSuccess = await withCheckedContinuation { continuation in
@@ -371,44 +372,52 @@ struct EmailConfirmationView: View {
         await withTaskGroup(of: Void.self) { group in
             group.addTask {
                 await withCheckedContinuation { continuation in
-                    db.fetchUserLists { success, errorMessage in
-                        if !success, let error = errorMessage {
-                            helper.showAlertWithMessage("Error with sign up process: \(error ?? "Unknown error")")
+                    Task { @MainActor in
+                        db.fetchUserLists { success, errorMessage in
+                            if !success, let error = errorMessage {
+                                helper.showAlertWithMessage("Error with sign up process: \(error)")
+                            }
+                            continuation.resume()
                         }
-                        continuation.resume()
                     }
                 }
             }
             
             group.addTask {
                 await withCheckedContinuation { continuation in
-                    db.fetchUserCollections { success, errorMessage in
-                        if !success, let error = errorMessage {
-                            helper.showAlertWithMessage("Error with sign up process: \(error ?? "Unknown error")")
+                    Task { @MainActor in
+                        db.fetchUserCollections { success, errorMessage in
+                            if !success, let error = errorMessage {
+                                helper.showAlertWithMessage("Error with sign up process: \(error)")
+                            }
+                            continuation.resume()
                         }
-                        continuation.resume()
                     }
                 }
             }
             
             group.addTask {
                 await withCheckedContinuation { continuation in
-                    db.fetchUserTasks { success, errorMessage in
-                        if !success, let error = errorMessage {
-                            helper.showAlertWithMessage("Error with sign up process: \(error ?? "Unknown error")")
+                    Task { @MainActor in
+                        db.fetchUserTasks { success, errorMessage in
+                            if !success, let error = errorMessage {
+                                helper.showAlertWithMessage("Error with sign up process: \(error)")
+                            }
+                            continuation.resume()
                         }
-                        continuation.resume()
                     }
                 }
             }
             
             group.addTask {
                 await withCheckedContinuation { continuation in
-                    db.fetchUserNotes { success, errorMessage in
-                        if !success, let error = errorMessage {
-                            helper.showAlertWithMessage("Error with sign up process: \(error ?? "Unknown error")")
+                    Task { @MainActor in
+                        db.fetchUserNotes { success, errorMessage in
+                            if !success, let error = errorMessage {
+                                helper.showAlertWithMessage("Error with sign up process: \(error)")
+                            }
+                            continuation.resume()
                         }
-                        continuation.resume()
                     }
                 }
             }
@@ -425,3 +434,4 @@ struct EmailConfirmationView: View {
 //#Preview {
 //    EmailConfirmationView(db: Supabase(), helper: Helper(), email: "", name: "", userId: "")
 //}
+

@@ -104,15 +104,9 @@ struct SignUpView: View {
                 }
             }
         }
-        .background(
-            NavigationLink(
-                destination: WelcomeView(db: db, helper: helper),
-                isActive: $isNavigating
-            ) {
-                EmptyView()
-            }
-                .hidden()
-        )
+        .navigationDestination(isPresented: $isNavigating) {
+            WelcomeView(db: db, helper: helper)
+        }
         .sheet(isPresented: $showEmailVerificationView, content: {
             EmailConfirmationView(
                 db: db,
