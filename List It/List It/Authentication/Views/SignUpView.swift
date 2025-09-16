@@ -93,19 +93,22 @@ struct SignUpView: View {
                 dismissButton: .default(Text("OK"))
             )
         }
-        .navigationBarBackButtonHidden()
+        .navigationBarBackButtonHidden(true)
         .toolbar {
-            ToolbarItem(placement: .topBarLeading) {
-                Button {
+            ToolbarItem(placement: .navigationBarLeading) {
+                Button(action: {
                     db.resetFields()
                     isNavigating = true
-                } label: {
-                    NavigationBackButton()
+                }) {
+                    Image(systemName: "chevron.left")
                 }
             }
         }
         .navigationDestination(isPresented: $isNavigating) {
             WelcomeView(db: db, helper: helper)
+        }
+        .onDisappear {
+            db.resetFields()
         }
         .sheet(isPresented: $showEmailVerificationView, content: {
             EmailConfirmationView(
@@ -152,3 +155,4 @@ struct SignUpView: View {
 //#Preview {
 //    SignUpView(db: Supabase(), helper: Helper())
 //}
+

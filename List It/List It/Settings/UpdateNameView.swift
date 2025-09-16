@@ -95,13 +95,12 @@ struct UpdateNameView: View {
                 )
             }
             .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
+                ToolbarItem(placement: .topBarLeading) {
                     Button {
                         dismiss()
                     } label: {
-                        Image(systemName: "xmark.circle.fill")
-                            .font(.system(size: 20))
-                            .foregroundStyle(colorScheme == .dark ? Color.gray : Color.gray.opacity(0.7))
+                        Text("Cancel")
+                            .font(.body)
                     }
                 }
             }

@@ -230,17 +230,12 @@ struct ActivityView: View {
                 }
             }
             .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
+                ToolbarItem(placement: .topBarLeading) {
                     Button {
                         dismiss()
                     } label: {
-                        HStack(spacing: 6) {
-                            Image(systemName: "xmark")
-                                .font(.system(size: 14, weight: .semibold))
-                            Text("Close")
-                                .font(.body)
-                        }
-                        .foregroundColor(.blue)
+                        Text("Cancel")
+                            .font(.body)
                     }
                 }
             }

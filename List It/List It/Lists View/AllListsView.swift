@@ -102,7 +102,6 @@ struct AllListsView: View {
                                     Text("👋")
                                         .font(.title2)
                                         .scaleEffect(headerAnimation ? 1.1 : 1.0)
-                                        .animation(.easeInOut(duration: 1.5).repeatForever(autoreverses: true), value: headerAnimation)
                                 }
                                 
                                 // MARK: - User's name

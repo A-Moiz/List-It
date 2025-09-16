@@ -155,15 +155,9 @@ struct AddListView: View {
                     Button {
                         dismiss()
                     } label: {
-                        HStack(spacing: 6) {
-                            Image(systemName: "chevron.left")
-                                .font(.system(size: 14, weight: .semibold))
-                            Text("Cancel")
-                                .font(.body)
-                        }
-                        .foregroundColor(.blue)
+                        Text("Cancel")
+                            .font(.body)
                     }
-                    .disabled(isLoading)
                 }
             }
             .alert(isPresented: $helper.showAlert) {
