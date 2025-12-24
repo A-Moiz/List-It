@@ -1,0 +1,12 @@
+# Ignore Xcode build files
+*.xcworkspace
+*.xcodeproj
+build/
+DerivedData/
+
+# Ignore secrets
+Secrets.plist
+*.env
+
+# Ignore Swift files
+Config.swift
