@@ -97,36 +97,43 @@ struct AddCollectionView: View {
                             )
                             
                             // MARK: - Color Preview
-                            if !selectedColorHex.isEmpty {
-                                HStack(spacing: 12) {
-                                    Circle()
-                                        .fill(Color(hex: selectedColorHex))
-                                        .frame(width: 24, height: 24)
-                                        .overlay(
-                                            Circle()
-                                                .stroke(.white, lineWidth: 2)
-                                                .shadow(color: .black.opacity(0.1), radius: 2)
-                                        )
-                                    
-                                    VStack(alignment: .leading, spacing: 2) {
-                                        Text("Selected Color")
-                                            .font(.caption)
-                                            .foregroundColor(.secondary)
-                                        Text(selectedColorHex.uppercased())
-                                            .font(.subheadline)
-                                            .fontWeight(.medium)
-                                            .foregroundColor(Color(hex: selectedColorHex))
+                            VStack {
+                                if !selectedColorHex.isEmpty {
+                                    HStack(spacing: 12) {
+                                        Circle()
+                                            .fill(Color(hex: selectedColorHex))
+                                            .frame(width: 24, height: 24)
+                                            .overlay(
+                                                Circle()
+                                                    .stroke(.white, lineWidth: 2)
+                                                    .shadow(color: .black.opacity(0.1), radius: 2)
+                                            )
+                                        
+                                        VStack(alignment: .leading, spacing: 2) {
+                                            Text("Selected Color")
+                                                .font(.caption)
+                                                .foregroundColor(.secondary)
+                                            Text(selectedColorHex.uppercased())
+                                                .font(.subheadline)
+                                                .fontWeight(.medium)
+                                                .foregroundColor(Color(hex: selectedColorHex))
+                                        }
+                                        
+                                        Spacer()
                                     }
-                                    
-                                    Spacer()
+                                    .padding(16)
+                                    .background(
+                                        RoundedRectangle(cornerRadius: 12)
+                                            .fill(Color(.systemGray6))
+                                    )
+                                    .transition(.scale.combined(with: .opacity))
+                                    .animation(.spring(response: 0.6, dampingFraction: 0.8), value: selectedColorHex)
                                 }
-                                .padding(16)
-                                .background(
-                                    RoundedRectangle(cornerRadius: 12)
-                                        .fill(Color(.systemGray6))
-                                )
-                                .transition(.scale.combined(with: .opacity))
-                                .animation(.spring(response: 0.6, dampingFraction: 0.8), value: selectedColorHex)
+                                
+                                Text("If no color is selected, the Collection will use its List's color by default.")
+                                    .font(.caption)
+                                    .bold()
+                                    .multilineTextAlignment(.center)
                             }
                         }
                         .padding(24)
@@ -161,8 +168,8 @@ struct AddCollectionView: View {
                             )
                         }
                         .buttonStyle(PressedButtonStyle())
-                        .disabled(collectionName.isEmpty || selectedColorHex.isEmpty)
-                        .opacity(collectionName.isEmpty || selectedColorHex.isEmpty ? 0.6 : 1.0)
+                        .disabled(collectionName.isEmpty)
+                        .opacity(collectionName.isEmpty ? 0.6 : 1.0)
                         .animation(.easeInOut(duration: 0.2), value: collectionName.isEmpty || selectedColorHex.isEmpty)
                         
                         Spacer(minLength: 40)
@@ -195,9 +202,12 @@ struct AddCollectionView: View {
     // MARK: - Create collection
     func createCollection() {
         if isFieldsFilled() {
-            if isValidName() {
+            if isValidName(for: list.id) {
                 let createdDate = db.dateAndTime(Date())
-                let newCollection = Collection(id: UUID().uuidString, createdAt: createdDate ?? Date(), collectionName: collectionName, bgColorHex: selectedColorHex, listID: list.id, userID: "")
+                let finalColorHex = selectedColorHex.isEmpty
+                ? list.bgColorHex
+                : selectedColorHex
+                let newCollection = Collection(id: UUID().uuidString, createdAt: createdDate ?? Date(), collectionName: collectionName, bgColorHex: finalColorHex, listID: list.id, userID: "")
                 db.saveCollection(newCollection: newCollection) { success, error in
                     if !success {
                         helper.showAlertWithMessage("Failed to create General Collection within List: \(error ?? "Unknown error")")
@@ -213,22 +223,26 @@ struct AddCollectionView: View {
             } else {
                 helper.showAlertWithMessage("You already have a Collection with this name within this List, please choose a different name for your new Collection.")
             }
-        } else {
-            helper.showAlertWithMessage("Please enter a name and choose a color your new Collection.")
         }
     }
     
-    // MARK: - Check if fields are blank
+    // MARK: - Check if field is blank
     func isFieldsFilled() -> Bool {
-        return !collectionName.isEmpty && !selectedColorHex.isEmpty
+        return !collectionName.isEmpty
     }
     
     // MARK: - Check if collection already exists
-    func isValidName() -> Bool {
-        return !db.collections.contains(where: {
-            $0.collectionName.lowercased().trimmingCharacters(in: .whitespacesAndNewlines) ==
-            collectionName.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
-        })
+    func isValidName(for listId: String) -> Bool {
+        let newName = collectionName
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .lowercased()
+        
+        return !db.collections.contains { collection in
+            collection.listID == list.id &&
+            collection.collectionName
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+                .lowercased() == newName
+        }
     }
 }
 

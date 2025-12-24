@@ -19,7 +19,6 @@ struct AllListsView: View {
     @State private var animatePinnedLists = false
     @AppStorage("isSignedIn") var isSignedIn: Bool = false
     @State private var refreshTrigger = UUID()
-    @State private var headerAnimation = false
     @State private var isInitialLoad = true
     
     private let columns = [
@@ -93,37 +92,7 @@ struct AllListsView: View {
                     VStack(alignment: .leading, spacing: 12) {
                         // MARK: - Welcome message
                         HStack(spacing: 8) {
-                            VStack(alignment: .leading, spacing: 4) {
-                                HStack {
-                                    Text("Welcome Back")
-                                        .font(.system(size: 18, weight: .medium))
-                                        .foregroundStyle(colorScheme == .dark ? Color.white.opacity(0.7) : Color.secondary)
-                                    
-                                    Text("👋")
-                                        .font(.title2)
-                                        .scaleEffect(headerAnimation ? 1.1 : 1.0)
-                                }
-                                
-                                // MARK: - User's name
-                                if let user = db.currentUser {
-                                    Text(user.fullName)
-                                        .font(.system(size: 32, weight: .bold))
-                                        .foregroundStyle(
-                                            LinearGradient(
-                                                colors: [
-                                                    colorScheme == .dark ? .white : .black,
-                                                    colorScheme == .dark ? Color.white.opacity(0.8) : Color.black.opacity(0.8)
-                                                ],
-                                                startPoint: .leading,
-                                                endPoint: .trailing
-                                            )
-                                        )
-                                } else {
-                                    Text("Loading...")
-                                        .font(.system(size: 32, weight: .bold))
-                                        .foregroundStyle(colorScheme == .dark ? .white.opacity(0.6) : .black.opacity(0.6))
-                                }
-                            }
+                            WelcomeMessage(db: db)
                             
                             Spacer()
                             
@@ -161,35 +130,7 @@ struct AllListsView: View {
                     // MARK: - Pinned Lists
                     if !pinnedLists.isEmpty {
                         VStack(alignment: .leading, spacing: 12) {
-                            HStack(spacing: 8) {
-                                Image(systemName: "pin.fill")
-                                    .foregroundStyle(
-                                        LinearGradient(
-                                            colors: [Color.yellow, Color.orange.opacity(0.8)],
-                                            startPoint: .topLeading,
-                                            endPoint: .bottomTrailing
-                                        )
-                                    )
-                                    .font(.title3)
-                                    .shadow(color: Color.yellow.opacity(0.3), radius: 2, x: 0, y: 1)
-                                
-                                Text("Pinned")
-                                    .font(.system(size: 24, weight: .bold))
-                                    .foregroundStyle(colorScheme == .dark ? .white : .black)
-                                
-                                Spacer()
-                                
-                                Text("\(pinnedLists.count)")
-                                    .font(.system(size: 14, weight: .semibold))
-                                    .foregroundColor(.white)
-                                    .padding(.horizontal, 10)
-                                    .padding(.vertical, 4)
-                                    .background(
-                                        Capsule()
-                                            .fill(Color.yellow.opacity(0.8))
-                                    )
-                            }
-                            .padding(.horizontal)
+                            PinnedHeaderView(pinnedLists: pinnedLists)
                             
                             ScrollView(.horizontal, showsIndicators: false) {
                                 HStack(spacing: 20) {
@@ -206,7 +147,10 @@ struct AllListsView: View {
                                 }
                                 .padding(.horizontal, 20)
                                 .padding(.vertical, 12)
+                                .padding(.vertical, 4)
                             }
+                            .scrollClipDisabled()
+                            .contentMargins(.horizontal, 12)
                             .onAppear {
                                 withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
                                     animatePinnedLists = true
@@ -271,9 +215,6 @@ struct AllListsView: View {
                         }
                         .padding(.horizontal)
                         .padding(.bottom, 4)
-                        
-                        // MARK: - Search Bar
-                        CustomSearchBar(searchText: $searchText, prompt: "Search your Lists...")
                     }
                     .padding(.top, 12)
                     
@@ -281,8 +222,7 @@ struct AllListsView: View {
                     ScrollView {
                         LazyVGrid(columns: columns, spacing: 16) {
                             ForEach(filteredLists, id: \.id) { list in
-                                ListView(
-                                    list: Binding(
+                                ListView(list: Binding(
                                         get: {
                                             if let updatedList = combinedLists.first(where: { $0.id == list.id }) {
                                                 return updatedList
@@ -316,21 +256,25 @@ struct AllListsView: View {
             .navigationBarBackButtonHidden()
             .sheet(isPresented: $showAddListView) {
                 AddListView(helper: helper, db: db, lists: $db.lists)
-                    .presentationDetents([.height(500)])
+                    .presentationDetents([.medium, .large])
                     .presentationCornerRadius(25)
                     .interactiveDismissDisabled()
             }
             .sheet(isPresented: $showSettingsView) {
                 SettingsView(helper: helper, db: db)
-                    .presentationDetents([.height(500)])
+                    .presentationDetents([.medium, .large])
                     .presentationCornerRadius(25)
                     .interactiveDismissDisabled()
             }
+            .searchable(
+                text: $searchText,
+                placement: .navigationBarDrawer,
+                prompt: "Search your Lists"
+            )
             .refreshable {
                 await refreshData()
             }
             .onAppear {
-                headerAnimation = true
                 if isInitialLoad && db.currentUser == nil {
                     Task {
                         await initialDataLoad()
@@ -500,5 +444,78 @@ struct AllListsView: View {
             }
         }
         refreshTrigger = UUID()
+    }
+}
+
+struct WelcomeMessage: View {
+    @Environment(\.colorScheme) var colorScheme
+    @ObservedObject var db: Supabase
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            HStack {
+                Text("Welcome Back")
+                    .font(.system(size: 18, weight: .medium))
+                    .foregroundStyle(colorScheme == .dark ? Color.white.opacity(0.7) : Color.secondary)
+                
+                Text("👋")
+                    .font(.title2)
+            }
+            
+            // MARK: - User's name
+            if let user = db.currentUser {
+                Text(user.fullName)
+                    .font(.system(size: 32, weight: .bold))
+                    .foregroundStyle(
+                        LinearGradient(
+                            colors: [
+                                colorScheme == .dark ? .white : .black,
+                                colorScheme == .dark ? Color.white.opacity(0.8) : Color.black.opacity(0.8)
+                            ],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+                    )
+            } else {
+                Text("Loading...")
+                    .font(.system(size: 32, weight: .bold))
+                    .foregroundStyle(colorScheme == .dark ? .white.opacity(0.6) : .black.opacity(0.6))
+            }
+        }
+    }
+}
+
+struct PinnedHeaderView: View {
+    @State var pinnedLists: [List]
+    
+    var body: some View {
+        HStack(spacing: 8) {
+            Image(systemName: "pin.fill")
+                .foregroundStyle(
+                    LinearGradient(
+                        colors: [Color.yellow, Color.orange.opacity(0.8)],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+                .font(.title3)
+                .shadow(color: Color.yellow.opacity(0.3), radius: 2, x: 0, y: 1)
+            
+            Text("Pinned")
+                .font(.system(size: 24, weight: .bold))
+            
+            Spacer()
+            
+            Text("\(pinnedLists.count)")
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundColor(.white)
+                .padding(.horizontal, 10)
+                .padding(.vertical, 4)
+                .background(
+                    Capsule()
+                        .fill(Color.yellow.opacity(0.8))
+                )
+        }
+        .padding(.horizontal)
     }
 }

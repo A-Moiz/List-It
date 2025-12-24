@@ -130,36 +130,43 @@ struct AddNoteView: View {
                                 )
                                 
                                 // MARK: - Color Preview
-                                if !selectedColorHex.isEmpty {
-                                    HStack(spacing: 12) {
-                                        RoundedRectangle(cornerRadius: 8)
-                                            .fill(Color(hex: selectedColorHex))
-                                            .frame(width: 32, height: 24)
-                                            .overlay(
-                                                RoundedRectangle(cornerRadius: 8)
-                                                    .stroke(.white, lineWidth: 2)
-                                                    .shadow(color: .black.opacity(0.1), radius: 2)
-                                            )
-                                        
-                                        VStack(alignment: .leading, spacing: 2) {
-                                            Text("Selected Color")
-                                                .font(.caption)
-                                                .foregroundColor(.secondary)
-                                            Text(selectedColorHex.uppercased())
-                                                .font(.subheadline)
-                                                .fontWeight(.medium)
-                                                .foregroundColor(Color(hex: selectedColorHex))
+                                VStack {
+                                    if !selectedColorHex.isEmpty {
+                                        HStack(spacing: 12) {
+                                            RoundedRectangle(cornerRadius: 8)
+                                                .fill(Color(hex: selectedColorHex))
+                                                .frame(width: 32, height: 24)
+                                                .overlay(
+                                                    RoundedRectangle(cornerRadius: 8)
+                                                        .stroke(.white, lineWidth: 2)
+                                                        .shadow(color: .black.opacity(0.1), radius: 2)
+                                                )
+                                            
+                                            VStack(alignment: .leading, spacing: 2) {
+                                                Text("Selected Color")
+                                                    .font(.caption)
+                                                    .foregroundColor(.secondary)
+                                                Text(selectedColorHex.uppercased())
+                                                    .font(.subheadline)
+                                                    .fontWeight(.medium)
+                                                    .foregroundColor(Color(hex: selectedColorHex))
+                                            }
+                                            
+                                            Spacer()
                                         }
-                                        
-                                        Spacer()
+                                        .padding(16)
+                                        .background(
+                                            RoundedRectangle(cornerRadius: 12)
+                                                .fill(Color(.systemGray6))
+                                        )
+                                        .transition(.scale.combined(with: .opacity))
+                                        .animation(.spring(response: 0.6, dampingFraction: 0.8), value: selectedColorHex)
                                     }
-                                    .padding(16)
-                                    .background(
-                                        RoundedRectangle(cornerRadius: 12)
-                                            .fill(Color(.systemGray6))
-                                    )
-                                    .transition(.scale.combined(with: .opacity))
-                                    .animation(.spring(response: 0.6, dampingFraction: 0.8), value: selectedColorHex)
+                                    
+                                    Text("If no color is selected, the note will use its collection’s color by default.")
+                                        .font(.caption)
+                                        .bold()
+                                        .multilineTextAlignment(.center)
                                 }
                             }
                         }
@@ -255,39 +262,42 @@ struct AddNoteView: View {
                         )
                         
                         // MARK: - Create Button
-                        Button(action: {
-                            if !isFieldsFilled() {
-                                helper.showAlertWithMessage("Title and background Color is required for Note.")
-                            } else {
+                        VStack {
+                            Button(action: {
                                 createNote()
-                            }
-                        }) {
-                            HStack(spacing: 12) {
-                                Image(systemName: "plus.circle.fill")
-                                    .font(.title3)
-                                Text("Create Note")
-                                    .font(.headline)
-                                    .fontWeight(.semibold)
-                            }
-                            .foregroundColor(.white)
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 18)
-                            .background(
-                                RoundedRectangle(cornerRadius: 16)
-                                    .fill(
-                                        LinearGradient(
-                                            colors: [.orange, .pink],
-                                            startPoint: .topLeading,
-                                            endPoint: .bottomTrailing
+                            }) {
+                                HStack(spacing: 12) {
+                                    Image(systemName: "plus.circle.fill")
+                                        .font(.title3)
+                                    Text("Create Note")
+                                        .font(.headline)
+                                        .fontWeight(.semibold)
+                                }
+                                .foregroundColor(.white)
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 18)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 16)
+                                        .fill(
+                                            LinearGradient(
+                                                colors: [.orange, .pink],
+                                                startPoint: .topLeading,
+                                                endPoint: .bottomTrailing
+                                            )
                                         )
-                                    )
-                                    .shadow(color: .orange.opacity(0.4), radius: 12, x: 0, y: 6)
-                            )
+                                        .shadow(color: .orange.opacity(0.4), radius: 12, x: 0, y: 6)
+                                )
+                            }
+                            .buttonStyle(PressedButtonStyle())
+                            .disabled(title.isEmpty)
+                            .opacity(title.isEmpty ? 0.6 : 1.0)
+                            .animation(.easeInOut(duration: 0.2), value: title.isEmpty || selectedColorHex.isEmpty)
+                            
+                            Text("Title is required before creating a Note.")
+                                .font(.caption)
+                                .bold()
+                                .multilineTextAlignment(.center)
                         }
-                        .buttonStyle(PressedButtonStyle())
-                        .disabled(title.isEmpty || selectedColorHex.isEmpty)
-                        .opacity(title.isEmpty || selectedColorHex.isEmpty ? 0.6 : 1.0)
-                        .animation(.easeInOut(duration: 0.2), value: title.isEmpty || selectedColorHex.isEmpty)
                         
                         Spacer(minLength: 40)
                     }
@@ -306,6 +316,9 @@ struct AddNoteView: View {
                     }
                 }
             }
+            .alert(isPresented: $helper.showAlert) {
+                Alert(title: Text(""), message: Text(helper.alertMessage), dismissButton: .default(Text("OK")))
+            }
         }
     }
     
@@ -314,8 +327,20 @@ struct AddNoteView: View {
         let matchedCollection = db.collections.first {
             $0.collectionName == (selectedCollectionName ?? "General") && $0.listID == list.id
         }
+        // Determine background color
+        let resolvedColorHex: String = {
+            if !selectedColorHex.isEmpty {
+                return selectedColorHex
+            }
+            
+            if let collectionColor = matchedCollection?.bgColorHex, !collectionColor.isEmpty {
+                return collectionColor
+            }
+            
+            return list.bgColorHex
+        }()
         let createdDate = db.dateAndTime(Date())
-        let newNote = Note(id: UUID().uuidString, createdAt: createdDate ?? Date(), title: title, description: description, isDeleted: false, bgColorHex: selectedColorHex, isPinned: isPinned, collectionID: matchedCollection?.id ?? "", userID: "", listID: list.id)
+        let newNote = Note(id: UUID().uuidString, createdAt: createdDate ?? Date(), title: title, description: description, isDeleted: false, bgColorHex: resolvedColorHex, isPinned: isPinned, collectionID: matchedCollection?.id ?? "", userID: "", listID: list.id)
         
         db.saveNote(newNote: newNote) { success, errorMessage in
             if !success, let error = errorMessage {
@@ -329,11 +354,6 @@ struct AddNoteView: View {
                 dismiss()
             }
         }
-    }
-    
-    // MARK: - Check if fields blank
-    func isFieldsFilled() -> Bool {
-        return !title.isEmpty && !selectedColorHex.isEmpty
     }
 }
 

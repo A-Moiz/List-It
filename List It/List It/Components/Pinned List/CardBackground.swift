@@ -37,6 +37,7 @@ struct CardBackground: View {
     }
 }
 
-//#Preview {
-//    CardBackground()
-//}
+#Preview {
+    @Previewable @State var sampleList = List(id: "", createdAt: Date(), listIcon: "", listName: "", isDefault: false, bgColorHex: "", userId: "", isPinned: true)
+    CardBackground(list: $sampleList)
+}

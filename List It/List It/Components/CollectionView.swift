@@ -189,8 +189,8 @@ struct CollectionView: View {
         }
         .animation(.easeInOut(duration: 0.3), value: isExpanded)
         .sheet(isPresented: $showUpdateView) {
-            UpdateCollectionView(helper: helper, db: db, collection: collection)
-                .presentationDetents([.height(500)])
+            UpdateCollectionView(helper: helper, db: db, collection: collection, list: list)
+                .presentationDetents([.medium, .large])
                 .presentationCornerRadius(25)
                 .interactiveDismissDisabled()
         }

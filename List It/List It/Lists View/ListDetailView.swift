@@ -36,19 +36,19 @@ struct ListDetailView: View {
                     }
                     .sheet(isPresented: $showAddcollectionView) {
                         AddCollectionView(helper: helper, db: db, list: $list)
-                            .presentationDetents([.height(600)])
+                            .presentationDetents([.medium, .large])
                             .presentationCornerRadius(15)
                             .interactiveDismissDisabled()
                     }
                     .sheet(isPresented: $showAddTaskView) {
                         AddTaskView(list: $list, helper: helper, db: db)
-                            .presentationDetents([.height(600)])
+                            .presentationDetents([.medium, .large])
                             .presentationCornerRadius(15)
                             .interactiveDismissDisabled()
                     }
                     .sheet(isPresented: $showAddNoteView) {
                         AddNoteView(list: $list, helper: helper, db: db)
-                            .presentationDetents([.height(600)])
+                            .presentationDetents([.medium, .large])
                             .presentationCornerRadius(15)
                             .interactiveDismissDisabled()
                     }
@@ -111,10 +111,7 @@ struct ListDetailView: View {
     
     // MARK: - Collection views
     private func collectionsForEachView() -> some View {
-        ForEach(
-            sortedCollectionIndices(),
-            id: \.self
-        ) { index in
+        ForEach(sortedCollectionIndices(), id: \.self) { index in
             CollectionView(
                 collection: $db.collections[index],
                 list: $list,
@@ -167,7 +164,6 @@ struct ListDetailView: View {
                 }
             } label: {
                 Image(systemName: "ellipsis.circle")
-                    .foregroundColor(colorScheme == .light ? .black : .white)
             }
         }
     }

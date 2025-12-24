@@ -167,7 +167,7 @@ struct ListView: View {
         }
         .sheet(isPresented: $showUpdateView) {
             UpdateListView(helper: helper, db: db, list: list)
-                .presentationDetents([.height(500)])
+                .presentationDetents([.medium, .large])
                 .presentationCornerRadius(25)
                 .interactiveDismissDisabled()
         }

@@ -17,6 +17,7 @@ struct UpdateCollectionView: View {
     @Environment(\.colorScheme) var colorScheme
     @State var isLoading: Bool = false
     let collection: Collection
+    let list: List
     
     var body: some View {
         NavigationStack {
@@ -140,7 +141,7 @@ struct UpdateCollectionView: View {
                             .opacity(isLoading ? 0.8 : 1.0)
                         }
                         .buttonStyle(PressedButtonStyle())
-                        .disabled(isLoading)
+                        .disabled(isLoading || collectionName.isEmpty)
                         .padding(.top, 8)
                         
                         Spacer(minLength: 40)
@@ -153,13 +154,8 @@ struct UpdateCollectionView: View {
                     Button {
                         dismiss()
                     } label: {
-                        HStack(spacing: 6) {
-                            Image(systemName: "chevron.left")
-                                .font(.system(size: 14, weight: .semibold))
-                            Text("Cancel")
-                                .font(.body)
-                        }
-                        .foregroundColor(.blue)
+                        Text("Cancel")
+                            .font(.body)
                     }
                     .disabled(isLoading)
                 }
@@ -181,7 +177,7 @@ struct UpdateCollectionView: View {
     // MARK: - Update List function
     func updateList() {
         if isFieldsFilled() {
-            if isValidName() {
+            if isValidName(for: list.id) {
                 isLoading = true
                 db.updateCollection(collection: collection, name: collectionName, bgColorHex: selectedColorHex) { success, error in
                     if !success, let errorMessage = error {
@@ -199,18 +195,26 @@ struct UpdateCollectionView: View {
             } else {
                 helper.showAlertWithMessage("You already have a Collection with this name, please choose a different name.")
             }
-        } else {
-            helper.showAlertWithMessage("Please enter a name and choose a color for your Collection.")
         }
     }
     
-    // MARK: - Checking if fields are blank
+    // MARK: - Checking if field is blank
     func isFieldsFilled() -> Bool {
-        return !collectionName.isEmpty && !selectedColorHex.isEmpty
+        return !collectionName.isEmpty
     }
     
-    // MARK: - Check if name is taken
-    func isValidName() -> Bool {
-        return !db.collections.contains(where: { $0.collectionName.lowercased() == collectionName.lowercased() && $0.id != collection.id })
+    // MARK: - Check if collection already exists
+    func isValidName(for listId: String) -> Bool {
+        let newName = collectionName
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .lowercased()
+
+        return !db.collections.contains { existing in
+            existing.listID == list.id &&
+            existing.id != collection.id &&
+            existing.collectionName
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+                .lowercased() == newName
+        }
     }
 }
