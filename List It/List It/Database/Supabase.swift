@@ -738,8 +738,11 @@ class Supabase {
     // MARK: - Complete task
     func completeTask(task: ToDoTask) async -> Bool {
         do {
+            let timestamp = ISO8601DateFormatter().string(from: Date())
+            
             let updateData: [String: AnyJSON] = [
-                "is_completed": .bool(true)
+                "is_completed": .bool(true),
+                "date_completed": .string(timestamp)
             ]
             
             try await client
@@ -751,6 +754,7 @@ class Supabase {
             await MainActor.run {
                 if let index = self.tasks.firstIndex(where: { $0.id == task.id }) {
                     self.tasks[index].isCompleted = true
+                    self.tasks[index].dateCompleted = Date()
                 }
             }
             return true
