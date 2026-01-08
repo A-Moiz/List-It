@@ -2,7 +2,7 @@
 //  Note.swift
 //  List It
 //
-//  Created by Abdul Moiz on 04/04/2025.
+//  Created by Abdul Moiz on 07/01/2026.
 //
 
 import Foundation
@@ -10,6 +10,7 @@ import SwiftUI
 
 struct Note: Codable, Identifiable {
     var id: String
+    @SupabaseDate
     var createdAt: Date
     var title: String
     var description: String?

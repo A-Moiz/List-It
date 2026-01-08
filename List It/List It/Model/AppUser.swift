@@ -2,28 +2,28 @@
 //  AppUser.swift
 //  List It
 //
-//  Created by Abdul Moiz on 29/04/2025.
+//  Created by Abdul Moiz on 04/01/2026.
 //
 
 import Foundation
 
 struct AppUser: Codable, Identifiable {
-    let id: UUID
+    let id: String
     let createdAt: Date?
-    var fullName: String
+    var name: String
     let email: String
 
     enum CodingKeys: String, CodingKey {
         case id
         case createdAt = "created_at"
-        case fullName = "full_name"
+        case name = "full_name"
         case email
     }
 
-    init(id: UUID, createdAt: Date? = nil, fullName: String, email: String) {
+    init(id: String, createdAt: Date? = nil, name: String, email: String) {
         self.id = id
         self.createdAt = createdAt
-        self.fullName = fullName
+        self.name = name
         self.email = email
     }
 }

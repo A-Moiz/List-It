@@ -64,7 +64,15 @@
       "hidden" : false,
       "layers" : [
         {
-          "blend-mode" : "normal",
+          "blend-mode-specializations" : [
+            {
+              "value" : "normal"
+            },
+            {
+              "appearance" : "dark",
+              "value" : "normal"
+            }
+          ],
           "fill-specializations" : [
             {
               "value" : {
@@ -75,8 +83,8 @@
               "appearance" : "dark",
               "value" : {
                 "linear-gradient" : [
-                  "extended-gray:0.25000,1.00000",
-                  "gray:0.00000,1.00000"
+                  "display-p3:0.25513,0.25130,0.24698,1.00000",
+                  "display-p3:0.07843,0.07843,0.07843,1.00000"
                 ],
                 "orientation" : {
                   "start" : {
@@ -97,7 +105,7 @@
           ],
           "glass-specializations" : [
             {
-              "value" : false
+              "value" : true
             },
             {
               "appearance" : "tinted",

@@ -1,19 +1,20 @@
 //
-//  Collection.swift
+//  List.swift
 //  List It
 //
-//  Created by Abdul Moiz on 04/04/2025.
+//  Created by Abdul Moiz on 04/01/2026.
 //
 
 import Foundation
 import SwiftUI
 
-struct List: Codable, Identifiable {
-    var id: String
+struct List: Codable, Identifiable, Hashable {
+    let id: String
+    @SupabaseDate
     var createdAt: Date
     var listIcon: String
     var listName: String
-    var isDefault: Bool
+    let isDefault: Bool
     var bgColorHex: String
     var userId: String
 
@@ -32,5 +33,13 @@ struct List: Codable, Identifiable {
         case bgColorHex = "bg_color_hex"
         case isPinned = "is_pinned"
         case userId = "user_id"
+    }
+    // Hashable conformance for NavigationStack destinations
+    static func == (lhs: List, rhs: List) -> Bool {
+        lhs.id == rhs.id
+    }
+
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
     }
 }

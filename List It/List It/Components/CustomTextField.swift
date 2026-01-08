@@ -2,53 +2,52 @@
 //  CustomTextField.swift
 //  List It
 //
-//  Created by Abdul Moiz on 30/03/2025.
+//  Created by Abdul Moiz on 04/01/2026.
 //
 
 import SwiftUI
 
 struct CustomTextField: View {
-    // MARK: - Properties
-    @State var icon: String
-    @State var placeholder: String
+    let icon: String
+    let placeholder: String
     @Binding var text: String
-    @State var isPassword: Bool
+    let isPassword: Bool
     @State var showPassword: Bool
     @State var isEditing = false
     @Environment(\.colorScheme) var colorScheme
-
     var textfieldBG: some View {
         RoundedRectangle(cornerRadius: 12)
-            .stroke(isEditing ? AppConstants.accentColor(for: colorScheme) : (colorScheme == .dark ? Color.gray.opacity(0.5) : Color.gray.opacity(0.3)), lineWidth: isEditing ? 2 : 1)
+            .stroke(isEditing ? Color.orange : (colorScheme == .dark ? Color.gray.opacity(0.5) : Color.gray.opacity(0.3)), lineWidth: isEditing ? 2 : 1)
             .background(colorScheme == .dark ? Color(hex: "1E1E1E").cornerRadius(12) : Color.white.opacity(0.8).cornerRadius(12))
     }
     
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
-            /// Floating label
             if isEditing || !text.isEmpty {
                 Text(placeholder)
                     .font(.caption)
-                    .foregroundStyle(AppConstants.accentColor(for: colorScheme))
+                    .foregroundStyle(.orange)
                     .padding(.leading, 30)
                     .transition(.move(edge: .top).combined(with: .opacity))
             }
             
-            // MARK: - Textfield
-            HStack(spacing: 12) {
+            HStack {
                 Image(systemName: icon)
-                    .foregroundStyle(isEditing ? AppConstants.accentColor(for: colorScheme) : Color.gray)
+                    .foregroundStyle(isEditing ? .orange : .gray)
                     .frame(width: 20)
                 
                 if isPassword && !showPassword {
                     SecureField(placeholder, text: $text)
+                        .textInputAutocapitalization(.never)
+                        .autocorrectionDisabled(true)
                 } else {
                     TextField(placeholder, text: $text)
                         .font(.system(size: 16))
                         .foregroundStyle(colorScheme == .dark ? .white : .primary)
+                        .textInputAutocapitalization(.never)
+                        .autocorrectionDisabled(true)
                 }
                 
-                // MARK: - Password Visibility
                 if isPassword {
                     Button(action: {
                         showPassword.toggle()
@@ -74,10 +73,7 @@ struct CustomTextField: View {
     }
 }
 
-//#Preview {
-//    @Previewable @State var icon: String = "person"
-//    @Previewable @State var placeholder: String = "Name"
-//    @Previewable @State var text: String = ""
-//    @Previewable @State var isPassword: Bool = false
-//    CustomTextField(icon: icon, placeholder: placeholder, text: $text, isPassword: isPassword, showPassword: false)
-//}
+#Preview {
+    @Previewable @State var text: String = ""
+    CustomTextField(icon: "person", placeholder: "Enter Name", text: $text, isPassword: false, showPassword: false)
+}

@@ -1,14 +1,15 @@
 //
-//  Task.swift
+//  ToDoTask.swift
 //  List It
 //
-//  Created by Abdul Moiz on 04/04/2025.
+//  Created by Abdul Moiz on 06/01/2026.
 //
 
 import Foundation
 
-struct ToDoTask: Codable, Identifiable, Equatable {
+struct ToDoTask: Codable, Identifiable {
     var id: String
+    @SupabaseDate
     var createdAt: Date
     var text: String
     var description: String?

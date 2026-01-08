@@ -2,14 +2,15 @@
 //  Collection.swift
 //  List It
 //
-//  Created by Abdul Moiz on 05/04/2025.
+//  Created by Abdul Moiz on 05/01/2026.
 //
 
 import Foundation
 import SwiftUI
 
 struct Collection: Codable, Identifiable {
-    var id: String
+    let id: String
+    @SupabaseDate
     var createdAt: Date
     var collectionName: String
     var bgColorHex: String
