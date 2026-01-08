@@ -74,12 +74,6 @@ struct AllListsView: View {
                                             systemImage: list.isPinned ? "pin.slash" : "pin"
                                         )
                                     }
-                                    
-                                    Button {
-                                        // Action to hide
-                                    } label: {
-                                        Label("Hide List", systemImage: "eye.slash")
-                                    }
                                 } else {
                                     Button {
                                         Task {
@@ -392,12 +386,6 @@ struct PinnedListView: View {
                                                     list.isPinned ? "Unpin List" : "Pin List",
                                                     systemImage: list.isPinned ? "pin.slash" : "pin"
                                                 )
-                                            }
-                                            
-                                            Button {
-                                                // Action to hide
-                                            } label: {
-                                                Label("Hide List", systemImage: "eye.slash")
                                             }
                                         } else {
                                             Button {
