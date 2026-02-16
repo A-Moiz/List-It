@@ -147,7 +147,6 @@ struct AllListsView: View {
             alertMode = .error
             db.setError(title: "Error", message: "No List selected for deletion")
             showAlert = true
-            print("DEBUG: No list selected for deletion")
             return
         }
         

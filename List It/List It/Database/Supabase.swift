@@ -382,11 +382,9 @@ class Supabase {
     // MARK: - Fetch user Lists
     func fetchUserLists() async -> Bool {
         do {
-            // Use user() to wait for session restoration and get the verified userID
             let user = try await client.auth.user()
             let userID = user.id
             
-            // It's good practice to clear existing lists before a fresh fetch
             await MainActor.run { self.lists = [] }
             
             let response: [List] = try await client
@@ -402,9 +400,7 @@ class Supabase {
             return true
             
         } catch {
-            // Log the error but only return false if the error
-            // specifically means the user is not authenticated.
-            print("Error fetching Lists: \(error.localizedDescription)")
+            setError(title: "Error", message: "Error fetching your Lists: \(error.localizedDescription)")
             return false
         }
     }
@@ -412,7 +408,6 @@ class Supabase {
     // MARK: - Pin List
     func updateListPin(list: List, isPinned: Bool) async -> Bool {
         do {
-            // 1. Only update Supabase if it's NOT a default list
             if !list.isDefault {
                 try await client
                     .from("list")
@@ -421,15 +416,12 @@ class Supabase {
                     .execute()
             }
             
-            // 2. Update local UI state
             await MainActor.run {
                 if list.isDefault {
-                    // Check in defaultLists
                     if let index = self.defaultLists.firstIndex(where: { $0.id == list.id }) {
                         self.defaultLists[index].isPinned = isPinned
                     }
                 } else {
-                    // Check in user-created lists
                     if let index = self.lists.firstIndex(where: { $0.id == list.id }) {
                         self.lists[index].isPinned = isPinned
                     }
@@ -478,7 +470,6 @@ class Supabase {
             
             await MainActor.run {
                 if let index = self.lists.firstIndex(where: { $0.id == list.id }) {
-                    // Create a COPY with updated values
                     var updatedList = self.lists[index]
                     updatedList.listName = name
                     updatedList.bgColorHex = hex
@@ -518,7 +509,6 @@ class Supabase {
     
     // MARK: - Fetch user Collections
     func fetchUserCollections() async -> Bool {
-        print("DEBUG [Fetch]: Fetching Collections...")
         do {
             let user = try await client.auth.user()
             let response: [Collection] = try await client
@@ -529,10 +519,8 @@ class Supabase {
                 .value
             
             await MainActor.run { self.collections = response }
-            print("DEBUG [Fetch]: Collections loaded. Count: \(response.count)")
             return true
         } catch {
-            print("DEBUG [Fetch]: Collection error: \(error.localizedDescription)")
             return false
         }
     }
@@ -562,7 +550,6 @@ class Supabase {
             }
             return true
         } catch {
-            print("DEBUG [UPDATE COLLECTION] - \(error.localizedDescription)")
             await MainActor.run {
                 self.setError(title: "Update Failed", message: error.localizedDescription)
             }
@@ -643,16 +630,16 @@ class Supabase {
                 if let date = spaceFormatter.date(from: dateString) {
                     return date
                 }
-
+                
                 throw DecodingError.dataCorruptedError(in: container, debugDescription: "Invalid date format: \(dateString)")
             }
-
+            
             let response = try await client
                 .from("task")
                 .select()
                 .eq("user_id", value: user.id)
                 .execute()
-
+            
             let tasks = try decoder.decode([ToDoTask].self, from: response.data)
             
             await MainActor.run { self.tasks = tasks }
@@ -697,9 +684,35 @@ class Supabase {
             return true
             
         } catch {
-            print("DEBUG [Update]: \(error.localizedDescription)")
             await MainActor.run {
                 self.setError(title: "Update Failed", message: error.localizedDescription)
+            }
+            return false
+        }
+    }
+    
+    // MARK: - Update Pin status for Task
+    func updatePinForTask(task: ToDoTask, isPinned: Bool) async -> Bool {
+        do {
+            let updateData: [String: AnyJSON] = [
+                "is_pinned": .bool(isPinned)
+            ]
+            
+            try await client
+                .from("task")
+                .update(updateData)
+                .eq("id", value: task.id)
+                .execute()
+            
+            await MainActor.run {
+                if let index = self.tasks.firstIndex(where: { $0.id == task.id } ) {
+                    self.tasks[index].isPinned = isPinned
+                }
+            }
+            return true
+        } catch {
+            await MainActor.run {
+                self.setError(title: "Pin Failed", message: error.localizedDescription)
             }
             return false
         }
@@ -780,10 +793,8 @@ class Supabase {
                 self.tasks.removeAll { $0.id == task.id }
             }
             
-            print("DEBUG [Delete]: Task \(task.id) deleted successfully.")
             return true
         } catch {
-            print("DEBUG [Delete]: \(error.localizedDescription)")
             await MainActor.run {
                 self.setError(title: "Delete Failed", message: error.localizedDescription)
             }
@@ -813,7 +824,6 @@ class Supabase {
     
     // MARK: - Fetch user Notes
     func fetchUserNotes() async -> Bool {
-        print("DEBUG [Fetch]: Fetching Notes...")
         do {
             let user = try await client.auth.user()
             let response: [Note] = try await client
@@ -824,10 +834,11 @@ class Supabase {
                 .value
             
             await MainActor.run { self.notes = response }
-            print("DEBUG [Fetch]: Notes loaded. Count: \(response.count)")
             return true
         } catch {
-            print("DEBUG [Fetch]: Notes error: \(error.localizedDescription)")
+            await MainActor.run {
+                setError(title: "Error", message: "Error fetching your notes: \(error.localizedDescription)")
+            }
             return false
         }
     }
@@ -859,9 +870,35 @@ class Supabase {
             return true
             
         } catch {
-            print("DEBUG [Update]: \(error.localizedDescription)")
             await MainActor.run {
                 self.setError(title: "Update Failed", message: error.localizedDescription)
+            }
+            return false
+        }
+    }
+    
+    // MARK: - Update Pin status for Note
+    func updatePinForNote(note: Note, isPinned: Bool) async -> Bool {
+        do {
+            let updateData: [String: AnyJSON] = [
+                "is_pinned": .bool(isPinned)
+            ]
+            
+            try await client
+                .from("note")
+                .update(updateData)
+                .eq("id", value: note.id)
+                .execute()
+            
+            await MainActor.run {
+                if let index = self.notes.firstIndex(where: { $0.id == note.id } ) {
+                    self.notes[index].isPinned = isPinned
+                }
+            }
+            return true
+        } catch {
+            await MainActor.run {
+                self.setError(title: "Pin Failed", message: error.localizedDescription)
             }
             return false
         }
@@ -880,10 +917,8 @@ class Supabase {
                 self.notes.removeAll { $0.id == note.id }
             }
             
-            print("DEBUG [Delete]: Note \(note.id) deleted successfully.")
             return true
         } catch {
-            print("DEBUG [Delete]: \(error.localizedDescription)")
             await MainActor.run {
                 self.setError(title: "Delete Failed", message: error.localizedDescription)
             }
@@ -1016,4 +1051,3 @@ class Supabase {
         }
     }
 }
-

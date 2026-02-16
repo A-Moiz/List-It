@@ -17,57 +17,58 @@ struct AddCollectionView: View {
     
     var body: some View {
         NavigationStack {
-            ScrollView {
-                Image(systemName: "folder")
-                    .font(.system(size: 100))
-                    .foregroundStyle(
-                        LinearGradient(colors: [.blue, .purple], startPoint: .topLeading, endPoint: .bottomTrailing)
+            Form {
+                Section {
+                    VStack(spacing: 16) {
+                        Image(systemName: "folder.fill.badge.plus")
+                            .font(.system(size: 80))
+                            .foregroundStyle(LinearGradient(colors: [.blue, .purple], startPoint: .topLeading, endPoint: .bottomTrailing))
+                            .shadow(color: .blue.opacity(0.3), radius: 10, y: 5)
+                        
+                        Text("Group your tasks & notes into collections.")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 20)
+                }
+                .listRowBackground(Color.clear)
+                
+                Section("Collection Details") {
+                    InputField(
+                        icon: "folder",
+                        text: $collectionName,
+                        placeholder: "e.g. Groceries, High Priority"
                     )
+                }
+                .listRowBackground(Color(.systemBackground).opacity(0.7))
                 
-                InputField(
-                    icon: "checklist",
-                    text: $collectionName,
-                    placeholder: "What's your new Collection called?"
-                )
-                .background(
-                    RoundedRectangle(cornerRadius: 10)
-                        .fill(.ultraThinMaterial)
-                        .shadow(color: .black.opacity(0.2), radius: 10, x: 0, y: 5)
-                )
-                .padding()
-                
-                ColorInputView(selectedColorHex: $selectedColorHex)
-                    .padding()
-                    .background(
-                        RoundedRectangle(cornerRadius: 10)
-                            .fill(.ultraThinMaterial)
-                            .shadow(color: .black.opacity(0.2), radius: 10, x: 0, y: 5)
-                    )
-                    .padding()
-                
-                Text("If no color is selected, the Collection will use its List’s colour by default.")
-                    .font(.caption)
-                    .bold()
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal)
+                Section {
+                    ColorInputView(selectedColorHex: $selectedColorHex)
+                        .padding(.vertical, 8)
+                } header: {
+                    Text("Appearance")
+                } footer: {
+                    Text("If no color is selected, this will inherit the **\(list.listName)** list colour.")
+                        .font(.caption2)
+                }
+                .listRowBackground(Color(.systemBackground).opacity(0.7))
             }
             .navigationTitle("Add Collection")
             .navigationBarTitleDisplayMode(.inline)
+            .scrollContentBackground(.hidden)
+            .background(
+                list.bgColor.opacity(0.15)
+                    .ignoresSafeArea()
+            )
             .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
-                    Button {
-                        dismiss()
-                    } label: {
-                        Text("Dismiss")
-                    }
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Dismiss") { dismiss() }
                 }
-                
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button {
-                        createCollection()
-                    } label: {
-                        Text("Create")
-                    }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Create") { createCollection() }
+                        .fontWeight(.bold)
+                        .disabled(collectionName.isEmpty)
                 }
             }
             .alert(isPresented: $showAlert) {
@@ -110,7 +111,7 @@ struct AddCollectionView: View {
         }
         
         let listID = list.id
-        let collectionID = UUID().uuidString
+        let collectionID = UUID().uuidString.lowercased()
         let finalColorHex = selectedColorHex.isEmpty
         ? list.bgColorHex
         : selectedColorHex
@@ -127,9 +128,13 @@ struct AddCollectionView: View {
             let fetched = await db.fetchUserCollections()
             
             if fetched {
-                dismiss()
+                await MainActor.run {
+                    dismiss()
+                }
             } else {
-                showAlert = true
+                await MainActor.run {
+                    showAlert = true
+                }
             }
         }
     }

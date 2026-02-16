@@ -103,7 +103,7 @@ struct AddTaskView: View {
         }
 
         let newTask = ToDoTask(
-            id: UUID().uuidString,
+            id: UUID().uuidString.lowercased(),
             createdAt: Date(),
             text: taskTitle,
             description: taskDescription,

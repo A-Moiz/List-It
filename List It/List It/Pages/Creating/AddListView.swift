@@ -14,54 +14,54 @@ struct AddListView: View {
     @State var selectedColorHex: String = ""
     @State var showAlert: Bool = false
     var lists: [List]
-    
+
     var body: some View {
         NavigationStack {
-            ScrollView{
-                Image(systemName: "checklist.checked")
-                    .font(.system(size: 100))
-                    .foregroundStyle(
-                        LinearGradient(colors: [.orange, .red], startPoint: .topLeading, endPoint: .bottomTrailing)
-                    )
+            Form {
+                Section {
+                    VStack(spacing: 16) {
+                        Image(systemName: "checklist.checked")
+                            .font(.system(size: 80))
+                            .foregroundStyle(LinearGradient(colors: [.orange, .red], startPoint: .topLeading, endPoint: .bottomTrailing))
+                            .shadow(color: .orange.opacity(0.3), radius: 10, y: 5)
+                        
+                        Text("Create a new List to stay organised.")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                            .multilineTextAlignment(.center)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 20)
+                }
+                .listRowBackground(Color.clear)
                 
-                InputField(
-                    icon: "checklist",
-                    text: $listName,
-                    placeholder: "What's your new List called?"
-                )
-                .background(
-                    RoundedRectangle(cornerRadius: 10)
-                        .fill(.ultraThinMaterial)
-                        .shadow(color: .black.opacity(0.2), radius: 10, x: 0, y: 5)
-                )
-                .padding()
-                
-                ColorInputView(selectedColorHex: $selectedColorHex)
-                    .padding()
-                    .background(
-                        RoundedRectangle(cornerRadius: 10)
-                            .fill(.ultraThinMaterial)
-                            .shadow(color: .black.opacity(0.2), radius: 10, x: 0, y: 5)
+                Section("List Name") {
+                    InputField(
+                        icon: "pencil.line",
+                        text: $listName,
+                        placeholder: "e.g. Personal, Work, Fitness"
                     )
-                    .padding()
+                }
+                .listRowBackground(Color(.systemBackground).opacity(0.7))
+                
+                Section("Appearance") {
+                    ColorInputView(selectedColorHex: $selectedColorHex)
+                        .padding(.vertical, 8)
+                }
+                .listRowBackground(Color(.systemBackground).opacity(0.7))
             }
             .navigationTitle("Add List")
             .navigationBarTitleDisplayMode(.inline)
+            .scrollContentBackground(.hidden)
+            .background(Color(.systemGroupedBackground))
             .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
-                    Button {
-                        dismiss()
-                    } label: {
-                        Text("Dismiss")
-                    }
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Dismiss") { dismiss() }
                 }
-                
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button {
-                        createList()
-                    } label: {
-                        Text("Create")
-                    }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Create") { createList() }
+                        .fontWeight(.bold)
+                        .disabled(listName.isEmpty)
                 }
             }
             .alert(isPresented: $showAlert) {
@@ -96,7 +96,7 @@ struct AddListView: View {
             return
         }
         
-        let listID = UUID().uuidString
+        let listID = UUID().uuidString.lowercased()
         let newList = List(id: listID, createdAt: Date(), listIcon: "checklist", listName: listName, isDefault: false, bgColorHex: selectedColorHex, userId: "", isPinned: false)
         
         let generalCollection = Collection(id: UUID().uuidString, createdAt: Date(), collectionName: "General", bgColorHex: selectedColorHex, listID: listID, userID: "")

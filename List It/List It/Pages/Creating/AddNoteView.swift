@@ -81,19 +81,17 @@ struct AddNoteView: View {
             showAlert = true
             return
         }
-        
-        // 1. Resolve target collection
+
         let targetCollection = db.collections.first(where: {
             $0.id == selectedCollectionID
         }) ?? db.collections.first(where: {
             $0.listID == list.id && $0.collectionName == "General"
         })
-        
-        // 2. Resolve Color: Use user selection if not empty, otherwise collection default
+
         let finalHex = selectedColorHex.isEmpty ? (targetCollection?.bgColorHex ?? "#808080") : selectedColorHex
         
         let newNote = Note(
-            id: UUID().uuidString,
+            id: UUID().uuidString.lowercased(),
             createdAt: Date(),
             title: noteTitle,
             description: noteDescription.isEmpty ? nil : noteDescription,

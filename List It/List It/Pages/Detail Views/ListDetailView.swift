@@ -194,7 +194,6 @@ struct AllCollectionsView: View {
                 alertMode = .error
                 db.setError(title: "Error", message: "No Collection selected for deletion")
                 showAlert = true
-                print("DEBUG: No list selected for deletion")
                 return
             }
             let success = await db.deleteCollection(collection: collectionToDelete)
@@ -332,23 +331,21 @@ struct TaskListView: View {
     @Environment(\.dismiss) var dismiss
     let collection: Collection
     @State var selectedTask: ToDoTask?
+    @State private var taskToDelete: ToDoTask?
     var filteredTasks: [ToDoTask] {
         db.tasks
             .filter { task in
-                // 1. Only show tasks for this collection that are NOT completed and NOT deleted
                 task.collectionID == collection.id && !task.isCompleted && !task.isDeleted
             }
             .sorted {
-                // 2. Primary Sort: Pinned tasks always float to the top
                 if $0.isPinned != $1.isPinned {
                     return $0.isPinned && !$1.isPinned
                 }
-                
-                // 3. Secondary Sort: Order by creation date (Newest first)
                 return $0.createdAt > $1.createdAt
             }
     }
     @State var showAlert: Bool = false
+    @State private var alertMode: AlertMode = .error
     
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -375,8 +372,29 @@ struct TaskListView: View {
         .sheet(item: $selectedTask) { task in
             TaskDetailView(task: task)
         }
-        .alert(isPresented: $showAlert) {
-            Alert(title: Text(db.alertTitle), message: Text(db.alertMessage), dismissButton: .default(Text("OK")))
+        .alert(db.alertTitle, isPresented: $showAlert) {
+            switch alertMode {
+            case .delete:
+                Button("Delete", role: .destructive) {
+                    Task {
+                        guard let task = taskToDelete else { return }
+                        
+                        let success = await db.deleteTask(task: task)
+                        if !success {
+                            alertMode = .error
+                            showAlert = true
+                        } else {
+                            taskToDelete = nil
+                        }
+                    }
+                }
+                Button("Cancel", role: .cancel) { taskToDelete = nil }
+                
+            case .error:
+                Button("OK", role: .cancel) { }
+            }
+        } message: {
+            Text(db.alertMessage)
         }
     }
     
@@ -385,6 +403,7 @@ struct TaskListView: View {
     private func taskContextMenu(_ task: ToDoTask) -> some View {
         let availableCollections = db.collections.filter { $0.listID == task.listID }
         
+        // Move
         Menu {
             ForEach(availableCollections) { collection in
                 Button {
@@ -408,6 +427,29 @@ struct TaskListView: View {
         } label: {
             Label("Move Task", systemImage: "folder.badge.plus")
         }
+        
+        // Pin
+        Button {
+            Task {
+                let success = await db.updatePinForTask(task: task, isPinned: task.isPinned ? false : true)
+                if !success {
+                    db.setError(title: "Pin Error", message: "Error updating Task Pin")
+                    showAlert = true
+                }
+            }
+        } label: {
+            Label(task.isPinned ? "Unpin Task" : "Pin Task", systemImage: task.isPinned ? "pin.fill" : "pin")
+        }
+        
+        // Delete
+        Button {
+            taskToDelete = task
+            alertMode = .delete
+            db.setError(title: "Delete Task", message: "Are you sure you want to delete this Task?")
+            showAlert = true
+        } label: {
+            Label("Delete Task", systemImage: "trash")
+        }
     }
 }
 
@@ -416,24 +458,34 @@ struct TaskKeyView: View {
     var body: some View {
         HStack {
             Spacer()
-            Circle()
-                .fill(.yellow)
-                .frame(width: 10, height: 10)
-            
-            Text("Pinned")
-                .font(.caption)
+            // Overdue
             Circle()
                 .fill(.red)
                 .frame(width: 10, height: 10)
-            
             Text("Overdue")
                 .font(.caption)
+            
+            // Pinned
+            Circle()
+                .fill(.orange)
+                .frame(width: 10, height: 10)
+            Text("Flagged")
+                .font(.caption)
+            
+            // Pinned
+            Circle()
+                .fill(.yellow)
+                .frame(width: 10, height: 10)
+            Text("Pinned")
+                .font(.caption)
+            
+            // Default
             Circle()
                 .fill(.cyan)
                 .frame(width: 10, height: 10)
-            
-            Text("Default")
+            Text("Normal")
                 .font(.caption)
+            
             Spacer()
         }
     }
@@ -444,13 +496,15 @@ struct TaskView: View {
     let task: ToDoTask
     @Environment(Supabase.self) var db
     private var barColor: Color {
-        if task.isPinned {
-            return .yellow
-        } else if let dueDate = task.dueDate, dueDate < Date() {
+        if let dueDate = task.dueDate, dueDate < Date() {
             return .red
-        } else {
-            return .cyan
         }
+        
+        if task.isPinned {
+            return task.dueDate == nil ? .yellow : .orange
+        }
+        
+        return .cyan
     }
     private var collection: Collection? {
         let collectionID = task.collectionID
@@ -511,24 +565,19 @@ struct NoteListView: View {
     @Environment(Supabase.self) var db
     let collection: Collection
     @State var selectedNote: Note?
-    
-    private let columns = [
-        GridItem(.adaptive(minimum: 140), spacing: 16)
-    ]
+    @State private var noteToDelete: Note?
     
     var filteredNotes: [Note] {
         db.notes.filter { $0.collectionID == collection.id }
             .sorted {
-                // 1. If one is pinned and the other isn't, the pinned one comes first
                 if $0.isPinned != $1.isPinned {
                     return $0.isPinned && !$1.isPinned
                 }
-                
-                // 2. If both have the same pin status, sort by date (Newest first)
                 return $0.createdAt > $1.createdAt
             }
     }
     @State var showAlert: Bool = false
+    @State private var alertMode: AlertMode = .error
     
     var body: some View {
         VStack(alignment: .leading) {
@@ -540,24 +589,43 @@ struct NoteListView: View {
                 )
             } else {
                 ScrollView {
-                    LazyVGrid(columns: columns, spacing: 16) {
+                    LazyVGrid(columns: [GridItem(.adaptive(minimum: 130))], spacing: 16) {
                         ForEach(filteredNotes) { note in
                             NoteView(note: note)
-                                .onTapGesture {
-                                    selectedNote = note
-                                }
+                                .onTapGesture { selectedNote = note }
                                 .contextMenu { noteContextMenu(note) }
                         }
                     }
-                    .padding()
+                    .padding(.horizontal)
                 }
             }
         }
         .sheet(item: $selectedNote) { note in
             NoteDetailView(note: note)
         }
-        .alert(isPresented: $showAlert) {
-            Alert(title: Text(db.alertTitle), message: Text(db.alertMessage), dismissButton: .default(Text("OK")))
+        .alert(db.alertTitle, isPresented: $showAlert) {
+            switch alertMode {
+            case .delete:
+                Button("Delete", role: .destructive) {
+                    Task {
+                        guard let note = noteToDelete else { return }
+                        
+                        let success = await db.deleteNote(note: note)
+                        if !success {
+                            alertMode = .error
+                            showAlert = true
+                        } else {
+                            noteToDelete = nil
+                        }
+                    }
+                }
+                Button("Cancel", role: .cancel) { noteToDelete = nil }
+                
+            case .error:
+                Button("OK", role: .cancel) { }
+            }
+        } message: {
+            Text(db.alertMessage)
         }
     }
     
@@ -585,6 +653,28 @@ struct NoteListView: View {
             }
         } label: {
             Label("Move Note", systemImage: "folder.badge.plus")
+        }
+        
+        // Pin
+        Button {
+            Task {
+                let success = await db.updatePinForNote(note: note, isPinned: note.isPinned ? false : true)
+                if !success {
+                    showAlert = true
+                }
+            }
+        } label: {
+            Label(note.isPinned ? "Unpin Note" : "Pin Note", systemImage: note.isPinned ? "pin.fill" : "pin")
+        }
+        
+        // Delete
+        Button {
+            noteToDelete = note
+            alertMode = .delete
+            db.setError(title: "Delete Note", message: "Are you sure you want to delete this Note?")
+            showAlert = true
+        } label: {
+            Label("Delete Note", systemImage: "trash")
         }
     }
 }
@@ -622,7 +712,7 @@ struct NoteView: View {
             Spacer()
         }
         .padding()
-        .frame(width: 120, height: 120)
+        .frame(width: 110, height: 110)
         .background {
             RoundedRectangle(cornerRadius: 10)
                 .fill(note.bgColor.opacity(colorScheme == .dark ? 0.3 : 0.6))
@@ -656,4 +746,3 @@ struct NoteView: View {
     NoteView(note: notes)
         .environment(Supabase())
 }
-
