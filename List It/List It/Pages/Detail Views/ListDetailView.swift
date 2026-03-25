@@ -14,11 +14,12 @@ struct ListDetailView: View {
     @State var showAddTaskView: Bool = false
     @State var showAddNoteView: Bool = false
     @State var showAddCollectionView: Bool = false
+    @State private var currentSort: SortOption = .oldest
     
     var body: some View {
         NavigationStack {
             ScrollView {
-                ListCollectionsView(list: list)
+                ListCollectionsView(list: list, currentSort: $currentSort)
             }
             .navigationTitle(list.listName)
             .navigationBarTitleDisplayMode(.inline)
@@ -56,13 +57,15 @@ struct ListDetailView: View {
                             }) {
                                 Label("Add Collection", systemImage: "folder")
                             }
+                            Divider()
                             Menu {
-                                
-                            } label: {
-                                HStack {
-                                    Image(systemName: "arrow.up.arrow.down")
-                                    Text("Sort")
+                                Picker("Sort Collections", selection: $currentSort) {
+                                    ForEach(SortOption.allCases, id: \.self) { option in
+                                        Text(option.rawValue).tag(option)
+                                    }
                                 }
+                            } label: {
+                                Label("Sort by", systemImage: "arrow.up.arrow.down")
                             }
                         } label: {
                             Image(systemName: "ellipsis.circle")
@@ -78,6 +81,7 @@ struct ListDetailView: View {
 struct ListCollectionsView: View {
     @Environment(Supabase.self) var db
     let list: List
+    @Binding var currentSort: SortOption
     
     var body: some View {
         Group {
@@ -92,7 +96,7 @@ struct ListCollectionsView: View {
                 default:              EmptyView()
                 }
             } else {
-                AllCollectionsView(list: list)
+                AllCollectionsView(list: list, currentSort: $currentSort)
             }
         }
     }
@@ -107,12 +111,23 @@ struct AllCollectionsView: View {
     @State var alertMode: AlertMode = .error
     @State var selectedCollectionToUpdate: Collection?
     @State var selectedCollectionToDelete: Collection?
+    @Binding var currentSort: SortOption
     
     var filteredCollections: [Collection] {
-        db.collections
-            .filter { $0.listID == list.id }
-            .sorted { $0.createdAt < $1.createdAt }
+        let base = db.collections.filter { $0.listID == list.id }
+        
+        switch currentSort {
+        case .oldest:
+            return base.sorted { $0.createdAt < $1.createdAt }
+        case .newest:
+            return base.sorted { $0.createdAt > $1.createdAt }
+        case .alphabeticalAZ:
+            return base.sorted { $0.collectionName.lowercased() < $1.collectionName.lowercased() }
+        case .alphabeticalZA:
+            return base.sorted { $0.collectionName.lowercased() > $1.collectionName.lowercased() }
+        }
     }
+    
     private var alertTitle: String {
         alertMode == .delete ? "Delete Collection?" : db.alertTitle
     }

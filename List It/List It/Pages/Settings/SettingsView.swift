@@ -162,6 +162,8 @@ struct ActionButtonsView: View {
             } label: {
                 SettingsButtonView(image: "trash", imageColor: .red, text: "Delete Account")
             }
+            
+            Divider()
         }
         .alert(alertTitle, isPresented: $showAlert) {
             if alertMode == .delete {

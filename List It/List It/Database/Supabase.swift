@@ -32,18 +32,7 @@ class Supabase {
     var confirmPassword: String = ""
     var forgotPasswordEmail: String = ""
     var currentUser: AppUser?
-    let listColorHexes: [String] = [
-        "#FF3B30", // red
-        "#007AFF", // blue
-        "#34C759", // green
-        "#FFD60A", // yellow
-        "#AF52DE", // purple
-        "#FF2D55", // pink
-        "#5856D6", // indigo
-        "#00C7BE", // mint
-        "#FF9500", // orange
-        "#FF69B4"   // pink v2
-    ]
+    var listColorHexes: [String] = []
     var defaultLists = [
         List(id: UUID().uuidString, createdAt: Date(), listIcon: "sun.max", listName: "Today", isDefault: true, bgColorHex: "#FF9500", userId: "", isPinned: false),
         List(id: UUID().uuidString, createdAt: Date(), listIcon: "sunrise", listName: "Tomorrow", isDefault: true, bgColorHex: "#007AFF", userId: "", isPinned: false),
@@ -62,25 +51,29 @@ class Supabase {
     }
     
     // MARK: - Fetch All Lists
-    func getFilteredLists(query: String) -> [List] {
+    func getFilteredLists(query: String, sort: SortOption) -> [List] {
         let all = defaultLists + lists
         
-        // 1. Sort: Primary by isDefault (true first), Secondary by createdAt
-        let sorted = all.sorted {
-            if $0.isDefault != $1.isDefault {
-                return $0.isDefault && !$1.isDefault // true (default) comes before false
-            }
-            return $0.createdAt < $1.createdAt // Then oldest to newest
+        let filtered = all.filter { list in
+            query.isEmpty || list.listName.localizedCaseInsensitiveContains(query)
         }
         
-        // 2. Filter based on query
-        if query.isEmpty {
-            return sorted
-        } else {
-            // Cleaning the query as requested earlier for consistency
-            let cleanQuery = query.lowercased().replacingOccurrences(of: " ", with: "")
-            return sorted.filter {
-                $0.listName.lowercased().replacingOccurrences(of: " ", with: "").contains(cleanQuery)
+        return filtered.sorted { (lhs, rhs) -> Bool in
+            switch sort {
+            case .oldest:
+                if lhs.isDefault != rhs.isDefault {
+                    return lhs.isDefault && !rhs.isDefault
+                }
+                return lhs.createdAt < rhs.createdAt
+                
+            case .newest:
+                return lhs.createdAt > rhs.createdAt
+                
+            case .alphabeticalAZ:
+                return lhs.listName.lowercased() < rhs.listName.lowercased()
+                
+            case .alphabeticalZA:
+                return lhs.listName.lowercased() > rhs.listName.lowercased()
             }
         }
     }
@@ -945,7 +938,6 @@ class Supabase {
             return true
             
         } catch {
-            print("DEBUG [MOVE NOTE]: \(error.localizedDescription)")
             await MainActor.run {
                 self.setError(
                     title: "Move Failed",
@@ -975,7 +967,6 @@ class Supabase {
             }
             return true
         } catch {
-            print("DEBUG [UPDATE]: \(error.localizedDescription)")
             await MainActor.run {
                 self.setError(title: "Update Failed", message: error.localizedDescription)
             }
@@ -1003,13 +994,31 @@ class Supabase {
             }
             return true
         } catch {
-            print("DEBUG [Account Delete]: \(error.localizedDescription)")
             await MainActor.run {
                 self.setError(
                     title: "Deletion Failed",
                     message: "We couldn't delete your account. You may need to re-authenticate (log out and back in) to perform this action."
                 )
             }
+            return false
+        }
+    }
+    
+    // MARK: - Fetch all colours from Supabase
+    func fetchAppColors() async -> Bool {
+        do {
+            let colors: [AppColor] = try await client
+                .from("app_settings")
+                .select()
+                .order("created_at")
+                .execute()
+                .value
+            
+            await MainActor.run {
+                self.listColorHexes = colors.map { $0.colorHex }
+            }
+            return true
+        } catch {
             return false
         }
     }
@@ -1029,11 +1038,10 @@ class Supabase {
                 .value
             
             guard let fetchedUser = users.first else {
-                print("DEBUG: Profile not found in 'users' table")
                 return false
             }
             
-            // 3. CRITICAL: Update the property that @main is watching
+            // 3. Update the property that @main is watching
             await MainActor.run {
                 self.currentUser = fetchedUser
             }
@@ -1042,11 +1050,11 @@ class Supabase {
             async let collectionsLoaded = fetchUserCollections()
             async let tasksLoaded = fetchUserTasks()
             async let notesLoaded = fetchUserNotes()
+            async let colorsLoaded = fetchAppColors()
             
-            let results = await [listsLoaded, collectionsLoaded, tasksLoaded, notesLoaded]
+            let results = await [listsLoaded, collectionsLoaded, tasksLoaded, notesLoaded, colorsLoaded]
             return results.allSatisfy { $0 == true }
         } catch {
-            print("DEBUG: Initialization failed: \(error)")
             return false
         }
     }

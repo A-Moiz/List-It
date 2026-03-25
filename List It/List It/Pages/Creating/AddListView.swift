@@ -10,11 +10,12 @@ import SwiftUI
 struct AddListView: View {
     @Environment(\.dismiss) var dismiss
     @Environment(Supabase.self) var db
+    @Environment(\.colorScheme) var colorScheme
     @State var listName: String = ""
     @State var selectedColorHex: String = ""
     @State var showAlert: Bool = false
     var lists: [List]
-
+    
     var body: some View {
         NavigationStack {
             Form {
@@ -42,13 +43,13 @@ struct AddListView: View {
                         placeholder: "e.g. Personal, Work, Fitness"
                     )
                 }
-                .listRowBackground(Color(.systemBackground).opacity(0.7))
+                .listRowBackground(Color(uiColor: .secondarySystemGroupedBackground))
                 
                 Section("Appearance") {
                     ColorInputView(selectedColorHex: $selectedColorHex)
                         .padding(.vertical, 8)
                 }
-                .listRowBackground(Color(.systemBackground).opacity(0.7))
+                .listRowBackground(Color(uiColor: .secondarySystemGroupedBackground))
             }
             .navigationTitle("Add List")
             .navigationBarTitleDisplayMode(.inline)
@@ -100,7 +101,7 @@ struct AddListView: View {
         let newList = List(id: listID, createdAt: Date(), listIcon: "checklist", listName: listName, isDefault: false, bgColorHex: selectedColorHex, userId: "", isPinned: false)
         
         let generalCollection = Collection(id: UUID().uuidString, createdAt: Date(), collectionName: "General", bgColorHex: selectedColorHex, listID: listID, userID: "")
-
+        
         Task {
             let saved = await db.saveList(newList: newList, generalCollection: generalCollection)
             

@@ -19,14 +19,39 @@ struct AllListsView: View {
     @State var alertMode: AlertMode = .error
     @State var selectedListToDelete: List?
     @State var selectedListToUpdate: List?
+    @State private var currentSort: SortOption = .oldest
     @State var columns = [
         GridItem(.flexible(), spacing: 1),
         GridItem(.flexible(), spacing: 1),
         GridItem(.flexible(), spacing: 1)
     ]
+//    var filteredLists: [List] {
+//        db.getFilteredLists(query: searchText)
+//    }
     var filteredLists: [List] {
-        db.getFilteredLists(query: searchText)
+        db.getFilteredLists(query: searchText, sort: currentSort)
     }
+//    var filteredLists: [List] {
+//        // Start with your search filtering
+//        var result = db.lists.filter { list in
+//            searchText.isEmpty || list.listName.localizedCaseInsensitiveContains(searchText)
+//        }
+//        
+//        // Apply the selected sort
+//        switch currentSort {
+//        case .oldest:
+//            result.sort { $0.createdAt < $1.createdAt }
+//        case .newest:
+//            result.sort { $0.createdAt > $1.createdAt }
+//        case .alphabeticalAZ:
+//            result.sort { $0.listName.lowercased() < $1.listName.lowercased() }
+//        case .alphabeticalZA:
+//            result.sort { $0.listName.lowercased() > $1.listName.lowercased() }
+//        }
+//        
+//        return result
+//    }
+
     private var alertTitle: String {
         alertMode == .delete ? "Delete List?" : db.alertTitle
     }
@@ -37,7 +62,7 @@ struct AllListsView: View {
     
     var body: some View {
         NavigationStack {
-            ScrollView {
+            VStack {
                 HeaderView(showSettings: $showSettings)
                     .padding()
                 
@@ -54,60 +79,76 @@ struct AllListsView: View {
                     .frame(height: 1)
                     .padding(.horizontal)
                 
-                LazyVGrid(columns: columns, spacing: 10) {
-                    ForEach(filteredLists) { list in
-                        ListView(list: list)
-                            .id("\(list.id)-\(list.listName)-\(list.bgColorHex)")
-                            .padding(.horizontal, 5)
-                            .onTapGesture  {
-                                viewingList = list
-                            }
-                            .contextMenu {
-                                if list.isDefault {
-                                    Button {
-                                        Task {
-                                            await db.updateListPin(list: list, isPinned: !list.isPinned)
+                ScrollView {
+                    LazyVGrid(columns: columns, spacing: 10) {
+                        ForEach(filteredLists) { list in
+                            ListView(list: list)
+                                .id("\(list.id)-\(list.listName)-\(list.bgColorHex)")
+                                .padding(.horizontal, 5)
+                                .onTapGesture  {
+                                    viewingList = list
+                                }
+                                .contextMenu {
+                                    if list.isDefault {
+                                        Button {
+                                            Task {
+                                                await db.updateListPin(list: list, isPinned: !list.isPinned)
+                                            }
+                                        } label: {
+                                            Label(
+                                                list.isPinned ? "Unpin List" : "Pin List",
+                                                systemImage: list.isPinned ? "pin.slash" : "pin"
+                                            )
                                         }
-                                    } label: {
-                                        Label(
-                                            list.isPinned ? "Unpin List" : "Pin List",
-                                            systemImage: list.isPinned ? "pin.slash" : "pin"
-                                        )
-                                    }
-                                } else {
-                                    Button {
-                                        Task {
-                                            await db.updateListPin(list: list, isPinned: !list.isPinned)
+                                    } else {
+                                        Button {
+                                            Task {
+                                                await db.updateListPin(list: list, isPinned: !list.isPinned)
+                                            }
+                                        } label: {
+                                            Label(
+                                                list.isPinned ? "Unpin List" : "Pin List",
+                                                systemImage: list.isPinned ? "pin.slash" : "pin"
+                                            )
                                         }
-                                    } label: {
-                                        Label(
-                                            list.isPinned ? "Unpin List" : "Pin List",
-                                            systemImage: list.isPinned ? "pin.slash" : "pin"
-                                        )
-                                    }
-                                    
-                                    Button {
-                                        selectedListToUpdate = list
-                                        showUpdateListView = true
-                                    } label: {
-                                        Label("Update List", systemImage: "pencil")
-                                    }
-                                    
-                                    Button(role: .destructive) {
-                                        selectedListToDelete = list
-                                        alertMode = .delete
-                                        showAlert = true
-                                    } label: {
-                                        Label("Delete List", systemImage: "trash")
+                                        
+                                        Button {
+                                            selectedListToUpdate = list
+                                            showUpdateListView = true
+                                        } label: {
+                                            Label("Update List", systemImage: "pencil")
+                                        }
+                                        
+                                        Button(role: .destructive) {
+                                            selectedListToDelete = list
+                                            alertMode = .delete
+                                            showAlert = true
+                                        } label: {
+                                            Label("Delete List", systemImage: "trash")
+                                        }
                                     }
                                 }
-                            }
+                        }
                     }
                 }
             }
             .navigationTitle("Welcome Back 👋")
             .navigationBarTitleDisplayMode(.inline)
             .searchable(text: $searchText, placement: .toolbar, prompt: "Search your Lists")
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Menu {
+                        Picker("Sort Lists", selection: $currentSort) {
+                            Label("Oldest", systemImage: "calendar").tag(SortOption.oldest)
+                            Label("Newest", systemImage: "calendar.badge.plus").tag(SortOption.newest)
+                            Label("A-Z", systemImage: "textformat.characters").tag(SortOption.alphabeticalAZ)
+                            Label("Z-A", systemImage: "textformat.characters").tag(SortOption.alphabeticalZA)
+                        }
+                    } label: {
+                        Image(systemName: "arrow.up.arrow.down.circle")
+                    }
+                }
+            }
             .alert(alertTitle, isPresented: $showAlert) {
                 if alertMode == .delete {
                     Button("Delete", role: .destructive) {
@@ -358,7 +399,7 @@ struct PinnedListView: View {
     @Binding var alertMode: AlertMode
     @Binding var showAlert: Bool
     @Binding var searchText: String
-
+    
     var pinnedLists: [List] {
         db.pinnedLists(query: searchText)
     }

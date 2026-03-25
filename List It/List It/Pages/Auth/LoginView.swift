@@ -13,6 +13,7 @@ struct LoginView: View {
     @Environment(Supabase.self) var db
     @AppStorage("isSignedIn") var isSignedIn: Bool = false
     @State private var showAlert: Bool = false
+    @State private var isLoading: Bool = false
     
     var body: some View {
         @Bindable var db = db
@@ -43,9 +44,20 @@ struct LoginView: View {
                 Button {
                     signUserIn()
                 } label: {
-                    ButtonView(buttonTxt: "Sign in", showArrow: false)
-                        .padding()
+                    if isLoading {
+                        ProgressView()
+                            .tint(.white)
+                            .frame(height: 50)
+                            .frame(maxWidth: .infinity)
+                            .background(Color.blue)
+                            .cornerRadius(12)
+                            .padding()
+                    } else {
+                        ButtonView(buttonTxt: "Sign in", showArrow: false)
+                            .padding()
+                    }
                 }
+                .disabled(isLoading)
                 
                 Spacer()
                 
@@ -85,11 +97,16 @@ struct LoginView: View {
     // MARK: - Sign in
     func signUserIn() {
         Task {
+            isLoading = true
             let success = await db.signIn(email: db.email.lowercased().trimmingCharacters(in: CharacterSet.whitespacesAndNewlines), password: db.password)
-            if success {
-                isSignedIn = true
-            } else {
-                showAlert = true
+            
+            await MainActor.run {
+                isLoading = false
+                if success {
+                    isSignedIn = true
+                } else {
+                    showAlert = true
+                }
             }
         }
     }
