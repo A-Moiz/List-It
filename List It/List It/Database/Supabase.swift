@@ -158,7 +158,9 @@ class Supabase {
             self.currentUser = nil
             self.isSignedIn = false
         } catch {
-            print("Error signing out: \(error.localizedDescription)")
+            await MainActor.run {
+                setError(title: "Error", message: "Error signing out: \(error.localizedDescription)")
+            }
             self.isSignedIn = false
         }
     }
@@ -472,7 +474,6 @@ class Supabase {
             }
             return true
         } catch {
-            print("DEBUG [UPDATE LIST] - \(error.localizedDescription)")
             await MainActor.run {
                 self.setError(title: "Update Failed", message: error.localizedDescription)
             }
@@ -727,7 +728,6 @@ class Supabase {
             return true
             
         } catch {
-            print("DEBUG [MOVE TASK]: \(error.localizedDescription)")
             await MainActor.run {
                 self.setError(
                     title: "Move Failed",
@@ -762,7 +762,6 @@ class Supabase {
             }
             return true
         } catch {
-            print("DEBUG [Update]: \(error.localizedDescription)")
             await MainActor.run {
                 self.setError(title: "Update Failed", message: error.localizedDescription)
             }
@@ -1005,7 +1004,7 @@ class Supabase {
     func fetchAppColors() async -> Bool {
         do {
             let colors: [AppColor] = try await client
-                .from("app_settings")
+                .from("app_colors")
                 .select()
                 .order("created_at")
                 .execute()
