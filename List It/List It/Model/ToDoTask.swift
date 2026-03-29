@@ -9,7 +9,6 @@ import Foundation
 
 struct ToDoTask: Codable, Identifiable {
     var id: String
-    @SupabaseDate
     var createdAt: Date
     var text: String
     var description: String?

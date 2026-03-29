@@ -597,31 +597,26 @@ class Supabase {
                 let container = try decoder.singleValueContainer()
                 let dateString = try container.decode(String.self)
                 
-                // 1. Try standard ISO8601 (2025-06-08T22:42:00Z)
-                if let date = try? Date(dateString, strategy: .iso8601) {
-                    return date
-                }
+                let isoFormatter = ISO8601DateFormatter()
+                isoFormatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+                if let date = isoFormatter.date(from: dateString) { return date }
                 
-                // 2. Try with fractional seconds (.123Z)
-                let fractionalStyle = Date.ISO8601FormatStyle(includingFractionalSeconds: true)
-                if let date = try? fractionalStyle.parse(dateString) {
-                    return date
-                }
+                let formats = [
+                    "yyyy-MM-dd'T'HH:mm:ss.SSS", // 2026-03-28T23:16:43.808
+                    "yyyy-MM-dd HH:mm:ss.SSS",    // 2026-03-28 23:16:43.808
+                    "yyyy-MM-dd'T'HH:mm:ss",     // 2026-02-16T12:00:00
+                    "yyyy-MM-dd HH:mm:ss"        // 2026-02-16 12:00:00
+                ]
                 
-                // 3. FIX: Handle naked "Timestamp without Time Zone" (2025-06-08T22:42:00)
-                let nakedFormatter = DateFormatter()
-                nakedFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss"
-                nakedFormatter.timeZone = TimeZone(secondsFromGMT: 0) // Assume UTC if missing
-                if let date = nakedFormatter.date(from: dateString) {
-                    return date
-                }
+                let fmt = DateFormatter()
+                fmt.locale = Locale(identifier: "en_US_POSIX")
+                fmt.timeZone = TimeZone(secondsFromGMT: 0)
                 
-                // 4. Fallback for formats with space instead of T (2025-06-08 22:42:00)
-                let spaceFormatter = DateFormatter()
-                spaceFormatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
-                spaceFormatter.timeZone = TimeZone(secondsFromGMT: 0)
-                if let date = spaceFormatter.date(from: dateString) {
-                    return date
+                for format in formats {
+                    fmt.dateFormat = format
+                    if let date = fmt.date(from: dateString) {
+                        return date
+                    }
                 }
                 
                 throw DecodingError.dataCorruptedError(in: container, debugDescription: "Invalid date format: \(dateString)")
@@ -638,7 +633,9 @@ class Supabase {
             await MainActor.run { self.tasks = tasks }
             return true
         } catch {
-            print("DEBUG [Fetch]: Task error: \(error)")
+            await MainActor.run {
+                setError(title: "Error", message: "Task fetch error: \(error.localizedDescription)")
+            }
             return false
         }
     }

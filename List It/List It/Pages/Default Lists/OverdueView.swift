@@ -10,30 +10,29 @@ import SwiftUI
 struct OverdueView: View {
     @Environment(Supabase.self) var db
     @State private var searchText: String = ""
-
+    
     private var groupedOverdueData: [(list: List, tasks: [ToDoTask])] {
-        let now = Date()
+        let now = Calendar.current.startOfDay(for: Date())
         
-        // 1. Identify all overdue, uncompleted tasks
+        // 1. Filter overdue tasks
         let overdueTasks = db.tasks.filter { task in
-            !task.isCompleted &&
-            !task.isDeleted &&
-            (task.dueDate != nil && task.dueDate! < now)
+            guard let dueDate = task.dueDate, !task.isCompleted, !task.isDeleted else { return false }
+            return Calendar.current.startOfDay(for: dueDate) < now
         }
         
-        // 2. Filter Lists based on search query (case-insensitive & whitespace-agnostic)
+        // 2. Filter Lists based on search
         let cleanQuery = searchText.lowercased().replacingOccurrences(of: " ", with: "")
         let filteredLists = cleanQuery.isEmpty ? db.lists : db.lists.filter { list in
             list.listName.lowercased().replacingOccurrences(of: " ", with: "").contains(cleanQuery)
         }
         
-        // 3. Map filtered lists to their respective overdue tasks
+        // 3. Group them
         return filteredLists.compactMap { list in
             let tasksInList = overdueTasks.filter { $0.listID == list.id }
             return tasksInList.isEmpty ? nil : (list: list, tasks: tasksInList)
         }
     }
-
+    
     var body: some View {
         NavigationStack {
             ScrollView {
@@ -86,14 +85,13 @@ struct OverdueTaskCard: View {
     @Environment(Supabase.self) var db
     let task: ToDoTask
     
-    // Parent Collection Lookup
     private var collectionName: String? {
         db.collections.first(where: { $0.id == task.collectionID })?.collectionName
     }
     
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
-            // Header (Collection & Time Ago)
+            // Header
             HStack {
                 if let collection = collectionName {
                     Label(collection.uppercased(), systemImage: "folder")
@@ -102,7 +100,7 @@ struct OverdueTaskCard: View {
                 }
                 Spacer()
             }
-
+            
             // Content
             VStack(alignment: .leading, spacing: 6) {
                 Text(task.text)
@@ -155,8 +153,8 @@ struct OverdueTaskCard: View {
 }
 
 #Preview {
-//    OverdueView()
-//        .environment(Supabase())
+    //    OverdueView()
+    //        .environment(Supabase())
     
     @Previewable @State var task: ToDoTask = ToDoTask(id: "", createdAt: Date(), text: "Mouse", description: "Episode 3", dueDate: Date(), isCompleted: false, dateCompleted: nil, isDeleted: false, isPinned: false, userID: "", collectionID: "", listID: "")
     OverdueTaskCard(task: task)
