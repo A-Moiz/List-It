@@ -15,11 +15,12 @@ struct ListDetailView: View {
     @State var showAddNoteView: Bool = false
     @State var showAddCollectionView: Bool = false
     @State private var currentSort: SortOption = .oldest
+    @State private var searchText: String = ""
     
     var body: some View {
         NavigationStack {
             ScrollView {
-                ListCollectionsView(list: list, currentSort: $currentSort)
+                ListCollectionsView(list: list, currentSort: $currentSort, searchText: searchText)
             }
             .navigationTitle(list.listName)
             .navigationBarTitleDisplayMode(.inline)
@@ -73,6 +74,7 @@ struct ListDetailView: View {
                     }
                 }
             }
+            .searchable(text: $searchText, prompt: "Search tasks & notes")
         }
     }
 }
@@ -82,6 +84,7 @@ struct ListCollectionsView: View {
     @Environment(Supabase.self) var db
     let list: List
     @Binding var currentSort: SortOption
+    let searchText: String
     
     var body: some View {
         Group {
@@ -96,7 +99,7 @@ struct ListCollectionsView: View {
                 default:              EmptyView()
                 }
             } else {
-                AllCollectionsView(list: list, currentSort: $currentSort)
+                AllCollectionsView(list: list, currentSort: $currentSort, searchText: searchText)
             }
         }
     }
@@ -112,10 +115,34 @@ struct AllCollectionsView: View {
     @State var selectedCollectionToUpdate: Collection?
     @State var selectedCollectionToDelete: Collection?
     @Binding var currentSort: SortOption
+    let searchText: String
     
+    // Filter by List ID and Search Content
     var filteredCollections: [Collection] {
-        let base = db.collections.filter { $0.listID == list.id }
+        let base = db.collections.filter { collection in
+            // Show collections for current list
+            guard collection.listID == list.id else { return false }
+            
+            // If search is empty, show all collections in this list
+            if searchText.isEmpty { return true }
+            
+            // Check if any Task inside this collection matches the search
+            let hasMatchingTasks = db.tasks.contains { task in
+                task.collectionID == collection.id &&
+                task.text.localizedCaseInsensitiveContains(searchText) &&
+                !task.isCompleted
+            }
+            
+            // Check if any Note inside this collection matches the search
+            let hasMatchingNotes = db.notes.contains { note in
+                note.collectionID == collection.id &&
+                note.title.localizedCaseInsensitiveContains(searchText)
+            }
+            
+            return hasMatchingTasks || hasMatchingNotes
+        }
         
+        // Sort the filtered results
         switch currentSort {
         case .oldest:
             return base.sorted { $0.createdAt < $1.createdAt }
@@ -157,7 +184,7 @@ struct AllCollectionsView: View {
             } else {
                 LazyVStack(spacing: 0) {
                     ForEach(filteredCollections) { collection in
-                        CollectionView(collection: collection)
+                        CollectionView(collection: collection, searchText: searchText)
                             .id("\(collection.id)-\(collection.collectionName)")
                             .padding(.vertical, 8)
                             .contextMenu {
@@ -227,10 +254,21 @@ struct AllCollectionsView: View {
 struct CollectionView: View {
     let collection: Collection
     @State var isExpanded: Bool = false
+    let searchText: String
+    private var shouldExpand: Bool {
+        !searchText.isEmpty || isExpanded
+    }
     
     var body: some View {
-        CollectionHeader(collection: collection, isExpanded: $isExpanded)
-            .padding(.horizontal)
+        CollectionHeader(
+            collection: collection,
+            isExpanded: Binding(
+                get: { shouldExpand },
+                set: { isExpanded = $0 }
+            ),
+            searchText: searchText
+        )
+        .padding(.horizontal)
     }
 }
 
@@ -239,13 +277,14 @@ struct CollectionHeader: View {
     let collection: Collection
     @Binding var isExpanded: Bool
     @Environment(\.colorScheme) var colorScheme
+    let searchText: String
     
     var body: some View {
         VStack {
             CollectionDeatilView(collection: collection, isExpanded: $isExpanded)
             
             if isExpanded {
-                CollectionTabView(collection: collection)
+                CollectionTabView(collection: collection, searchText: searchText)
                     .transition(.move(edge: .top).combined(with: .opacity))
                     .clipped()
             }
@@ -316,6 +355,7 @@ struct CollectionDeatilView: View {
 struct CollectionTabView: View {
     @State private var selectedTab: Int = 0
     let collection: Collection
+    let searchText: String
     
     var body: some View {
         VStack(spacing: 15) {
@@ -327,10 +367,10 @@ struct CollectionTabView: View {
             .padding(.horizontal)
             
             TabView(selection: $selectedTab) {
-                TaskListView(collection: collection)
+                TaskListView(collection: collection, searchText: searchText)
                     .tag(0)
                 
-                NoteListView(collection: collection)
+                NoteListView(collection: collection, searchText: searchText)
                     .tag(1)
             }
             .tabViewStyle(.page(indexDisplayMode: .never))
@@ -347,10 +387,17 @@ struct TaskListView: View {
     let collection: Collection
     @State var selectedTask: ToDoTask?
     @State private var taskToDelete: ToDoTask?
+    let searchText: String
     var filteredTasks: [ToDoTask] {
         db.tasks
             .filter { task in
-                task.collectionID == collection.id && !task.isCompleted && !task.isDeleted
+                let matchesCollection = task.collectionID == collection.id
+                let isActive = !task.isCompleted && !task.isDeleted
+                
+                let matchesSearch = searchText.isEmpty ||
+                task.text.localizedCaseInsensitiveContains(searchText)
+                
+                return matchesCollection && isActive && matchesSearch
             }
             .sorted {
                 if $0.isPinned != $1.isPinned {
@@ -480,7 +527,7 @@ struct TaskKeyView: View {
             Text("Overdue")
                 .font(.caption)
             
-            // Pinned
+            // Flagged (Pinned & has due date)
             Circle()
                 .fill(.orange)
                 .frame(width: 10, height: 10)
@@ -581,9 +628,17 @@ struct NoteListView: View {
     let collection: Collection
     @State var selectedNote: Note?
     @State private var noteToDelete: Note?
-    
+    let searchText: String
     var filteredNotes: [Note] {
-        db.notes.filter { $0.collectionID == collection.id }
+        db.notes
+            .filter { note in
+                let matchesCollection = note.collectionID == collection.id
+                let isActive = !note.isDeleted
+                
+                let matchesSearch = searchText.isEmpty || note.title.localizedCaseInsensitiveContains(searchText)
+                
+                return matchesCollection && isActive && matchesSearch
+            }
             .sorted {
                 if $0.isPinned != $1.isPinned {
                     return $0.isPinned && !$1.isPinned

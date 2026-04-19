@@ -25,32 +25,9 @@ struct AllListsView: View {
         GridItem(.flexible(), spacing: 1),
         GridItem(.flexible(), spacing: 1)
     ]
-//    var filteredLists: [List] {
-//        db.getFilteredLists(query: searchText)
-//    }
     var filteredLists: [List] {
         db.getFilteredLists(query: searchText, sort: currentSort)
     }
-//    var filteredLists: [List] {
-//        // Start with your search filtering
-//        var result = db.lists.filter { list in
-//            searchText.isEmpty || list.listName.localizedCaseInsensitiveContains(searchText)
-//        }
-//        
-//        // Apply the selected sort
-//        switch currentSort {
-//        case .oldest:
-//            result.sort { $0.createdAt < $1.createdAt }
-//        case .newest:
-//            result.sort { $0.createdAt > $1.createdAt }
-//        case .alphabeticalAZ:
-//            result.sort { $0.listName.lowercased() < $1.listName.lowercased() }
-//        case .alphabeticalZA:
-//            result.sort { $0.listName.lowercased() > $1.listName.lowercased() }
-//        }
-//        
-//        return result
-//    }
 
     private var alertTitle: String {
         alertMode == .delete ? "Delete List?" : db.alertTitle
@@ -134,7 +111,7 @@ struct AllListsView: View {
             }
             .navigationTitle("Welcome Back 👋")
             .navigationBarTitleDisplayMode(.inline)
-            .searchable(text: $searchText, placement: .toolbar, prompt: "Search your Lists")
+            .searchable(text: $searchText, placement: .toolbar, prompt: "Search List")
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Menu {
