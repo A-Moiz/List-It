@@ -52,7 +52,8 @@ class Supabase {
     
     // MARK: - Fetch All Lists
     func getFilteredLists(query: String, sort: SortOption) -> [List] {
-        let all = defaultLists + lists
+        // let all = defaultLists + lists
+        let all = lists
         
         let filtered = all.filter { list in
             query.isEmpty || list.listName.localizedCaseInsensitiveContains(query)

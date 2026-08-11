@@ -20,7 +20,7 @@ struct ListDetailView: View {
     var body: some View {
         NavigationStack {
             ScrollView {
-                ListCollectionsView(list: list, currentSort: $currentSort, searchText: searchText)
+                AllCollectionsView(list: list, currentSort: $currentSort, searchText: searchText)
             }
             .navigationTitle(list.listName)
             .navigationBarTitleDisplayMode(.inline)
@@ -75,32 +75,6 @@ struct ListDetailView: View {
                 }
             }
             .searchable(text: $searchText, prompt: "Search tasks & notes")
-        }
-    }
-}
-
-// MARK: - All Lists in Collection
-struct ListCollectionsView: View {
-    @Environment(Supabase.self) var db
-    let list: List
-    @Binding var currentSort: SortOption
-    let searchText: String
-    
-    var body: some View {
-        Group {
-            if list.isDefault {
-                switch list.listName.lowercased() {
-                case "completed":     CompletedView()
-                case "not completed": NotCompletedView()
-                case "today":         TodayView()
-                case "tomorrow":      TomorrowView()
-                case "overdue":       OverdueView()
-                case "priority":      PriorityView()
-                default:              EmptyView()
-                }
-            } else {
-                AllCollectionsView(list: list, currentSort: $currentSort, searchText: searchText)
-            }
         }
     }
 }

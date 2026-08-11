@@ -25,10 +25,11 @@ struct AllListsView: View {
         GridItem(.flexible(), spacing: 1),
         GridItem(.flexible(), spacing: 1)
     ]
+    @State private var selectedQuickAction: QuickAction?
     var filteredLists: [List] {
         db.getFilteredLists(query: searchText, sort: currentSort)
     }
-
+    
     private var alertTitle: String {
         alertMode == .delete ? "Delete List?" : db.alertTitle
     }
@@ -40,13 +41,13 @@ struct AllListsView: View {
     var body: some View {
         NavigationStack {
             VStack {
-                HeaderView(showSettings: $showSettings)
+                HeaderView()
                     .padding()
                 
                 PinnedListView(viewingList: $viewingList, showUpdateListView: $showUpdateListView, selectedListToDelete: $selectedListToDelete, selectedListToUpdate: $selectedListToUpdate, alertMode: $alertMode, showAlert: $showAlert, searchText: $searchText)
                     .padding()
                 
-                ListInfoSection(showAddListView: $showAddListView)
+                ListInfoSection(showAddListView: $showAddListView, currentSort: $currentSort)
                     .padding()
                 
                 Rectangle()
@@ -57,27 +58,33 @@ struct AllListsView: View {
                     .padding(.horizontal)
                 
                 ScrollView {
-                    LazyVGrid(columns: columns, spacing: 10) {
-                        ForEach(filteredLists) { list in
-                            ListView(list: list)
-                                .id("\(list.id)-\(list.listName)-\(list.bgColorHex)")
-                                .padding(.horizontal, 5)
-                                .onTapGesture  {
-                                    viewingList = list
+                    if filteredLists.isEmpty {
+                        ContentUnavailableView {
+                            Label("No Lists", systemImage: "checklist")
+                        } description: {
+                            Text("Create a List to start organising your tasks and notes.")
+                        } actions: {
+                            Button {
+                                showAddListView = true
+                            } label: {
+                                HStack {
+                                    Image(systemName: "plus")
+                                    Text("Create List")
                                 }
-                                .contextMenu {
-                                    if list.isDefault {
-                                        Button {
-                                            Task {
-                                                await db.updateListPin(list: list, isPinned: !list.isPinned)
-                                            }
-                                        } label: {
-                                            Label(
-                                                list.isPinned ? "Unpin List" : "Pin List",
-                                                systemImage: list.isPinned ? "pin.slash" : "pin"
-                                            )
-                                        }
-                                    } else {
+                            }
+                            .buttonStyle(.borderedProminent)
+                        }
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    } else {
+                        LazyVGrid(columns: columns, spacing: 10) {
+                            ForEach(filteredLists) { list in
+                                ListView(list: list)
+                                    .id("\(list.id)-\(list.listName)-\(list.bgColorHex)")
+                                    .padding(.horizontal, 5)
+                                    .onTapGesture {
+                                        viewingList = list
+                                    }
+                                    .contextMenu {
                                         Button {
                                             Task {
                                                 await db.updateListPin(list: list, isPinned: !list.isPinned)
@@ -104,7 +111,7 @@ struct AllListsView: View {
                                             Label("Delete List", systemImage: "trash")
                                         }
                                     }
-                                }
+                            }
                         }
                     }
                 }
@@ -115,14 +122,62 @@ struct AllListsView: View {
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Menu {
-                        Picker("Sort Lists", selection: $currentSort) {
-                            Label("Oldest", systemImage: "calendar").tag(SortOption.oldest)
-                            Label("Newest", systemImage: "calendar.badge.plus").tag(SortOption.newest)
-                            Label("A-Z", systemImage: "textformat.characters").tag(SortOption.alphabeticalAZ)
-                            Label("Z-A", systemImage: "textformat.characters").tag(SortOption.alphabeticalZA)
+                        // Settings
+                        Button {
+                            showSettings = true
+                        } label: {
+                            ListButtonView(image: "gear", text: "Settings")
+                        }
+                        
+                        Divider()
+                        
+                        // Create List
+                        Button {
+                            showAddListView = true
+                        } label: {
+                            Label("Create List", systemImage: "plus")
+                        }
+                        
+                        Divider()
+                        
+                        // Default Lists
+                        Button {
+                            selectedQuickAction = .today
+                        } label: {
+                            Label("Today's Tasks", systemImage: "calendar")
+                        }
+
+                        Button {
+                            selectedQuickAction = .tomorrow
+                        } label: {
+                            Label("Tomorrow's Tasks", systemImage: "calendar.badge.clock")
+                        }
+
+                        Button {
+                            selectedQuickAction = .priority
+                        } label: {
+                            Label("Priority Tasks", systemImage: "star.fill")
+                        }
+
+                        Button {
+                            selectedQuickAction = .completed
+                        } label: {
+                            Label("Completed Tasks", systemImage: "checkmark.circle")
+                        }
+
+                        Button {
+                            selectedQuickAction = .notCompleted
+                        } label: {
+                            Label("Not Completed Tasks", systemImage: "circle")
+                        }
+
+                        Button {
+                            selectedQuickAction = .overdue
+                        } label: {
+                            Label("Overdue Tasks", systemImage: "exclamationmark.circle")
                         }
                     } label: {
-                        Image(systemName: "arrow.up.arrow.down.circle")
+                        Image(systemName: "line.3.horizontal.decrease.circle")
                     }
                 }
             }
@@ -140,6 +195,22 @@ struct AllListsView: View {
             }
             .navigationDestination(item: $viewingList) { list in
                 ListDetailView(list: list)
+            }
+            .navigationDestination(item: $selectedQuickAction) { action in
+                switch action {
+                case .today:
+                    TodayView()
+                case .tomorrow:
+                    TomorrowView()
+                case .priority:
+                    PriorityView()
+                case .completed:
+                    CompletedView()
+                case .notCompleted:
+                    NotCompletedView()
+                case .overdue:
+                    OverdueView()
+                }
             }
             .sheet(isPresented: $showSettings) {
                 SettingsView()
@@ -281,15 +352,16 @@ struct ListSideBar: View {
 // MARK: - List info section
 struct ListInfoSection: View {
     @Binding var showAddListView: Bool
+    @Binding var currentSort: SortOption
     @Environment(Supabase.self) var db
     
     var body: some View {
-        VStack {
+        VStack(alignment: .leading) {
             HStack {
-                Text("All Lists")
+                Text("Your Lists")
                     .font(.system(size: 24, weight: .bold))
                 
-                Text(String((db.defaultLists + db.lists).count))
+                Text(String((db.lists).count))
                     .font(.system(size: 14, weight: .semibold))
                     .foregroundColor(.white)
                     .padding(.horizontal, 10)
@@ -301,10 +373,15 @@ struct ListInfoSection: View {
                 
                 Spacer()
                 
-                Button {
-                    showAddListView = true
+                Menu {
+                    Picker("Sort Lists", selection: $currentSort) {
+                        Label("Oldest", systemImage: "calendar").tag(SortOption.oldest)
+                        Label("Newest", systemImage: "calendar.badge.plus").tag(SortOption.newest)
+                        Label("A-Z", systemImage: "textformat.characters").tag(SortOption.alphabeticalAZ)
+                        Label("Z-A", systemImage: "textformat.characters").tag(SortOption.alphabeticalZA)
+                    }
                 } label: {
-                    ListButtonView(image: "plus", text: "New List")
+                    Label("Sort", systemImage: "arrow.up.arrow.down.circle")
                 }
             }
             
@@ -317,7 +394,6 @@ struct ListInfoSection: View {
 // MARK: - Lists header view
 struct HeaderView: View {
     @Environment(Supabase.self) var db
-    @Binding var showSettings: Bool
     
     var body: some View {
         HStack {
@@ -330,12 +406,6 @@ struct HeaderView: View {
             }
             
             Spacer()
-            
-            Button {
-                showSettings = true
-            } label: {
-                ListButtonView(image: "gear", text: "Settings")
-            }
         }
     }
 }
