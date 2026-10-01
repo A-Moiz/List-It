@@ -58,7 +58,6 @@ struct SignUpView: View {
             .sheet(isPresented: $showEmailVerification) {
                 EmailConfirmationView()
                     .presentationDetents([.medium])
-                    .presentationCornerRadius(25)
                     .interactiveDismissDisabled()
             }
             .onAppear {

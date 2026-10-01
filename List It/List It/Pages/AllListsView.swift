@@ -14,6 +14,7 @@ struct AllListsView: View {
     @State var showSettings: Bool = false
     @State var showAddListView: Bool = false
     @State var showUpdateListView: Bool = false
+    @State var showWhatsNewView: Bool = false
     @State var viewingList: List?
     @State var showAlert: Bool = false
     @State var alertMode: AlertMode = .error
@@ -37,6 +38,9 @@ struct AllListsView: View {
     private var alertMessage: String {
         alertMode == .delete ? "This action cannot be undone." : db.alertMessage
     }
+    @AppStorage("listDisplayStyle") private var displayStyle: ListDisplayStyle = .card
+    @AppStorage("lastSeenWhatsNewVersion") private var lastSeenVersion: Int = 0
+    @State var currentVersion: Int = 2
     
     var body: some View {
         NavigationStack {
@@ -47,71 +51,45 @@ struct AllListsView: View {
                 PinnedListView(viewingList: $viewingList, showUpdateListView: $showUpdateListView, selectedListToDelete: $selectedListToDelete, selectedListToUpdate: $selectedListToUpdate, alertMode: $alertMode, showAlert: $showAlert, searchText: $searchText)
                     .padding()
                 
-                ListInfoSection(showAddListView: $showAddListView, currentSort: $currentSort)
+                ListInfoSection(showAddListView: $showAddListView, currentSort: $currentSort, showWhatsNewView: $showWhatsNewView, currentVersion: currentVersion)
                     .padding()
                 
                 Rectangle()
                     .fill(colorScheme == .dark
                           ? Color.white.opacity(0.5)
                           : Color.black.opacity(0.5))
-                    .frame(height: 1)
+                    .frame(height: 2)
                     .padding(.horizontal)
+                    .padding(.bottom, 1)
                 
-                ScrollView {
+                Group {
                     if filteredLists.isEmpty {
-                        ContentUnavailableView {
-                            Label("No Lists", systemImage: "checklist")
-                        } description: {
-                            Text("Create a List to start organising your tasks and notes.")
-                        } actions: {
-                            Button {
-                                showAddListView = true
-                            } label: {
-                                HStack {
-                                    Image(systemName: "plus")
-                                    Text("Create List")
+                        ScrollView {
+                            ContentUnavailableView {
+                                Label("No Lists", systemImage: "checklist")
+                            } description: {
+                                Text("Create a List to start organising your tasks and notes.")
+                            } actions: {
+                                Button {
+                                    showAddListView = true
+                                } label: {
+                                    HStack {
+                                        Image(systemName: "plus")
+                                        Text("Create List")
+                                    }
                                 }
+                                .buttonStyle(.borderedProminent)
                             }
-                            .buttonStyle(.borderedProminent)
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
                         }
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
                     } else {
-                        LazyVGrid(columns: columns, spacing: 10) {
-                            ForEach(filteredLists) { list in
-                                ListView(list: list)
-                                    .id("\(list.id)-\(list.listName)-\(list.bgColorHex)")
-                                    .padding(.horizontal, 5)
-                                    .onTapGesture {
-                                        viewingList = list
-                                    }
-                                    .contextMenu {
-                                        Button {
-                                            Task {
-                                                await db.updateListPin(list: list, isPinned: !list.isPinned)
-                                            }
-                                        } label: {
-                                            Label(
-                                                list.isPinned ? "Unpin List" : "Pin List",
-                                                systemImage: list.isPinned ? "pin.slash" : "pin"
-                                            )
-                                        }
-                                        
-                                        Button {
-                                            selectedListToUpdate = list
-                                            showUpdateListView = true
-                                        } label: {
-                                            Label("Update List", systemImage: "pencil")
-                                        }
-                                        
-                                        Button(role: .destructive) {
-                                            selectedListToDelete = list
-                                            alertMode = .delete
-                                            showAlert = true
-                                        } label: {
-                                            Label("Delete List", systemImage: "trash")
-                                        }
-                                    }
+                        switch displayStyle {
+                        case .card:
+                            ScrollView {
+                                cardGrid
                             }
+                        case .list:
+                            rowList
                         }
                     }
                 }
@@ -215,19 +193,116 @@ struct AllListsView: View {
             .sheet(isPresented: $showSettings) {
                 SettingsView()
                     .presentationDetents([.medium, .large])
-                    .presentationCornerRadius(25)
             }
             .sheet(isPresented: $showAddListView) {
                 AddListView(lists: filteredLists)
                     .presentationDetents([.medium, .large])
-                    .presentationCornerRadius(25)
             }
             .sheet(item: $selectedListToUpdate) { list in
                 UpdateListView(list: list)
                     .presentationDetents([.medium, .large])
-                    .presentationCornerRadius(25)
+            }
+            .sheet(isPresented: $showWhatsNewView) {
+                WhatsNewView(currentVersion: currentVersion)
+                    .presentationDetents([.medium, .large])
             }
         }
+    }
+    
+    // MARK: - List Context menu
+    @ViewBuilder
+    private func listContextMenu(for list: List) -> some View {
+        Button {
+            Task {
+                await db.updateListPin(list: list, isPinned: !list.isPinned)
+            }
+        } label: {
+            Label(
+                list.isPinned ? "Unpin List" : "Pin List",
+                systemImage: list.isPinned ? "pin.slash" : "pin"
+            )
+        }
+        
+        Button {
+            selectedListToUpdate = list
+            showUpdateListView = true
+        } label: {
+            Label("Update List", systemImage: "pencil")
+        }
+        
+        Button(role: .destructive) {
+            selectedListToDelete = list
+            alertMode = .delete
+            showAlert = true
+        } label: {
+            Label("Delete List", systemImage: "trash")
+        }
+    }
+    
+    // MARK: - List card style
+    @ViewBuilder
+    private var cardGrid: some View {
+        LazyVGrid(columns: columns, spacing: 10) {
+            ForEach(filteredLists) { list in
+                ListView(list: list)
+                    .id("\(list.id)-\(list.listName)-\(list.bgColorHex)")
+                    .padding(.horizontal, 5)
+                    .onTapGesture {
+                        viewingList = list
+                    }
+                    .contextMenu {
+                        listContextMenu(for: list)
+                    }
+            }
+        }
+        .padding(.top)
+    }
+    
+    // MARK: - List row style
+    @ViewBuilder
+    private var rowList: some View {
+        SwiftUI.List {
+            ForEach(filteredLists) { list in
+                ListRowView(list: list)
+                    .id("\(list.id)-\(list.listName)-\(list.bgColorHex)")
+                    .onTapGesture {
+                        viewingList = list
+                    }
+                    .swipeActions(edge: .trailing) {
+                        Button(role: .destructive) {
+                            selectedListToDelete = list
+                            alertMode = .delete
+                            showAlert = true
+                        } label: {
+                            Label("Delete", systemImage: "trash.fill")
+                        }
+                        
+                        Button {
+                            selectedListToUpdate = list
+                            showUpdateListView = true
+                        } label: {
+                            Label("Edit", systemImage: "pencil")
+                        }
+                        .tint(.blue)
+                        
+                        Button {
+                            Task { await db.updateListPin(list: list, isPinned: !list.isPinned) }
+                        } label: {
+                            Label {
+                                Text(list.isPinned ? "Unpin" : "Pin")
+                            } icon: {
+                                Image(systemName: list.isPinned ? "pin.slash.fill" : "pin.fill")
+                            }
+                        }
+                        .tint(.orange)
+                    }
+                    .listRowInsets(EdgeInsets(top: 5, leading: 5, bottom: 5, trailing: 5))
+                    .listRowSeparator(.hidden)
+                    .listRowBackground(Color.clear)
+            }
+        }
+        .listStyle(.plain)
+        .scrollContentBackground(.hidden)
     }
     
     // MARK: - Delete List
@@ -252,7 +327,7 @@ struct AllListsView: View {
     }
 }
 
-// MARK: - Lists view
+// MARK: - Lists view (rounded rectangle)
 struct ListView: View {
     @Environment(\.colorScheme) var colorScheme
     var list: List
@@ -260,7 +335,7 @@ struct ListView: View {
     var body: some View {
         ZStack {
             RoundedRectangle(cornerRadius: 10)
-                .fill(colorScheme == .dark ? .black : .white)
+                .fill(Color(.systemGray6))
                 .overlay(
                     RoundedRectangle(cornerRadius: 10)
                         .stroke(list.bgColor, lineWidth: 1.5)
@@ -274,7 +349,7 @@ struct ListView: View {
                 
                 Spacer()
                 
-                ListInfo(list: list, isPinnedList: false)
+                ListInfo(list: list, isPinnedList: false, isRowView: false)
                     .padding(.horizontal)
                     .padding(.bottom)
             }
@@ -282,6 +357,42 @@ struct ListView: View {
             ListSideBar(list: list)
                 .frame(maxWidth: .infinity, alignment: .leading)
         }
+    }
+}
+
+// MARK: - Lists view (row)
+struct ListRowView: View {
+    @Environment(\.colorScheme) var colorScheme
+    var list: List
+    
+    var body: some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: 14)
+                .fill(Color(.systemGray6))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 14)
+                        .stroke(list.bgColor, lineWidth: 1.5)
+                )
+                .shadow(color: list.bgColor.opacity(colorScheme == .dark ? 0.5 : 0.3), radius: 3, x: 0, y: 2)
+            
+            HStack(spacing: 14) {
+                ListIconView(list: list)
+                
+                ListInfo(list: list, isPinnedList: false, isRowView: true)
+                
+                Spacer(minLength: 8)
+                
+                Image(systemName: "chevron.right")
+                    .font(.footnote.weight(.semibold))
+                    .foregroundStyle(.secondary)
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
+            
+            ListSideBar(list: list)
+                .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .frame(height: 76)
     }
 }
 
@@ -315,21 +426,40 @@ struct ListInfo: View {
     var list: List
     @Environment(Supabase.self) var db
     var isPinnedList: Bool
+    var isRowView: Bool
     
     var body: some View {
-        VStack {
-            Text(list.listName)
-                .font(.system(size: 14, weight: .semibold))
-                .lineLimit(3)
-                .multilineTextAlignment(.center)
-            
-            let taskCount = db.tasks.filter { $0.listID == list.id && !$0.isDeleted && !$0.isCompleted }.count
-            let noteCount = db.notes.filter { $0.listID == list.id && !$0.isDeleted }.count
-            
-            if !list.isDefault && !isPinnedList {
-                Text("\(taskCount) \(taskCount == 1 ? "Task" : "Tasks") • \(noteCount) \(noteCount == 1 ? "Note" : "Notes")")
-                    .font(.system(size: 10))
-                    .foregroundStyle(.gray)
+        if isRowView {
+            VStack(alignment: .leading, spacing: 5) {
+                Text(list.listName)
+                    .font(.system(size: 12, weight: .semibold))
+                    .lineLimit(3)
+                    .multilineTextAlignment(.center)
+                
+                let taskCount = db.tasks.filter { $0.listID == list.id && !$0.isDeleted && !$0.isCompleted }.count
+                let noteCount = db.notes.filter { $0.listID == list.id && !$0.isDeleted }.count
+                
+                if !list.isDefault && !isPinnedList {
+                    Text("\(taskCount) \(taskCount == 1 ? "Task" : "Tasks") • \(noteCount) \(noteCount == 1 ? "Note" : "Notes")")
+                        .font(.system(size: 8))
+                        .foregroundStyle(.gray)
+                }
+            }
+        } else {
+            VStack {
+                Text(list.listName)
+                    .font(.system(size: 12, weight: .semibold))
+                    .lineLimit(3)
+                    .multilineTextAlignment(.center)
+                
+                let taskCount = db.tasks.filter { $0.listID == list.id && !$0.isDeleted && !$0.isCompleted }.count
+                let noteCount = db.notes.filter { $0.listID == list.id && !$0.isDeleted }.count
+                
+                if !list.isDefault && !isPinnedList {
+                    Text("\(taskCount) \(taskCount == 1 ? "Task" : "Tasks") • \(noteCount) \(noteCount == 1 ? "Note" : "Notes")")
+                        .font(.system(size: 8))
+                        .foregroundStyle(.gray)
+                }
             }
         }
     }
@@ -344,7 +474,7 @@ struct ListSideBar: View {
             Rectangle()
                 .fill(list.bgColor)
                 .frame(width: 5)
-                .padding(.vertical, 10)
+                .padding(.vertical, 8)
         }
     }
 }
@@ -354,6 +484,9 @@ struct ListInfoSection: View {
     @Binding var showAddListView: Bool
     @Binding var currentSort: SortOption
     @Environment(Supabase.self) var db
+    @Binding var showWhatsNewView: Bool
+    @AppStorage("lastSeenWhatsNewVersion") private var lastSeenVersion: Int = 0
+    @State var currentVersion: Int
     
     var body: some View {
         VStack(alignment: .leading) {
@@ -385,8 +518,16 @@ struct ListInfoSection: View {
                 }
             }
             
-            Text("💡 Holds Lists for more options")
-                .font(.caption)
+            if lastSeenVersion < currentVersion {
+                Button {
+                    showWhatsNewView = true
+                } label: {
+                    HStack {
+                        Image(systemName: "sparkles")
+                        Text("See what's new")
+                    }
+                }
+            }
         }
     }
 }
@@ -556,7 +697,7 @@ struct PinnedListCard: View {
                 
                 HStack(spacing: 12) {
                     ListIconView(list: list)
-                    ListInfo(list: list, isPinnedList: true)
+                    ListInfo(list: list, isPinnedList: true, isRowView: false)
                 }
                 .padding(.horizontal, 12)
             }

@@ -10,8 +10,9 @@ import SwiftUI
 struct SettingsView: View {
     @Environment(Supabase.self) var db
     @Environment(\.dismiss) var dismiss
-    @State var showEditNameView: Bool = false
-    @State var showActivityView: Bool = false
+    @State private var showListStyleView: Bool = false
+    @State private var showEditNameView: Bool = false
+    @State private var showActivityView: Bool = false
     
     var body: some View {
         NavigationStack {
@@ -19,7 +20,7 @@ struct SettingsView: View {
                 ProfileSection()
                     .padding(.top)
                 
-                ActionButtonsView(showEditNameView: $showEditNameView, showActivityView: $showActivityView)
+                ActionButtonsView(showListStyleView: $showListStyleView, showEditNameView: $showEditNameView, showActivityView: $showActivityView)
                     .padding(.horizontal)
             }
             .navigationTitle("Settings")
@@ -32,15 +33,17 @@ struct SettingsView: View {
                     }
                 }
             }
+            .sheet(isPresented: $showListStyleView) {
+                ListStyleView()
+                    .presentationDetents([.medium])
+            }
             .sheet(isPresented: $showEditNameView) {
                 EditNameView()
                     .presentationDetents([.medium])
-                    .presentationCornerRadius(25)
             }
             .sheet(isPresented: $showActivityView) {
                 ActivityView()
                     .presentationDetents([.medium, .large])
-                    .presentationCornerRadius(25)
             }
         }
     }
@@ -105,6 +108,7 @@ struct SettingsButtonView: View {
 
 // MARK: - All buttons view
 struct ActionButtonsView: View {
+    @Binding var showListStyleView: Bool
     @Binding var showEditNameView: Bool
     @Binding var showActivityView: Bool
     @Environment(Supabase.self) var db
@@ -120,6 +124,12 @@ struct ActionButtonsView: View {
     
     var body: some View {
         VStack {
+            Button {
+                showListStyleView = true
+            } label: {
+                SettingsButtonView(image: "tray.full", imageColor: .yellow, text: "Select List style")
+            }
+            
             Button {
                 showEditNameView = true
             } label: {

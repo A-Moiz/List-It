@@ -88,7 +88,6 @@ struct LoginView: View {
             .sheet(isPresented: $showForgotPasswordView) {
                 ForgotPasswordView()
                     .presentationDetents([.medium])
-                    .presentationCornerRadius(25)
                     .interactiveDismissDisabled()
             }
         }

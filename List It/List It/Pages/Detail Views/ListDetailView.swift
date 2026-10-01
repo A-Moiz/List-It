@@ -27,17 +27,14 @@ struct ListDetailView: View {
             .sheet(isPresented: $showAddTaskView) {
                 AddTaskView(list: list)
                     .presentationDetents([.medium, .large])
-                    .presentationCornerRadius(25)
             }
             .sheet(isPresented: $showAddNoteView) {
                 AddNoteView(list: list)
                     .presentationDetents([.medium, .large])
-                    .presentationCornerRadius(25)
             }
             .sheet(isPresented: $showAddCollectionView) {
                 AddCollectionView(list: list)
                     .presentationDetents([.medium, .large])
-                    .presentationCornerRadius(25)
             }
             .toolbar {
                 if !list.isDefault {
@@ -199,7 +196,6 @@ struct AllCollectionsView: View {
         .sheet(item: $selectedCollectionToUpdate) { collection in
             UpdateCollectionView(collection: collection)
                 .presentationDetents([.medium, .large])
-                .presentationCornerRadius(25)
         }
     }
     
