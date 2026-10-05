@@ -13,14 +13,9 @@ struct ColorInputView: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                Image(systemName: "paintpalette")
-                    .frame(width: 20)
-                Text("Choose a Colour")
-                    .font(.subheadline)
-                    .fontWeight(.medium)
-                Spacer()
-            }
+            Text("Color")
+                .font(.caption)
+                .foregroundStyle(.secondary)
             
             ColorSelectionView(
                 colorHexes: db.listColorHexes,
@@ -28,93 +23,62 @@ struct ColorInputView: View {
             )
             
             if !selectedColorHex.isEmpty {
-                HStack(spacing: 8) {
-                    RoundedRectangle(cornerRadius: 6)
-                        .fill(Color(hex: selectedColorHex))
-                        .frame(width: 20, height: 20)
-                    Text("Selected: \(selectedColorHex)")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                    Spacer()
-                }
-                .padding(.top, 4)
+                Text(selectedColorHex.uppercased())
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .monospaced()
             }
         }
     }
 }
 
-// MARK: - Color view
+// MARK: - Color grid
 struct ColorSelectionView: View {
     let colorHexes: [String]
     @Binding var selectedHex: String
-    @Environment(\.colorScheme) var colorScheme
-    private let columns = Array(repeating: GridItem(.flexible(), spacing: 16), count: 6)
+    private let columns = Array(repeating: GridItem(.flexible(), spacing: 14), count: 6)
     
     var body: some View {
-        LazyVGrid(columns: columns, spacing: 16) {
+        LazyVGrid(columns: columns, spacing: 14) {
             ForEach(colorHexes, id: \.self) { hex in
                 ColorSelectionButton(
                     hex: hex,
-                    isSelected: selectedHex == hex,
-                    colorScheme: colorScheme
+                    isSelected: selectedHex == hex
                 ) {
-                    withAnimation(.spring(response: 0.4, dampingFraction: 0.7)) {
-                        selectedHex = hex
-                    }
+                    selectedHex = hex
                 }
             }
         }
-        .padding(.horizontal, 8)
     }
 }
 
-// MARK: - Colors view
+// MARK: - Color swatch
 struct ColorSelectionButton: View {
     let hex: String
     let isSelected: Bool
-    let colorScheme: ColorScheme
     let action: () -> Void
+    
+    private let cornerRadius: CGFloat = 8
     
     var body: some View {
         Button(action: action) {
-            ZStack {
-                Circle()
-                    .fill(Color(hex: hex))
-                    .frame(width: isSelected ? 44 : 40, height: isSelected ? 44 : 40)
-                    .overlay(
-                        Circle()
-                            .stroke(.white, lineWidth: 3)
-                            .shadow(color: .black.opacity(0.1), radius: 2)
-                    )
-                
-                if isSelected {
-                    Circle()
-                        .stroke(
-                            LinearGradient(
-                                colors: [.blue, .purple],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            ),
-                            lineWidth: 3
-                        )
-                        .frame(width: 52, height: 52)
-                        .shadow(color: .blue.opacity(0.3), radius: 4)
-                    
-                    Image(systemName: "checkmark.circle.fill")
-                        .font(.system(size: 16, weight: .bold))
-                        .foregroundColor(.white)
-                        .background(
-                            Circle()
-                                .fill(.blue)
-                                .frame(width: 24, height: 24)
-                        )
-                        .offset(x: 18, y: -18)
+            RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                .fill(Color(hex: hex))
+                .frame(width: 36, height: 36)
+                .overlay(
+                    RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                        .stroke(Color.orange, lineWidth: isSelected ? 2.5 : 0)
+                )
+                .overlay {
+                    if isSelected {
+                        Image(systemName: "checkmark")
+                            .font(.system(size: 13, weight: .bold))
+                            .foregroundStyle(.white)
+                    }
                 }
-            }
         }
-        .buttonStyle(PlainButtonStyle())
-        .scaleEffect(isSelected ? 1.1 : 1.0)
-        .animation(.spring(response: 0.4, dampingFraction: 0.7), value: isSelected)
+        .buttonStyle(.plain)
+        .animation(.easeOut(duration: 0.15), value: isSelected)
     }
 }
 

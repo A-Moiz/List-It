@@ -15,55 +15,39 @@ struct AddTaskView: View {
     var list: List
     @State var selectedCollectionID: String?
     @State var isPinned: Bool = false
-    @State var dueDate: Date = Date()
-    @State var addDueDate: Bool = false
+    @State var schedule: Date = Date()
+    @State var addSchedule: Bool = false
     @State var showAlert: Bool = false
+    @State private var statusMessage = ""
     
     var body: some View {
         NavigationStack {
-            Form {
-                Section {
-                    HStack {
-                        Spacer()
-                        Image(systemName: "pencil.and.list.clipboard")
-                            .font(.system(size: 80))
-                            .foregroundStyle(.orange.gradient)
-                        Spacer()
+            ScrollView {
+                VStack(alignment: .leading, spacing: 20) {
+                    header
+                    
+                    Divider()
+                    
+                    VStack(alignment: .leading, spacing: 12) {
+                        TextField("Task title", text: $taskTitle)
+                            .font(.title3.weight(.semibold))
+                        
+                        TextField("Description (optional)", text: $taskDescription, axis: .vertical)
+                            .lineLimit(3...5)
+                            .foregroundStyle(.secondary)
                     }
-                }
-                .listRowBackground(Color.clear)
-                
-                Section("Details") {
-                    TextField("Task Title", text: $taskTitle)
-                    TextField("Description (optional)", text: $taskDescription, axis: .vertical)
-                        .lineLimit(3...5)
-                }
-                
-                Section("Organisation") {
+                    
+                    Divider()
+                    
                     TaskOrganisationRow(list: list, selectedCollectionID: $selectedCollectionID)
-                }
-                
-                Section("Options") {
-                    Toggle(isOn: $isPinned) {
-                        Label("Pin Task", systemImage: "pin.fill")
-                            .symbolVariant(isPinned ? .fill : .none)
-                    }
                     
-                    Toggle(isOn: $addDueDate.animation()) {
-                        Label("Set Due Date", systemImage: "calendar.badge.clock")
-                    }
+                    Divider()
                     
-                    if addDueDate {
-                        DatePicker(
-                            "Due Date",
-                            selection: $dueDate,
-                            in: Date()...,
-                            displayedComponents: .date
-                        )
-                        .datePickerStyle(.graphical)
-                    }
+                    optionsSection
                 }
+                .padding(20)
             }
+            .scrollDismissesKeyboard(.interactively)
             .navigationTitle("Add Task")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -76,6 +60,46 @@ struct AddTaskView: View {
             }
             .alert(isPresented: $showAlert) {
                 Alert(title: Text(db.alertTitle), message: Text(db.alertMessage), dismissButton: .default(Text("OK")))
+            }
+        }
+    }
+
+    // MARK: - Header
+    private var header: some View {
+        HStack {
+            Spacer()
+            Image(systemName: "pencil.and.list.clipboard")
+                .font(.system(size: 36))
+                .foregroundStyle(.orange)
+            Spacer()
+        }
+    }
+
+    // MARK: - Options
+    private var optionsSection: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            Toggle(isOn: $isPinned) {
+                Label("Pin Task", systemImage: "pin.fill")
+                    .symbolVariant(isPinned ? .fill : .none)
+            }
+            
+            Toggle(isOn: $addSchedule.animation()) {
+                Label("Schedule reminder", systemImage: "calendar.badge.clock")
+            }
+            
+            if addSchedule {
+                DatePicker(
+                    "Schedule for",
+                    selection: $schedule,
+                    in: Date()...,
+                    displayedComponents: [.date, .hourAndMinute]
+                )
+            }
+            
+            if !statusMessage.isEmpty {
+                Text(statusMessage)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
             }
         }
     }
@@ -101,13 +125,13 @@ struct AddTaskView: View {
                 $0.listID == list.id && $0.collectionName == "General"
             })?.id ?? ""
         }
-
+        
         let newTask = ToDoTask(
             id: UUID().uuidString.lowercased(),
             createdAt: Date(),
             text: taskTitle,
             description: taskDescription,
-            dueDate: addDueDate ? dueDate : nil,
+            schedule: addSchedule ? schedule : nil,
             isCompleted: false,
             isDeleted: false,
             isPinned: isPinned,
@@ -121,11 +145,48 @@ struct AddTaskView: View {
             if success {
                 await MainActor.run {
                     db.tasks.append(newTask)
+                    scheduleNotification(at: schedule)
                     dismiss()
                 }
             } else {
                 showAlert = true
             }
+        }
+    }
+    
+    // MARK: - Scheduling Notification
+    func scheduleNotification(at date: Date) {
+        /// Content for Notification
+        let content = UNMutableNotificationContent()
+        content.title = taskTitle
+        content.body = "Don't forget about this!"
+        content.sound = .default
+        
+        /// Get date components for Notification
+        let triggerDate = Calendar.current.dateComponents(
+            [.year, .month, .day, .hour, .minute, .second],
+            from: date
+        )
+        let trigger = UNCalendarNotificationTrigger(dateMatching: triggerDate, repeats: false)
+        
+        /// Create Notification request
+        let request = UNNotificationRequest(
+            identifier: UUID().uuidString,
+            content: content,
+            trigger: trigger
+        )
+        
+        /// Status message
+        UNUserNotificationCenter.current().add(request) { error in
+            if let error = error {
+                statusMessage = "Error: \(error.localizedDescription)"
+            } else {
+                statusMessage = "Task reminder scheduled for \(date.formatted(date: .abbreviated, time: .shortened))"
+            }
+        }
+        
+        UNUserNotificationCenter.current().getPendingNotificationRequests { requests in
+            print("Pending: \(requests.count)")
         }
     }
 }

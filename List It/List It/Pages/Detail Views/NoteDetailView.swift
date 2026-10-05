@@ -11,7 +11,6 @@ struct NoteDetailView: View {
     @Environment(Supabase.self) var db
     @Environment(\.dismiss) var dismiss
     var note: Note
-    
     @State private var editedTitle: String = ""
     @State private var editedDescription: String = ""
     @State private var editedHex: String = ""
@@ -33,47 +32,29 @@ struct NoteDetailView: View {
     
     var body: some View {
         NavigationStack {
-            Form {
-                Section("Note Title") {
-                    TextField("Title", text: $editedTitle)
-                }
-                .listRowBackground(Color(.systemBackground).opacity(0.8))
-                
-                Section("Description") {
-                    TextEditor(text: $editedDescription)
-                        .frame(minHeight: 150)
-                        .scrollContentBackground(.hidden)
-                }
-                .listRowBackground(Color(.systemBackground).opacity(0.8))
-                
-                Section("Appearance") {
-                    ColorInputView(selectedColorHex: $editedHex)
-                        .padding(.vertical, 8)
-                }
-                .listRowBackground(Color(.systemBackground).opacity(0.8))
-                
-                Section("Actions") {
-                    Button {
-                        isPinned.toggle()
-                    } label: {
-                        Label(isPinned ? "Unpin Note" : "Pin Note", systemImage: isPinned ? "pin.fill" : "pin")
-                            .symbolEffect(.bounce, value: isPinned)
-                    }
-                    .tint(.orange)
+            ScrollView {
+                VStack(alignment: .leading, spacing: 20) {
+                    TextField("Note title", text: $editedTitle)
+                        .font(.title3.weight(.semibold))
                     
-                    Button(role: .destructive) {
-                        alertMode = .delete
-                        showAlert = true
-                    } label: {
-                        Label("Delete Note", systemImage: "trash")
-                    }
+                    Divider()
+                    
+                    descriptionField
+                    
+                    Divider()
+                    
+                    ColorInputView(selectedColorHex: $editedHex)
+                    
+                    Divider()
+                    
+                    actionsRow
                 }
-                .listRowBackground(Color(.systemBackground).opacity(0.8))
+                .padding(20)
             }
+            .scrollDismissesKeyboard(.interactively)
             .navigationTitle("Note Details")
             .toolbarTitleDisplayMode(.inline)
-            .scrollContentBackground(.hidden)
-            .background(Color(hex: editedHex).opacity(0.3))
+            .background(Color(hex: editedHex).opacity(0.08))
             .onAppear {
                 editedTitle = note.title
                 editedDescription = note.description ?? ""
@@ -99,6 +80,57 @@ struct NoteDetailView: View {
             } message: {
                 Text(alertMessage)
             }
+        }
+    }
+    
+    // MARK: - Description
+    private var descriptionField: some View {
+        ZStack(alignment: .topLeading) {
+            if editedDescription.isEmpty {
+                Text("Add a description")
+                    .foregroundStyle(.secondary)
+                    .padding(.top, 8)
+                    .padding(.leading, 5)
+                    .allowsHitTesting(false)
+            }
+
+            Text(editedDescription.isEmpty ? " " : editedDescription)
+                .padding(.top, 8)
+                .padding(.leading, 5)
+                .opacity(0)
+            
+            TextEditor(text: $editedDescription)
+                .scrollContentBackground(.hidden)
+        }
+        .frame(minHeight: 100, maxHeight: 500)
+    }
+    
+    // MARK: - Actions
+    private var actionsRow: some View {
+        HStack(spacing: 10) {
+            Button {
+                withAnimation {
+                    isPinned.toggle()
+                }
+            } label: {
+                Label(isPinned ? "Unpin" : "Pin", systemImage: isPinned ? "pin.fill" : "pin")
+                    .symbolEffect(.bounce, value: isPinned)
+                    .font(.subheadline)
+            }
+            .buttonStyle(.bordered)
+            .tint(.orange)
+            
+            Button {
+                alertMode = .delete
+                showAlert = true
+            } label: {
+                Label("Delete", systemImage: "trash")
+                    .font(.subheadline)
+            }
+            .buttonStyle(.bordered)
+            .tint(.red)
+            
+            Spacer()
         }
     }
     
@@ -147,9 +179,7 @@ struct NoteDetailView: View {
     }
 }
 
-
-#Preview {
-    @Previewable @State var notes: Note = Note(id: "", createdAt: Date(), title: "Anime", description: "- Code Geas S1 (8/10)", isDeleted: false, bgColorHex: "#FF3B30", isPinned: true, collectionID: "", userID: "", listID: "")
-    NoteDetailView(note: notes)
-        .environment(Supabase())
-}
+//#Preview {
+//    NoteDetailView()
+//        .environment(Supabase())
+//}

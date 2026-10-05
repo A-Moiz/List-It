@@ -18,42 +18,26 @@ struct AddListView: View {
     
     var body: some View {
         NavigationStack {
-            Form {
-                Section {
-                    VStack(spacing: 16) {
-                        Image(systemName: "checklist.checked")
-                            .font(.system(size: 80))
-                            .foregroundStyle(LinearGradient(colors: [.orange, .red], startPoint: .topLeading, endPoint: .bottomTrailing))
-                            .shadow(color: .orange.opacity(0.3), radius: 10, y: 5)
-                        
-                        Text("Create a new List to stay organised.")
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-                            .multilineTextAlignment(.center)
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 20)
-                }
-                .listRowBackground(Color.clear)
-                
-                Section("List Name") {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 24) {
+                    header
+                    
+                    Divider()
+                    
                     InputField(
                         icon: "pencil.line",
                         text: $listName,
                         placeholder: "e.g. Personal, Work, Fitness"
                     )
-                }
-                .listRowBackground(Color(uiColor: .secondarySystemGroupedBackground))
-                
-                Section("Appearance") {
+                    
+                    Divider()
+                    
                     ColorInputView(selectedColorHex: $selectedColorHex)
-                        .padding(.vertical, 8)
                 }
-                .listRowBackground(Color(uiColor: .secondarySystemGroupedBackground))
+                .padding(20)
             }
             .navigationTitle("Add List")
             .navigationBarTitleDisplayMode(.inline)
-            .scrollContentBackground(.hidden)
             .background(Color(.systemGroupedBackground))
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -69,6 +53,21 @@ struct AddListView: View {
                 Alert(title: Text(db.alertTitle), message: Text(db.alertMessage), dismissButton: .default(Text("OK")))
             }
         }
+    }
+
+    // MARK: - Header
+    private var header: some View {
+        VStack(spacing: 8) {
+            Image(systemName: "checklist.checked")
+                .font(.system(size: 36))
+                .foregroundStyle(.orange)
+            
+            Text("Create a new List to stay organised.")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+        }
+        .frame(maxWidth: .infinity)
     }
     
     // MARK: - Check if fields are empty

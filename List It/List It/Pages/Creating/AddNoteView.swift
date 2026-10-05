@@ -11,7 +11,6 @@ struct AddNoteView: View {
     @Environment(\.dismiss) var dismiss
     @Environment(Supabase.self) var db
     var list: List
-    
     @State private var noteTitle: String = ""
     @State private var noteDescription: String = ""
     @State private var selectedCollectionID: String?
@@ -21,42 +20,45 @@ struct AddNoteView: View {
     
     var body: some View {
         NavigationStack {
-            Form {
-                Section {
-                    HStack {
-                        Spacer()
-                        Image(systemName: "note.text.badge.plus")
-                            .font(.system(size: 80))
-                            .foregroundStyle(.yellow.gradient)
-                        Spacer()
+            ScrollView {
+                VStack(alignment: .leading, spacing: 20) {
+                    header
+                    
+                    Divider()
+                    
+                    VStack(alignment: .leading, spacing: 12) {
+                        TextField("Note title", text: $noteTitle)
+                            .font(.title3.weight(.semibold))
+                        
+                        TextField("Description (optional)", text: $noteDescription, axis: .vertical)
+                            .lineLimit(3...5)
+                            .foregroundStyle(.secondary)
+                    }
+                    
+                    Divider()
+                    
+                    VStack(alignment: .leading, spacing: 8) {
+                        ColorInputView(selectedColorHex: $selectedColorHex)
+                        
+                        Text("If no color is selected, the Note will use its Collection's colour by default.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                    
+                    Divider()
+                    
+                    VStack(alignment: .leading, spacing: 14) {
+                        TaskOrganisationRow(list: list, selectedCollectionID: $selectedCollectionID)
+                        
+                        Toggle(isOn: $isPinned) {
+                            Label("Pin Note", systemImage: isPinned ? "pin.fill" : "pin")
+                        }
+                        .tint(.orange)
                     }
                 }
-                .listRowBackground(Color.clear)
-                
-                Section("Details") {
-                    TextField("Note Title", text: $noteTitle)
-                    TextField("Description (optional)", text: $noteDescription, axis: .vertical)
-                        .lineLimit(3...5)
-                }
-                
-                Section("Appearance") {
-                    ColorInputView(selectedColorHex: $selectedColorHex)
-                        .padding(.vertical, 8)
-                    
-                    Text("If no color is selected, the Note will use its Collection's colour by default.")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-                
-                Section("Organisation") {
-                    TaskOrganisationRow(list: list, selectedCollectionID: $selectedCollectionID)
-                    
-                    Toggle(isOn: $isPinned) {
-                        Label("Pin Note", systemImage: isPinned ? "pin.fill" : "pin")
-                    }
-                    .tint(.orange)
-                }
+                .padding(20)
             }
+            .scrollDismissesKeyboard(.interactively)
             .navigationTitle("New Note")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -71,6 +73,17 @@ struct AddNoteView: View {
             .alert(isPresented: $showAlert) {
                 Alert(title: Text(db.alertTitle), message: Text(db.alertMessage), dismissButton: .default(Text("OK")))
             }
+        }
+    }
+
+    // MARK: - Header
+    private var header: some View {
+        HStack {
+            Spacer()
+            Image(systemName: "note.text.badge.plus")
+                .font(.system(size: 36))
+                .foregroundStyle(.yellow)
+            Spacer()
         }
     }
     

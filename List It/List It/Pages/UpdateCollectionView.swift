@@ -25,20 +25,25 @@ struct UpdateCollectionView: View {
     
     var body: some View {
         NavigationStack {
-            Form {
-                Section("Collection Name") {
-                    TextField("Collection Name", text: $editedName)
-                }
-                .listRowBackground(Color(.systemBackground).opacity(0.8))
-                
-                Section("Appearance") {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 20) {
+                    TextField("Collection name", text: $editedName)
+                        .font(.title3.weight(.semibold))
+                    
+                    Divider()
+                    
                     ColorInputView(selectedColorHex: $editedHex)
-                        .padding(.vertical, 8)
                 }
-                .listRowBackground(Color(.systemBackground).opacity(0.8))
+                .padding(20)
             }
+            .scrollDismissesKeyboard(.interactively)
             .navigationTitle("Update Collection")
             .navigationBarTitleDisplayMode(.inline)
+            .background(collection.bgColor.opacity(0.08))
+            .onAppear {
+                editedName = collection.collectionName
+                editedHex = collection.bgColorHex
+            }
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     Button {
@@ -53,13 +58,8 @@ struct UpdateCollectionView: View {
                     } label: {
                         Text("Update")
                     }
+                    .fontWeight(.bold)
                 }
-            }
-            .scrollContentBackground(.hidden)
-            .background(collection.bgColor.opacity(0.3))
-            .onAppear {
-                editedName = collection.collectionName
-                editedHex = collection.bgColorHex
             }
             .alert(alertTitle, isPresented: $showAlert) {
                 if alertMode == .error {

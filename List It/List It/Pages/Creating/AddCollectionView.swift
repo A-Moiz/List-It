@@ -17,50 +17,33 @@ struct AddCollectionView: View {
     
     var body: some View {
         NavigationStack {
-            Form {
-                Section {
-                    VStack(spacing: 16) {
-                        Image(systemName: "folder.fill.badge.plus")
-                            .font(.system(size: 80))
-                            .foregroundStyle(LinearGradient(colors: [.blue, .purple], startPoint: .topLeading, endPoint: .bottomTrailing))
-                            .shadow(color: .blue.opacity(0.3), radius: 10, y: 5)
-                        
-                        Text("Group your tasks & notes into collections.")
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 20)
-                }
-                .listRowBackground(Color.clear)
-                
-                Section("Collection Details") {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 24) {
+                    header
+                    
+                    Divider()
+                    
                     InputField(
                         icon: "folder",
                         text: $collectionName,
                         placeholder: "e.g. Groceries, High Priority"
                     )
+                    
+                    Divider()
+                    
+                    VStack(alignment: .leading, spacing: 8) {
+                        ColorInputView(selectedColorHex: $selectedColorHex)
+                        
+                        Text("If no color is selected, this will inherit the **\(list.listName)** list colour.")
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                    }
                 }
-                .listRowBackground(Color(.systemBackground).opacity(0.7))
-                
-                Section {
-                    ColorInputView(selectedColorHex: $selectedColorHex)
-                        .padding(.vertical, 8)
-                } header: {
-                    Text("Appearance")
-                } footer: {
-                    Text("If no color is selected, this will inherit the **\(list.listName)** list colour.")
-                        .font(.caption2)
-                }
-                .listRowBackground(Color(.systemBackground).opacity(0.7))
+                .padding(20)
             }
             .navigationTitle("Add Collection")
             .navigationBarTitleDisplayMode(.inline)
-            .scrollContentBackground(.hidden)
-            .background(
-                list.bgColor.opacity(0.15)
-                    .ignoresSafeArea()
-            )
+            .background(list.bgColor.opacity(0.08))
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Dismiss") { dismiss() }
@@ -75,6 +58,21 @@ struct AddCollectionView: View {
                 Alert(title: Text(db.alertTitle), message: Text(db.alertMessage), dismissButton: .default(Text("OK")))
             }
         }
+    }
+
+    // MARK: - Header
+    private var header: some View {
+        VStack(spacing: 8) {
+            Image(systemName: "folder.fill.badge.plus")
+                .font(.system(size: 36))
+                .foregroundStyle(.blue)
+            
+            Text("Group your tasks & notes into collections.")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+        }
+        .frame(maxWidth: .infinity)
     }
     
     // MARK: - Check if name is empty

@@ -52,7 +52,6 @@ class Supabase {
     
     // MARK: - Fetch All Lists
     func getFilteredLists(query: String, sort: SortOption) -> [List] {
-        // let all = defaultLists + lists
         let all = lists
         
         let filtered = all.filter { list in
@@ -643,19 +642,19 @@ class Supabase {
     }
     
     // MARK: - Update Tasks
-    func updateTask(task: ToDoTask, text: String, description: String, dueDate: Date?, isPinned: Bool) async -> Bool {
+    func updateTask(task: ToDoTask, text: String, description: String, schedule: Date?, isPinned: Bool) async -> Bool {
         do {
-            let dueDateString: String? = {
-                guard let dueDate else { return nil }
+            let scheduleString: String? = {
+                guard let schedule else { return nil }
                 let formatter = ISO8601DateFormatter()
                 formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-                return formatter.string(from: dueDate)
+                return formatter.string(from: schedule)
             }()
             
             let updateData: [String: AnyJSON] = [
                 "text": .string(text),
                 "description": .string(description),
-                "due_date": dueDateString != nil ? .string(dueDateString!) : .null,
+                "due_date": scheduleString != nil ? .string(scheduleString!) : .null,
                 "is_pinned": .bool(isPinned)
             ]
             
@@ -669,7 +668,7 @@ class Supabase {
                 if let index = self.tasks.firstIndex(where: { $0.id == task.id }) {
                     self.tasks[index].text = text
                     self.tasks[index].description = description
-                    self.tasks[index].dueDate = dueDate
+                    self.tasks[index].schedule = schedule
                     self.tasks[index].isPinned = isPinned
                 }
             }

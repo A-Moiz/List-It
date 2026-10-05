@@ -23,7 +23,7 @@ struct TodayView: View {
             let todayTasks = db.tasks.filter {
                 $0.listID == list.id &&
                 !$0.isCompleted &&
-                Calendar.current.isDateInToday($0.dueDate ?? Date.distantPast)
+                Calendar.current.isDateInToday($0.schedule ?? Date.distantPast)
             }
             return todayTasks.isEmpty ? nil : (list: list, tasks: todayTasks)
         }

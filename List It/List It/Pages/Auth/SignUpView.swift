@@ -17,36 +17,42 @@ struct SignUpView: View {
         @Bindable var db = db
         
         NavigationStack {
-            VStack {
-                PageTitle(textOne: "Create", textTwo: "Account")
-                
-                FormView(name: $db.name, email: $db.email, password: $db.password, confirmPassword: $db.confirmPassword, showEmailVerification: $showEmailVerification)
-                    .padding()
-                
-                Button {
-                    Task {
-                        await signUp()
-                    }
-                } label: {
-                    ButtonView(buttonTxt: "Sign up", showArrow: false)
+            GeometryReader { proxy in
+                ScrollView {
+                    VStack {
+                        PageTitle(textOne: "Create", textTwo: "Account")
+                        
+                        FormView(name: $db.name, email: $db.email, password: $db.password, confirmPassword: $db.confirmPassword, showEmailVerification: $showEmailVerification)
+                            .padding()
+                        
+                        Button {
+                            Task {
+                                await signUp()
+                            }
+                        } label: {
+                            ButtonView(buttonTxt: "Sign up", showArrow: false)
+                                .padding()
+                        }
+                        
+                        Spacer()
+                        
+                        HStack {
+                            Text("Already have an account?")
+                            Button {
+                                goToLogin = true
+                            } label: {
+                                Text("Sign In")
+                                    .foregroundStyle(.blue)
+                                    .fontWeight(.bold)
+                                    .underline()
+                            }
+                        }
                         .padding()
-                }
-                
-                Spacer()
-                
-                HStack {
-                    Text("Already have an account?")
-                    Button {
-                        goToLogin = true
-                    } label: {
-                        Text("Sign In")
-                            .foregroundStyle(.blue)
-                            .fontWeight(.bold)
-                            .underline()
+                        .frame(maxWidth: .infinity)
                     }
+                    .frame(minHeight: proxy.size.height)
                 }
-                .padding()
-                .frame(maxWidth: .infinity)
+                .scrollDismissesKeyboard(.interactively)
             }
             .navigationBarBackButtonHidden()
             .navigationDestination(isPresented: $goToLogin) {

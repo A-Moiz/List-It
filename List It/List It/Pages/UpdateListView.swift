@@ -26,20 +26,25 @@ struct UpdateListView: View {
     
     var body: some View {
         NavigationStack {
-            Form {
-                Section("List Name") {
-                    TextField("List Name", text: $editedName)
-                }
-                .listRowBackground(Color(.systemBackground).opacity(0.8))
-                
-                Section("Appearance") {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 20) {
+                    TextField("List name", text: $editedName)
+                        .font(.title3.weight(.semibold))
+                    
+                    Divider()
+                    
                     ColorInputView(selectedColorHex: $editedHex)
-                        .padding(.vertical, 8)
                 }
-                .listRowBackground(Color(.systemBackground).opacity(0.8))
+                .padding(20)
             }
+            .scrollDismissesKeyboard(.interactively)
             .navigationTitle("Update List")
             .navigationBarTitleDisplayMode(.inline)
+            .background(list.bgColor.opacity(0.08))
+            .onAppear {
+                editedName = list.listName
+                editedHex = list.bgColorHex
+            }
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     Button {
@@ -54,13 +59,8 @@ struct UpdateListView: View {
                     } label: {
                         Text("Update")
                     }
+                    .fontWeight(.bold)
                 }
-            }
-            .scrollContentBackground(.hidden)
-            .background(list.bgColor.opacity(0.3))
-            .onAppear {
-                editedName = list.listName
-                editedHex = list.bgColorHex
             }
             .alert(alertTitle, isPresented: $showAlert) {
                 if alertMode == .error {

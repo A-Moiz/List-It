@@ -36,10 +36,12 @@ struct SettingsView: View {
             .sheet(isPresented: $showListStyleView) {
                 ListStyleView()
                     .presentationDetents([.medium])
+                    .interactiveDismissDisabled()
             }
             .sheet(isPresented: $showEditNameView) {
                 EditNameView()
                     .presentationDetents([.medium])
+                    .interactiveDismissDisabled()
             }
             .sheet(isPresented: $showActivityView) {
                 ActivityView()
@@ -152,6 +154,16 @@ struct ActionButtonsView: View {
                 }
             } label: {
                 SettingsButtonView(image: "globe", imageColor: .blue, text: "View Website")
+            }
+            
+            Divider()
+            
+            Button {
+                if let url = URL(string: "https://forms.gle/ijSacrVdbctUziq56") {
+                    UIApplication.shared.open(url)
+                }
+            } label: {
+                SettingsButtonView(image: "text.document", imageColor: .green, text: "Request feature/Give feedback")
             }
             
             Divider()

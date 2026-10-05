@@ -22,9 +22,9 @@ struct AllListsView: View {
     @State var selectedListToUpdate: List?
     @State private var currentSort: SortOption = .oldest
     @State var columns = [
-        GridItem(.flexible(), spacing: 1),
-        GridItem(.flexible(), spacing: 1),
-        GridItem(.flexible(), spacing: 1)
+        GridItem(.flexible(), spacing: 3),
+        GridItem(.flexible(), spacing: 3),
+        GridItem(.flexible(), spacing: 3)
     ]
     @State private var selectedQuickAction: QuickAction?
     var filteredLists: [List] {
@@ -40,7 +40,7 @@ struct AllListsView: View {
     }
     @AppStorage("listDisplayStyle") private var displayStyle: ListDisplayStyle = .card
     @AppStorage("lastSeenWhatsNewVersion") private var lastSeenVersion: Int = 0
-    @State var currentVersion: Int = 2
+    @State var currentVersion: Int = 3
     
     var body: some View {
         NavigationStack {
@@ -96,6 +96,9 @@ struct AllListsView: View {
             }
             .navigationTitle("Welcome Back 👋")
             .navigationBarTitleDisplayMode(.inline)
+            .onAppear {
+                requestNotificationPermission()
+            }
             .searchable(text: $searchText, placement: .toolbar, prompt: "Search List")
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
@@ -124,31 +127,31 @@ struct AllListsView: View {
                         } label: {
                             Label("Today's Tasks", systemImage: "calendar")
                         }
-
+                        
                         Button {
                             selectedQuickAction = .tomorrow
                         } label: {
                             Label("Tomorrow's Tasks", systemImage: "calendar.badge.clock")
                         }
-
+                        
                         Button {
                             selectedQuickAction = .priority
                         } label: {
                             Label("Priority Tasks", systemImage: "star.fill")
                         }
-
+                        
                         Button {
                             selectedQuickAction = .completed
                         } label: {
                             Label("Completed Tasks", systemImage: "checkmark.circle")
                         }
-
+                        
                         Button {
                             selectedQuickAction = .notCompleted
                         } label: {
                             Label("Not Completed Tasks", systemImage: "circle")
                         }
-
+                        
                         Button {
                             selectedQuickAction = .overdue
                         } label: {
@@ -196,15 +199,18 @@ struct AllListsView: View {
             }
             .sheet(isPresented: $showAddListView) {
                 AddListView(lists: filteredLists)
-                    .presentationDetents([.medium, .large])
+                    .presentationDetents([.medium])
+                    .interactiveDismissDisabled()
             }
             .sheet(item: $selectedListToUpdate) { list in
                 UpdateListView(list: list)
-                    .presentationDetents([.medium, .large])
+                    .presentationDetents([.medium])
+                    .interactiveDismissDisabled()
             }
             .sheet(isPresented: $showWhatsNewView) {
                 WhatsNewView(currentVersion: currentVersion)
                     .presentationDetents([.medium, .large])
+                    .interactiveDismissDisabled()
             }
         }
     }
@@ -246,7 +252,6 @@ struct AllListsView: View {
             ForEach(filteredLists) { list in
                 ListView(list: list)
                     .id("\(list.id)-\(list.listName)-\(list.bgColorHex)")
-                    .padding(.horizontal, 5)
                     .onTapGesture {
                         viewingList = list
                     }
@@ -325,38 +330,43 @@ struct AllListsView: View {
             }
         }
     }
+    
+    // MARK: - Requesting notification
+    func requestNotificationPermission() {
+        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { granted, error in
+            if let error = error {
+                print("Permission error: \(error)")
+            }
+            print("Permission granted: \(granted)")
+        }
+    }
 }
 
 // MARK: - Lists view (rounded rectangle)
 struct ListView: View {
     @Environment(\.colorScheme) var colorScheme
     var list: List
+    private let cornerRadius: CGFloat = 6
     
     var body: some View {
-        ZStack {
-            RoundedRectangle(cornerRadius: 10)
-                .fill(Color(.systemGray6))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 10)
-                        .stroke(list.bgColor, lineWidth: 1.5)
-                )
-                .frame(height: 100)
-                .shadow(color: list.bgColor.opacity(colorScheme == .dark ? 0.5 : 0.3), radius: 3, x: 0, y: 2)
-            
-            VStack {
-                ListIconView(list: list)
-                    .padding(.top, 12)
-                
-                Spacer()
-                
-                ListInfo(list: list, isPinnedList: false, isRowView: false)
-                    .padding(.horizontal)
-                    .padding(.bottom)
-            }
-            
-            ListSideBar(list: list)
-                .frame(maxWidth: .infinity, alignment: .leading)
+        VStack {
+            ListInfo(list: list, isPinnedList: false, isRowView: false)
+                .padding(.horizontal)
         }
+        .frame(width: 120, height: 70)
+        .background(
+            RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                .fill(Color(list.bgColor.opacity(0.2)))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                .stroke(list.bgColor, lineWidth: 1.5)
+        )
+        .overlay(alignment: .leading) {
+            ListSideBar(list: list, isPinnedList: false)
+        }
+        .clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
+        .shadow(color: list.bgColor.opacity(colorScheme == .dark ? 0.5 : 0.3), radius: 3, x: 0, y: 2)
     }
 }
 
@@ -365,59 +375,34 @@ struct ListRowView: View {
     @Environment(\.colorScheme) var colorScheme
     var list: List
     
-    var body: some View {
-        ZStack {
-            RoundedRectangle(cornerRadius: 14)
-                .fill(Color(.systemGray6))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 14)
-                        .stroke(list.bgColor, lineWidth: 1.5)
-                )
-                .shadow(color: list.bgColor.opacity(colorScheme == .dark ? 0.5 : 0.3), radius: 3, x: 0, y: 2)
-            
-            HStack(spacing: 14) {
-                ListIconView(list: list)
-                
-                ListInfo(list: list, isPinnedList: false, isRowView: true)
-                
-                Spacer(minLength: 8)
-                
-                Image(systemName: "chevron.right")
-                    .font(.footnote.weight(.semibold))
-                    .foregroundStyle(.secondary)
-            }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 12)
-            
-            ListSideBar(list: list)
-                .frame(maxWidth: .infinity, alignment: .leading)
-        }
-        .frame(height: 76)
-    }
-}
-
-// MARK: - List icon view
-struct ListIconView: View {
-    var list: List
+    private let cornerRadius: CGFloat = 14
     
     var body: some View {
-        ZStack {
-            Circle()
-                .fill(
-                    LinearGradient(
-                        colors: [list.bgColor, list.bgColor.opacity(0.7)],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                )
-                .frame(width: 30, height: 30)
+        HStack(spacing: 14) {
+            ListInfo(list: list, isPinnedList: false, isRowView: true)
             
-            Image(systemName: list.isDefault ? list.listIcon : "checklist")
-                .resizable()
-                .scaledToFit()
-                .frame(width: 16, height: 16)
-                .foregroundStyle(.white)
+            Spacer(minLength: 8)
+            
+            Image(systemName: "chevron.right")
+                .font(.footnote.weight(.semibold))
+                .foregroundStyle(.secondary)
         }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
+        .frame(height: 60)
+        .background(
+            RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                .fill(Color(list.bgColor.opacity(0.2)))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                .stroke(list.bgColor, lineWidth: 1.5)
+        )
+        .overlay(alignment: .leading) {
+            ListSideBar(list: list, isPinnedList: false)
+        }
+        .clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
+        .shadow(color: list.bgColor.opacity(colorScheme == .dark ? 0.5 : 0.3), radius: 3, x: 0, y: 2)
     }
 }
 
@@ -432,7 +417,7 @@ struct ListInfo: View {
         if isRowView {
             VStack(alignment: .leading, spacing: 5) {
                 Text(list.listName)
-                    .font(.system(size: 12, weight: .semibold))
+                    .font(.system(size: 10, weight: .semibold))
                     .lineLimit(3)
                     .multilineTextAlignment(.center)
                 
@@ -442,13 +427,13 @@ struct ListInfo: View {
                 if !list.isDefault && !isPinnedList {
                     Text("\(taskCount) \(taskCount == 1 ? "Task" : "Tasks") • \(noteCount) \(noteCount == 1 ? "Note" : "Notes")")
                         .font(.system(size: 8))
-                        .foregroundStyle(.gray)
+                        .foregroundStyle(Color(.lightGray))
                 }
             }
         } else {
-            VStack {
+            VStack(spacing: 2) {
                 Text(list.listName)
-                    .font(.system(size: 12, weight: .semibold))
+                    .font(.system(size: 10, weight: .semibold))
                     .lineLimit(3)
                     .multilineTextAlignment(.center)
                 
@@ -468,14 +453,12 @@ struct ListInfo: View {
 // MARK: - List side bar
 struct ListSideBar: View {
     var list: List
+    var isPinnedList: Bool
     
     var body: some View {
-        VStack {
-            Rectangle()
-                .fill(list.bgColor)
-                .frame(width: 5)
-                .padding(.vertical, 8)
-        }
+        Rectangle()
+            .fill(list.bgColor)
+            .frame(width: isPinnedList ? 3 : 5)
     }
 }
 
@@ -684,25 +667,24 @@ struct PinnedListCard: View {
     
     var body: some View {
         ZStack {
-            RoundedRectangle(cornerRadius: 10)
-                .fill(colorScheme == .dark ? Color.black : Color.white)
+            RoundedRectangle(cornerRadius: 6)
+                .fill(Color(list.bgColor.opacity(0.2)))
                 .overlay(
-                    RoundedRectangle(cornerRadius: 10)
+                    RoundedRectangle(cornerRadius: 6)
                         .stroke(list.bgColor, lineWidth: 1.5)
                 )
             
             HStack(spacing: 0) {
-                ListSideBar(list: list)
+                ListSideBar(list: list, isPinnedList: true)
                     .frame(width: 4)
                 
-                HStack(spacing: 12) {
-                    ListIconView(list: list)
+                HStack {
                     ListInfo(list: list, isPinnedList: true, isRowView: false)
                 }
                 .padding(.horizontal, 12)
             }
         }
-        .frame(height: 50)
+        .frame(height: 40)
         .fixedSize(horizontal: true, vertical: false)
         .shadow(
             color: list.bgColor.opacity(colorScheme == .dark ? 0.5 : 0.2),

@@ -16,8 +16,8 @@ struct OverdueView: View {
         
         // 1. Filter overdue tasks
         let overdueTasks = db.tasks.filter { task in
-            guard let dueDate = task.dueDate, !task.isCompleted, !task.isDeleted else { return false }
-            return Calendar.current.startOfDay(for: dueDate) < now
+            guard let schedule = task.schedule, !task.isCompleted, !task.isDeleted else { return false }
+            return Calendar.current.startOfDay(for: schedule) < now
         }
         
         // 2. Filter Lists based on search
@@ -130,11 +130,11 @@ struct OverdueTaskCard: View {
                 Spacer()
                 
                 VStack(alignment: .trailing, spacing: 2) {
-                    Text("DUE DATE")
+                    Text("SCHEDULED")
                         .font(.system(size: 8, weight: .bold))
                         .foregroundStyle(.tertiary)
-                    if let due = task.dueDate {
-                        Text(due.formatted(.dateTime.day().month().year()))
+                    if let schedule = task.schedule {
+                        Text(schedule.formatted(.dateTime.day().month().year()))
                             .font(.caption2.bold())
                             .foregroundStyle(.red)
                     }
@@ -152,11 +152,7 @@ struct OverdueTaskCard: View {
     }
 }
 
-#Preview {
-    //    OverdueView()
-    //        .environment(Supabase())
-    
-    @Previewable @State var task: ToDoTask = ToDoTask(id: "", createdAt: Date(), text: "Mouse", description: "Episode 3", dueDate: Date(), isCompleted: false, dateCompleted: nil, isDeleted: false, isPinned: false, userID: "", collectionID: "", listID: "")
-    OverdueTaskCard(task: task)
-        .environment(Supabase())
-}
+//#Preview {
+//    OverdueTaskCard(task: task)
+//        .environment(Supabase())
+//}

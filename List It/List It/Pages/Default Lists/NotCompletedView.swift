@@ -119,9 +119,9 @@ struct PendingTaskCard: View {
                 
                 Spacer()
                 
-                if let dueDate = task.dueDate {
-                    Label(dueDate.formatted(.dateTime.day().month()), systemImage: "clock")
-                        .foregroundStyle(dueDate < Date() ? .red : .blue)
+                if let schedule = task.schedule {
+                    Label(schedule.formatted(.dateTime.day().month()), systemImage: "clock")
+                        .foregroundStyle(schedule < Date() ? .red : .blue)
                         .font(.caption.bold())
                 }
             }

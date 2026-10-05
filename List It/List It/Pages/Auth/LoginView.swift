@@ -19,61 +19,67 @@ struct LoginView: View {
         @Bindable var db = db
         
         NavigationStack {
-            VStack {
-                PageTitle(textOne: "Welcome", textTwo: "Back")
-                
-                VStack {
-                    CustomTextField(icon: "envelope.fill", placeholder: "Email", text: $db.email, isPassword: false, showPassword: false)
-                        .keyboardType(.emailAddress)
-                    
-                    CustomTextField(icon: "lock.fill", placeholder: "Password", text: $db.password, isPassword: true, showPassword: false)
-                    
-                    HStack {
-                        Spacer()
-                        Button {
-                            showForgotPasswordView = true
-                        } label: {
-                            Text("Forgot Password?")
-                                .foregroundStyle(.orange)
+            GeometryReader { proxy in
+                ScrollView {
+                    VStack {
+                        PageTitle(textOne: "Welcome", textTwo: "Back")
+                        
+                        VStack {
+                            CustomTextField(icon: "envelope.fill", placeholder: "Email", text: $db.email, isPassword: false, showPassword: false)
+                                .keyboardType(.emailAddress)
+                            
+                            CustomTextField(icon: "lock.fill", placeholder: "Password", text: $db.password, isPassword: true, showPassword: false)
+                            
+                            HStack {
+                                Spacer()
+                                Button {
+                                    showForgotPasswordView = true
+                                } label: {
+                                    Text("Forgot Password?")
+                                        .foregroundStyle(.orange)
+                                }
+                            }
+                            .padding(.top)
                         }
+                        .padding(.horizontal)
+                        
+                        Button {
+                            signUserIn()
+                        } label: {
+                            if isLoading {
+                                ProgressView()
+                                    .tint(.white)
+                                    .frame(height: 50)
+                                    .frame(maxWidth: .infinity)
+                                    .background(Color.blue)
+                                    .cornerRadius(12)
+                                    .padding()
+                            } else {
+                                ButtonView(buttonTxt: "Sign in", showArrow: false)
+                                    .padding()
+                            }
+                        }
+                        .disabled(isLoading)
+                        
+                        Spacer()
+                        
+                        HStack {
+                            Text("Don't have an account?")
+                            Button {
+                                goToSignup = true
+                            } label: {
+                                Text("Sign Up")
+                                    .foregroundStyle(.blue)
+                                    .fontWeight(.bold)
+                                    .underline()
+                            }
+                        }
+                        .padding()
+                        .frame(maxWidth: .infinity)
                     }
-                    .padding(.top)
+                    .frame(minHeight: proxy.size.height)
                 }
-                .padding(.horizontal)
-                
-                Button {
-                    signUserIn()
-                } label: {
-                    if isLoading {
-                        ProgressView()
-                            .tint(.white)
-                            .frame(height: 50)
-                            .frame(maxWidth: .infinity)
-                            .background(Color.blue)
-                            .cornerRadius(12)
-                            .padding()
-                    } else {
-                        ButtonView(buttonTxt: "Sign in", showArrow: false)
-                            .padding()
-                    }
-                }
-                .disabled(isLoading)
-                
-                Spacer()
-                
-                HStack {
-                    Text("Don't have an account?")
-                    Button {
-                        goToSignup = true
-                    } label: {
-                        Text("Sign Up")
-                            .foregroundStyle(.blue)
-                            .fontWeight(.bold)
-                            .underline()
-                    }
-                }
-                .padding()
-                .frame(maxWidth: .infinity)
+                .scrollDismissesKeyboard(.interactively)
             }
             .navigationBarBackButtonHidden()
             .navigationDestination(isPresented: $goToSignup) {

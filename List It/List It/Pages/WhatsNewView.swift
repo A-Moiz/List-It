@@ -14,9 +14,19 @@ struct WhatsNewView: View {
     
     private let features: [WhatsNewFeature] = [
         WhatsNewFeature(
-            icon: "rectangle.grid.2x2",
-            title: "Choose your List layout",
-            description: "Display your Lists as compact cards or rows - pick whichever fits how you like to scan through them, in Settings. In Card view, hold a List for more options; in List view, swipe a row to reveal them."
+            icon: "paintbrush",
+            title: "A cleaner look throughout",
+            description: "Several pages have been refreshed with a simpler, more minimal design."
+        ),
+        WhatsNewFeature(
+            icon: "bell.badge",
+            title: "Reminders",
+            description: "Schedule a Task to get notified for it."
+        ),
+        WhatsNewFeature(
+            icon: "text.document",
+            title: "Feedback",
+            description: "A form has been provided in Settings for you to request features or give feedback"
         )
     ]
     

@@ -22,7 +22,7 @@ struct TomorrowView: View {
             let tomorrowTasks = db.tasks.filter {
                 $0.listID == list.id &&
                 !$0.isCompleted &&
-                Calendar.current.isDateInTomorrow($0.dueDate ?? Date.distantPast)
+                Calendar.current.isDateInTomorrow($0.schedule ?? Date.distantPast)
             }
             return tomorrowTasks.isEmpty ? nil : (list: list, tasks: tomorrowTasks)
         }

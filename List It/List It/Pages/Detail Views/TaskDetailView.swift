@@ -14,12 +14,13 @@ struct TaskDetailView: View {
     
     @State private var editedText: String = ""
     @State private var editedDescription: String = ""
-    @State private var editedDueDate: Date = Date()
-    @State private var hasDueDate: Bool = false
+    @State private var editedSchedule: Date = Date()
+    @State private var hasSchedule: Bool = false
     @State private var showPicker: Bool = false
     @State private var isPinned: Bool = false
     @State var showAlert: Bool = false
     @State private var alertMode: AlertMode = .error
+    @State private var statusMessage = ""
     
     private var collection: Collection? {
         db.collections.first(where: { $0.id == task.collectionID })
@@ -35,110 +36,36 @@ struct TaskDetailView: View {
     
     var body: some View {
         NavigationStack {
-            Form {
-                Section("Task Title") {
-                    TextField("What needs to be done?", text: $editedText)
-                }
-                .listRowBackground(Color(.systemBackground).opacity(0.8))
-                
-                Section("Description") {
-                    TextEditor(text: $editedDescription)
-                        .frame(minHeight: 120)
-                        .scrollContentBackground(.hidden)
-                }
-                .listRowBackground(Color(.systemBackground).opacity(0.8))
-                
-                Section("Schedule") {
-                    HStack {
-                        Label {
-                            VStack(alignment: .leading) {
-                                Text("Due Date")
-                                if hasDueDate {
-                                    Text(editedDueDate.formatted(date: .abbreviated, time: .omitted))
-                                        .font(.caption)
-                                        .foregroundStyle(.secondary)
-                                } else {
-                                    Text("No due date set")
-                                        .font(.caption)
-                                        .foregroundStyle(.secondary)
-                                }
-                            }
-                        } icon: {
-                            Image(systemName: "calendar")
-                                .foregroundStyle(collection?.bgColor ?? .blue)
-                        }
-                        
-                        Spacer()
-
-                        Button(hasDueDate ? "Change" : "Set") {
-                            withAnimation {
-                                if !hasDueDate { hasDueDate = true }
-                                showPicker.toggle()
-                            }
-                        }
-                        .buttonStyle(.bordered)
-                        .tint(collection?.bgColor ?? .blue)
-                    }
+            ScrollView {
+                VStack(alignment: .leading, spacing: 20) {
+                    TextField("Task title", text: $editedText)
+                        .font(.title3.weight(.semibold))
                     
-                    if showPicker {
-                        DatePicker(
-                            "Select Date",
-                            selection: $editedDueDate,
-                            in: Date()...,
-                            displayedComponents: .date
-                        )
-                        .datePickerStyle(.graphical)
-                        .tint(collection?.bgColor ?? .blue)
-                        
-                        if hasDueDate {
-                            Button("Remove Due Date", role: .destructive) {
-                                withAnimation {
-                                    hasDueDate = false
-                                    showPicker = false
-                                }
-                            }
-                            .frame(maxWidth: .infinity)
-                        }
-                    }
-                }
-                .listRowBackground(Color(.systemBackground).opacity(0.8))
-                
-                Section("Actions") {
-                    Button {
-                        isPinned.toggle()
-                    } label: {
-                        Label(isPinned ? "Unpin Task" : "Pin Task", systemImage: isPinned ? "pin.fill" : "pin")
-                            .symbolEffect(.bounce, value: isPinned)
-                    }
-                    .tint(.orange)
+                    Divider()
                     
-                    Button {
-                        completeTask()
-                    } label: {
-                        Label("Mark as Completed", systemImage: "checkmark.circle")
-                    }
-                    .tint(.green)
+                    descriptionField
                     
-                    Button(role: .destructive) {
-                        alertMode = .delete
-                        showAlert = true
-                    } label: {
-                        Label("Delete Task", systemImage: "trash")
-                    }
+                    Divider()
+                    
+                    scheduleRow
+                    
+                    Divider()
+                    
+                    actionsRow
                 }
-                .listRowBackground(Color(.systemBackground).opacity(0.8))
+                .padding(20)
             }
+            .scrollDismissesKeyboard(.interactively)
             .navigationTitle("Task Details")
             .toolbarTitleDisplayMode(.inline)
-            .scrollContentBackground(.hidden)
-            .background(collection?.bgColor.opacity(0.3) ?? Color(.systemGroupedBackground))
+            .background(collection?.bgColor.opacity(0.08) ?? Color(.systemGroupedBackground))
             .onAppear {
                 editedText = task.text
                 editedDescription = task.description ?? ""
                 isPinned = task.isPinned
-                if let date = task.dueDate {
-                    editedDueDate = date
-                    hasDueDate = true
+                if let date = task.schedule {
+                    editedSchedule = date
+                    hasSchedule = true
                 }
             }
             .toolbar {
@@ -165,6 +92,106 @@ struct TaskDetailView: View {
         }
     }
     
+    // MARK: - Description
+    private var descriptionField: some View {
+        ZStack(alignment: .topLeading) {
+            if editedDescription.isEmpty {
+                Text("Add a description")
+                    .foregroundStyle(.secondary)
+                    .padding(.top, 8)
+                    .padding(.leading, 5)
+                    .allowsHitTesting(false)
+            }
+            TextEditor(text: $editedDescription)
+                .scrollContentBackground(.hidden)
+        }
+        .frame(minHeight: 70, maxHeight: 100)
+    }
+
+    // MARK: - Schedule
+    private var scheduleRow: some View {
+        VStack {
+            HStack {
+                Image(systemName: "calendar")
+                    .foregroundStyle(collection?.bgColor ?? .blue)
+                
+                if hasSchedule {
+                    DatePicker("", selection: $editedSchedule, in: Date()..., displayedComponents: [.date, .hourAndMinute])
+                        .labelsHidden()
+                        .tint(collection?.bgColor ?? .blue)
+                    
+                    Spacer()
+                    
+                    Button {
+                        withAnimation {
+                            hasSchedule = false
+                        }
+                    } label: {
+                        Image(systemName: "xmark.circle.fill")
+                            .foregroundStyle(.secondary)
+                    }
+                } else {
+                    Text("No due date")
+                        .foregroundStyle(.secondary)
+                    
+                    Spacer()
+                    
+                    Button("Set Date") {
+                        withAnimation {
+                            hasSchedule = true
+                        }
+                    }
+                    .font(.subheadline)
+                    .foregroundStyle(collection?.bgColor ?? .blue)
+                }
+            }
+            
+            if !statusMessage.isEmpty {
+                Text(statusMessage)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+        }
+    }
+
+    // MARK: - Actions
+    private var actionsRow: some View {
+        HStack(spacing: 10) {
+            Button {
+                withAnimation {
+                    isPinned.toggle()
+                }
+            } label: {
+                Label(isPinned ? "Unpin" : "Pin", systemImage: isPinned ? "pin.fill" : "pin")
+                    .symbolEffect(.bounce, value: isPinned)
+                    .font(.subheadline)
+            }
+            .buttonStyle(.bordered)
+            .tint(.orange)
+            
+            Button {
+                alertMode = .delete
+                showAlert = true
+            } label: {
+                Label("Delete", systemImage: "trash")
+                    .font(.subheadline)
+            }
+            .buttonStyle(.bordered)
+            .tint(.red)
+            
+            Spacer()
+            
+            Button {
+                completeTask()
+            } label: {
+                Label("Complete", systemImage: "checkmark.circle.fill")
+                    .fontWeight(.semibold)
+            }
+            .buttonStyle(.borderedProminent)
+            .tint(collection?.bgColor ?? .blue)
+        }
+    }
+    
     // MARK: - Check if text is empty
     func isFieldEmpty() -> Bool {
         return editedText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
@@ -179,11 +206,16 @@ struct TaskDetailView: View {
             return
         }
         
-        let finalDueDate = hasDueDate ? editedDueDate : nil
+        let finalSchedule = hasSchedule ? editedSchedule : nil
         
         Task {
-            let success = await db.updateTask(task: task, text: editedText, description: editedDescription, dueDate: finalDueDate, isPinned: isPinned)
+            let success = await db.updateTask(task: task, text: editedText, description: editedDescription, schedule: finalSchedule, isPinned: isPinned)
             if success {
+                if let finalSchedule {
+                    scheduleNotification(at: finalSchedule)
+                } else {
+                    UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: [task.id])
+                }
                 await MainActor.run { dismiss() }
             } else {
                 await MainActor.run {
@@ -191,6 +223,42 @@ struct TaskDetailView: View {
                     showAlert = true
                 }
             }
+        }
+    }
+    
+    // MARK: - Scheduling Notification
+    func scheduleNotification(at date: Date) {
+        /// Content for Notification
+        let content = UNMutableNotificationContent()
+        content.title = editedText
+        content.body = "Don't forget about this!"
+        content.sound = .default
+        
+        /// Get date components for Notification
+        let triggerDate = Calendar.current.dateComponents(
+            [.year, .month, .day, .hour, .minute, .second],
+            from: date
+        )
+        let trigger = UNCalendarNotificationTrigger(dateMatching: triggerDate, repeats: false)
+        
+        /// Create Notification request
+        let request = UNNotificationRequest(
+            identifier: UUID().uuidString,
+            content: content,
+            trigger: trigger
+        )
+        
+        /// Status message
+        UNUserNotificationCenter.current().add(request) { error in
+            if let error = error {
+                statusMessage = "Error: \(error.localizedDescription)"
+            } else {
+                statusMessage = "Task reminder scheduled for \(date.formatted(date: .abbreviated, time: .shortened))"
+            }
+        }
+        
+        UNUserNotificationCenter.current().getPendingNotificationRequests { requests in
+            print("Pending: \(requests.count)")
         }
     }
     
@@ -227,10 +295,8 @@ struct TaskDetailView: View {
     }
 }
 
-#Preview {
-    @Previewable @State var task: ToDoTask = ToDoTask(id: "", createdAt: Date(), text: "Mouse", description: "Episode 3", dueDate: Date(), isCompleted: false, dateCompleted: nil, isDeleted: false, isPinned: false, userID: "", collectionID: "", listID: "")
-    
-    TaskDetailView(task: task)
-        .environment(Supabase())
-}
+//#Preview {
+//    TaskDetailView()
+//        .environment(Supabase())
+//}
 

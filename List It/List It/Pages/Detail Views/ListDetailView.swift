@@ -14,6 +14,7 @@ struct ListDetailView: View {
     @State var showAddTaskView: Bool = false
     @State var showAddNoteView: Bool = false
     @State var showAddCollectionView: Bool = false
+    @State var showTaskInfoView: Bool = false
     @State private var currentSort: SortOption = .oldest
     @State private var searchText: String = ""
     
@@ -26,18 +27,32 @@ struct ListDetailView: View {
             .navigationBarTitleDisplayMode(.inline)
             .sheet(isPresented: $showAddTaskView) {
                 AddTaskView(list: list)
-                    .presentationDetents([.medium, .large])
+                    .presentationDetents([.medium])
+                    .interactiveDismissDisabled()
             }
             .sheet(isPresented: $showAddNoteView) {
                 AddNoteView(list: list)
                     .presentationDetents([.medium, .large])
+                    .interactiveDismissDisabled()
             }
             .sheet(isPresented: $showAddCollectionView) {
                 AddCollectionView(list: list)
-                    .presentationDetents([.medium, .large])
+                    .presentationDetents([.medium])
+                    .interactiveDismissDisabled()
+            }
+            .sheet(isPresented: $showTaskInfoView) {
+                TaskInfoView()
+                    .presentationDetents([.medium])
             }
             .toolbar {
                 if !list.isDefault {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button(action: {
+                            showTaskInfoView = true
+                        }) {
+                            Label("Task Info", systemImage: "i.circle")
+                        }
+                    }
                     ToolbarItem(placement: .navigationBarTrailing) {
                         Menu {
                             Button(action: {
@@ -157,7 +172,7 @@ struct AllCollectionsView: View {
                     ForEach(filteredCollections) { collection in
                         CollectionView(collection: collection, searchText: searchText)
                             .id("\(collection.id)-\(collection.collectionName)")
-                            .padding(.vertical, 8)
+                            .padding(.vertical, 4)
                             .contextMenu {
                                 if collection.collectionName.lowercased() != "general" {
                                     Button {
@@ -178,7 +193,6 @@ struct AllCollectionsView: View {
                             }
                     }
                 }
-                .padding(.horizontal)
             }
         }
         .alert(alertTitle, isPresented: $showAlert) {
@@ -195,7 +209,8 @@ struct AllCollectionsView: View {
         }
         .sheet(item: $selectedCollectionToUpdate) { collection in
             UpdateCollectionView(collection: collection)
-                .presentationDetents([.medium, .large])
+                .presentationDetents([.medium])
+                .interactiveDismissDisabled()
         }
     }
     
@@ -250,24 +265,31 @@ struct CollectionHeader: View {
     let searchText: String
     
     var body: some View {
-        VStack {
+        VStack(spacing: 0) {
             CollectionDeatilView(collection: collection, isExpanded: $isExpanded)
+                .padding(.vertical, 14)
+                .padding(.leading, 12)
             
             if isExpanded {
                 CollectionTabView(collection: collection, searchText: searchText)
+                    .padding(.leading, 12)
+                    .padding(.bottom, 10)
                     .transition(.move(edge: .top).combined(with: .opacity))
                     .clipped()
             }
+            
+            Divider()
         }
-        .padding()
         .background(
-            RoundedRectangle(cornerRadius: 20)
-                .fill(.gray.opacity(0.15))
+            RoundedRectangle(cornerRadius: 6, style: .continuous)
+                .fill(Color(collection.bgColor.opacity(0.2)))
         )
-        .overlay(
-            RoundedRectangle(cornerRadius: 20)
-                .stroke(collection.bgColor.opacity(0.5), lineWidth: 1.5)
-        )
+        .overlay(alignment: .leading) {
+            Rectangle()
+                .fill(collection.bgColor)
+                .frame(width: 4)
+        }
+        .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
     }
 }
 
@@ -287,37 +309,33 @@ struct CollectionDeatilView: View {
     }
     
     var body: some View {
-        HStack {
-            VStack(alignment: .leading) {
-                HStack {
-                    Circle()
-                        .fill(collection.bgColor)
-                        .frame(width: 15, height: 15)
-                    
+        Button {
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                isExpanded.toggle()
+            }
+        } label: {
+            HStack {
+                VStack(alignment: .leading, spacing: 3) {
                     Text(collection.collectionName)
-                        .font(.system(size: 18, weight: .bold))
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundStyle(.primary)
+                    
+                    Text("\(totalTasks.count) Tasks · \(totalNotes.count) Notes")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
                 }
                 
-                Text("\(totalTasks.count) Tasks · \(totalNotes.count) Notes")
-                    .font(.system(size: 10))
+                Spacer()
+                
+                Image(systemName: "chevron.right")
+                    .font(.footnote.weight(.semibold))
                     .foregroundStyle(.secondary)
+                    .rotationEffect(.degrees(isExpanded ? 90 : 0))
+                    .padding(.trailing)
             }
-            
-            Spacer()
-            
-            Button {
-                withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
-                    isExpanded.toggle()
-                }
-            } label: {
-                Image(systemName: isExpanded ? "chevron.down" : "chevron.right")
-                    .padding(10)
-                    .foregroundStyle(colorScheme == .dark ? .white : .black)
-                    .background(
-                        Circle()
-                            .fill(.gray.opacity(0.5)))
-            }
+            .contentShape(Rectangle())
         }
+        .buttonStyle(.plain)
     }
 }
 
@@ -327,14 +345,11 @@ struct CollectionTabView: View {
     let collection: Collection
     let searchText: String
     
+    private let tabs = ["Tasks", "Notes"]
+    
     var body: some View {
-        VStack(spacing: 15) {
-            Picker("Selection", selection: $selectedTab) {
-                Text("Tasks").tag(0)
-                Text("Notes").tag(1)
-            }
-            .pickerStyle(.segmented)
-            .padding(.horizontal)
+        VStack(alignment: .leading, spacing: 12) {
+            tabSwitcher
             
             TabView(selection: $selectedTab) {
                 TaskListView(collection: collection, searchText: searchText)
@@ -346,7 +361,33 @@ struct CollectionTabView: View {
             .tabViewStyle(.page(indexDisplayMode: .never))
             .frame(height: 300)
         }
-        .padding(.vertical)
+    }
+    
+    // MARK: Tab switcher
+    private var tabSwitcher: some View {
+        HStack(spacing: 20) {
+            ForEach(tabs.indices, id: \.self) { index in
+                Button {
+                    withAnimation(.easeOut(duration: 0.2)) {
+                        selectedTab = index
+                    }
+                } label: {
+                    VStack(spacing: 6) {
+                        Text(tabs[index])
+                            .font(.subheadline)
+                            .fontWeight(selectedTab == index ? .semibold : .regular)
+                            .foregroundStyle(selectedTab == index ? .primary : .secondary)
+                        
+                        Rectangle()
+                            .fill(selectedTab == index ? collection.bgColor : .clear)
+                            .frame(height: 2)
+                    }
+                }
+                .buttonStyle(.plain)
+            }
+            
+            Spacer()
+        }
     }
 }
 
@@ -388,21 +429,28 @@ struct TaskListView: View {
                     description: Text("Try adding a Task to this Collection.")
                 )
             } else {
-                TaskKeyView()
                 ScrollView {
-                    ForEach(filteredTasks, id: \.id) { task in
-                        TaskView(task: task)
-                            .onTapGesture {
-                                selectedTask = task
-                            }
-                            .contextMenu { taskContextMenu(task) }
+                    VStack(spacing: 0) {
+                        ForEach(filteredTasks, id: \.id) { task in
+                            TaskView(task: task)
+                                .contentShape(Rectangle())
+                                .onTapGesture {
+                                    selectedTask = task
+                                }
+                                .contextMenu { taskContextMenu(task) }
+                            
+                            Divider()
+                        }
                     }
+                    .padding(.horizontal)
                 }
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .sheet(item: $selectedTask) { task in
             TaskDetailView(task: task)
+                .presentationDetents([.medium])
+                .interactiveDismissDisabled()
         }
         .alert(db.alertTitle, isPresented: $showAlert) {
             switch alertMode {
@@ -485,97 +533,52 @@ struct TaskListView: View {
     }
 }
 
-// MARK: - Task Key
-struct TaskKeyView: View {
-    var body: some View {
-        HStack {
-            Spacer()
-            // Overdue
-            Circle()
-                .fill(.red)
-                .frame(width: 10, height: 10)
-            Text("Overdue")
-                .font(.caption)
-            
-            // Flagged (Pinned & has due date)
-            Circle()
-                .fill(.orange)
-                .frame(width: 10, height: 10)
-            Text("Flagged")
-                .font(.caption)
-            
-            // Pinned
-            Circle()
-                .fill(.yellow)
-                .frame(width: 10, height: 10)
-            Text("Pinned")
-                .font(.caption)
-            
-            // Default
-            Circle()
-                .fill(.cyan)
-                .frame(width: 10, height: 10)
-            Text("Normal")
-                .font(.caption)
-            
-            Spacer()
-        }
-    }
-}
-
 // MARK: - Task view
 struct TaskView: View {
     let task: ToDoTask
     @Environment(Supabase.self) var db
     private var barColor: Color {
-        if let dueDate = task.dueDate, dueDate < Date() {
+        if let schedule = task.schedule, schedule < Date() {
             return .red
         }
         
         if task.isPinned {
-            return task.dueDate == nil ? .yellow : .orange
+            return task.schedule == nil ? .yellow : .orange
         }
         
         return .cyan
     }
-    private var collection: Collection? {
-        let collectionID = task.collectionID
-        return db.collections.first(where: { $0.id == collectionID })
-    }
     
     var body: some View {
-        HStack {
-            RoundedRectangle(cornerRadius: 3)
+        HStack(alignment: .top, spacing: 12) {
+            RoundedRectangle(cornerRadius: 2)
                 .fill(barColor)
-                .frame(width: 7, height: 70)
+                .frame(width: 3)
             
             VStack(alignment: .leading, spacing: 5) {
                 Text(task.text)
-                    .font(.system(size: 14, weight: .semibold))
+                    .font(.system(size: 15, weight: .semibold))
                     .lineLimit(2)
                 
                 if let description = task.description, !description.isEmpty {
                     Text(description)
-                        .font(.system(size: 12))
+                        .font(.footnote)
                         .foregroundStyle(.secondary)
                         .lineLimit(2)
                 }
                 
-                HStack {
-                    if let dueDate = task.dueDate {
-                        Image(systemName: "calendar")
-                            .font(.system(size: 10))
-                        
-                        Text("Due: \(db.formattedDate(dueDate))")
-                            .font(.system(size: 10))
-                            .foregroundStyle(dueDate < Date() ? .red : .secondary)
-                            .bold()
+                HStack(spacing: 4) {
+                    Image(systemName: "calendar")
+                        .font(.caption2)
+                    
+                    if let schedule = task.schedule {
+                        Text("Scheduled: \(db.formattedDate(schedule))")
+                            .font(.caption2)
+                            .fontWeight(schedule < Date() ? .semibold : .regular)
+                            .foregroundStyle(schedule < Date() ? .red : .secondary)
                     } else {
-                        Image(systemName: "calendar")
-                            .font(.caption)
-                        
                         Text("Created: \(db.formattedDate(task.createdAt))")
-                            .font(.system(size: 10))
+                            .font(.caption2)
                             .foregroundStyle(.secondary)
                     }
                 }
@@ -583,12 +586,7 @@ struct TaskView: View {
             
             Spacer()
         }
-        .padding()
-        .background(
-            RoundedRectangle(cornerRadius: 10)
-                .fill(collection?.bgColor.opacity(0.1) ?? .clear)
-        )
-        .padding(.horizontal)
+        .padding(.vertical, 10)
     }
 }
 
@@ -618,6 +616,11 @@ struct NoteListView: View {
     }
     @State var showAlert: Bool = false
     @State private var alertMode: AlertMode = .error
+    private let columns = [
+        GridItem(.flexible(), spacing: 10),
+        GridItem(.flexible(), spacing: 10),
+        GridItem(.flexible(), spacing: 10)
+    ]
     
     var body: some View {
         VStack(alignment: .leading) {
@@ -629,9 +632,10 @@ struct NoteListView: View {
                 )
             } else {
                 ScrollView {
-                    LazyVGrid(columns: [GridItem(.adaptive(minimum: 130))], spacing: 16) {
+                    LazyVGrid(columns: columns, spacing: 10) {
                         ForEach(filteredNotes) { note in
                             NoteView(note: note)
+                                .contentShape(Rectangle())
                                 .onTapGesture { selectedNote = note }
                                 .contextMenu { noteContextMenu(note) }
                         }
@@ -642,6 +646,8 @@ struct NoteListView: View {
         }
         .sheet(item: $selectedNote) { note in
             NoteDetailView(note: note)
+                .presentationDetents([.medium, .large])
+                .interactiveDismissDisabled()
         }
         .alert(db.alertTitle, isPresented: $showAlert) {
             switch alertMode {
@@ -730,7 +736,7 @@ struct NoteView: View {
                 HStack {
                     Spacer()
                     Image(systemName: "pin.fill")
-                        .font(.system(size: 15))
+                        .font(.system(size: 10))
                         .foregroundStyle(.secondary)
                 }
             } else {
@@ -738,13 +744,13 @@ struct NoteView: View {
             }
             
             Text(note.title)
-                .font(.system(size: 16, weight: .bold))
+                .font(.system(size: 12, weight: .semibold))
                 .lineLimit(2)
                 .multilineTextAlignment(.leading)
             
             if let description = note.description, !description.isEmpty {
                 Text(description)
-                    .font(.caption2)
+                    .font(.system(size: 10))
                     .lineLimit(2)
                     .foregroundStyle(.secondary)
             }
@@ -752,37 +758,19 @@ struct NoteView: View {
             Spacer()
         }
         .padding()
-        .frame(width: 110, height: 110)
-        .background {
-            RoundedRectangle(cornerRadius: 10)
-                .fill(note.bgColor.opacity(colorScheme == .dark ? 0.3 : 0.6))
-        }
-        .overlay {
-            RoundedRectangle(cornerRadius: 10)
-                .stroke(note.bgColor.opacity(0.5), lineWidth: 1)
-        }
+        .frame(width: 90, height: 90)
+        .background(
+            RoundedRectangle(cornerRadius: 6)
+                .fill(note.bgColor.opacity(colorScheme == .dark ? 0.22 : 0.14))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 6)
+                .stroke(note.bgColor.opacity(0.35), lineWidth: 1)
+        )
     }
 }
 
-#Preview {
-    //        @Previewable @State var list: List = List(id: "", createdAt: Date(), listIcon: "", listName: "Test List", isDefault: false, bgColorHex: "", userId: "", isPinned: false)
-    //        ListDetailView(list: list)
-    //            .environment(Supabase())
-    
-    //    @Previewable @State var collection: Collection = Collection(id: "", createdAt: Date(), collectionName: "Test Collection", bgColorHex: "#FF3B30", listID: "", userID: "")
-    //
-    //    CollectionView(collection: collection)
-    //        .environment(Supabase())
-    
-    //    @Previewable @State var task: ToDoTask = ToDoTask(id: "", createdAt: Date(), text: "The Price of Confession", description: "Episode 1", isCompleted: false, isDeleted: false, isPinned: false, userID: "", collectionID: "", listID: "")
-    
-    //    @Previewable @State var task: ToDoTask = ToDoTask(id: "", createdAt: Date(), text: "Mouse", description: "Episode 3", dueDate: Date(), isCompleted: false, dateCompleted: nil, isDeleted: false, isPinned: false, userID: "", collectionID: "", listID: "")
-    //
-    //    TaskView(task: task)
-    //        .environment(Supabase())
-    
-    @Previewable @State var notes: Note = Note(id: "", createdAt: Date(), title: "Anime", description: "- Code Geas S1 (8/10)", isDeleted: false, bgColorHex: "#FF3B30", isPinned: true, collectionID: "", userID: "", listID: "")
-    
-    NoteView(note: notes)
-        .environment(Supabase())
-}
+//#Preview {
+//    NoteView()
+//        .environment(Supabase())
+//}

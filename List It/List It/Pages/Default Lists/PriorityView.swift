@@ -124,10 +124,10 @@ struct PriorityTaskCard: View {
                 
                 Spacer()
                 
-                if let due = task.dueDate {
-                    Label(due.formatted(.dateTime.day().month()), systemImage: "clock")
+                if let schedule = task.schedule {
+                    Label(schedule.formatted(.dateTime.day().month()), systemImage: "clock")
                         .font(.system(size: 10, weight: .bold))
-                        .foregroundStyle(due < Date() ? .red : .primary)
+                        .foregroundStyle(schedule < Date() ? .red : .primary)
                 }
             }
         }
