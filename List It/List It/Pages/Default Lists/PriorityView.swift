@@ -10,6 +10,7 @@ import SwiftUI
 struct PriorityView: View {
     @Environment(Supabase.self) var db
     @State private var searchText: String = ""
+    @AppStorage("appAppearance") private var appearance: AppAppearance = .device
 
     private var groupedPriorityData: [(list: List, tasks: [ToDoTask])] {
         // 1. Get all uncompleted pinned tasks
@@ -76,6 +77,7 @@ struct PriorityView: View {
                 placement: .toolbar,
                 prompt: "Search Lists..."
             )
+            .background(appearance.backgroundColor ?? Color(.systemGroupedBackground))
         }
     }
 }

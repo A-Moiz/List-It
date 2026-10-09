@@ -10,6 +10,7 @@ import SwiftUI
 struct TodayView: View {
     @Environment(Supabase.self) var db
     @State private var searchText: String = ""
+    @AppStorage("appAppearance") private var appearance: AppAppearance = .device
 
     private var groupedData: [(list: List, tasks: [ToDoTask])] {
         // Normalize search: lowercase and remove all whitespaces
@@ -46,6 +47,7 @@ struct TodayView: View {
             .navigationTitle("Today")
             .navigationBarTitleDisplayMode(.inline)
             .searchable(text: $searchText, placement: .toolbar, prompt: "Search Lists")
+            .background(appearance.backgroundColor ?? Color(.systemGroupedBackground))
         }
     }
 }

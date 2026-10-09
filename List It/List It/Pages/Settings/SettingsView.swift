@@ -13,6 +13,8 @@ struct SettingsView: View {
     @State private var showListStyleView: Bool = false
     @State private var showEditNameView: Bool = false
     @State private var showActivityView: Bool = false
+    @State private var showAppearanceView: Bool = false
+    @AppStorage("appAppearance") private var appearance: AppAppearance = .device
     
     var body: some View {
         NavigationStack {
@@ -20,7 +22,7 @@ struct SettingsView: View {
                 ProfileSection()
                     .padding(.top)
                 
-                ActionButtonsView(showListStyleView: $showListStyleView, showEditNameView: $showEditNameView, showActivityView: $showActivityView)
+                ActionButtonsView(showAppearanceView: $showAppearanceView, showListStyleView: $showListStyleView, showEditNameView: $showEditNameView, showActivityView: $showActivityView)
                     .padding(.horizontal)
             }
             .navigationTitle("Settings")
@@ -32,6 +34,12 @@ struct SettingsView: View {
                         Text("Dismiss")
                     }
                 }
+            }
+            .background(appearance.backgroundColor ?? Color(.systemGroupedBackground))
+            .sheet(isPresented: $showAppearanceView) {
+                ChangeAppearanceView()
+                    .presentationDetents([.medium])
+                    .interactiveDismissDisabled()
             }
             .sheet(isPresented: $showListStyleView) {
                 ListStyleView()
@@ -104,12 +112,12 @@ struct SettingsButtonView: View {
                 .foregroundColor(.secondary)
         }
         .padding()
-        .background(Color(.systemBackground))
     }
 }
 
 // MARK: - All buttons view
 struct ActionButtonsView: View {
+    @Binding var showAppearanceView: Bool
     @Binding var showListStyleView: Bool
     @Binding var showEditNameView: Bool
     @Binding var showActivityView: Bool
@@ -127,10 +135,20 @@ struct ActionButtonsView: View {
     var body: some View {
         VStack {
             Button {
+               showAppearanceView = true
+            } label: {
+                SettingsButtonView(image: "paintpalette.fill", imageColor: .brown, text: "Change Appearnce")
+            }
+            
+            Divider()
+            
+            Button {
                 showListStyleView = true
             } label: {
                 SettingsButtonView(image: "tray.full", imageColor: .yellow, text: "Select List style")
             }
+            
+            Divider()
             
             Button {
                 showEditNameView = true

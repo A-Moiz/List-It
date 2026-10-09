@@ -9,24 +9,14 @@ import SwiftUI
 
 struct WhatsNewView: View {
     @Environment(\.dismiss) var dismiss
+    @AppStorage("appAppearance") private var appearance: AppAppearance = .device
     @AppStorage("lastSeenWhatsNewVersion") private var lastSeenVersion: Int = 0
     var currentVersion: Int
-    
     private let features: [WhatsNewFeature] = [
         WhatsNewFeature(
-            icon: "paintbrush",
-            title: "A cleaner look throughout",
-            description: "Several pages have been refreshed with a simpler, more minimal design."
-        ),
-        WhatsNewFeature(
-            icon: "bell.badge",
-            title: "Reminders",
-            description: "Schedule a Task to get notified for it."
-        ),
-        WhatsNewFeature(
-            icon: "text.document",
-            title: "Feedback",
-            description: "A form has been provided in Settings for you to request features or give feedback"
+            icon: "circle.lefthalf.filled",
+            title: "Choose your appearance",
+            description: "Follow your iPhone's light or dark setting, or pick a different look."
         )
     ]
     
@@ -65,6 +55,7 @@ struct WhatsNewView: View {
                     .fontWeight(.semibold)
                 }
             }
+            .background(appearance.backgroundColor ?? Color(.systemGroupedBackground))
         }
     }
     

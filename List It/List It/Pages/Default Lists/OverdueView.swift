@@ -10,6 +10,7 @@ import SwiftUI
 struct OverdueView: View {
     @Environment(Supabase.self) var db
     @State private var searchText: String = ""
+    @AppStorage("appAppearance") private var appearance: AppAppearance = .device
     
     private var groupedOverdueData: [(list: List, tasks: [ToDoTask])] {
         let now = Calendar.current.startOfDay(for: Date())
@@ -76,6 +77,7 @@ struct OverdueView: View {
                 placement: .toolbar,
                 prompt: "Search Lists..."
             )
+            .background(appearance.backgroundColor ?? Color(.systemGroupedBackground))
         }
     }
 }

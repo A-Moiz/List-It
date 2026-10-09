@@ -19,6 +19,7 @@ struct AddTaskView: View {
     @State var addSchedule: Bool = false
     @State var showAlert: Bool = false
     @State private var statusMessage = ""
+    @AppStorage("appAppearance") private var appearance: AppAppearance = .device
     
     var body: some View {
         NavigationStack {
@@ -61,6 +62,7 @@ struct AddTaskView: View {
             .alert(isPresented: $showAlert) {
                 Alert(title: Text(db.alertTitle), message: Text(db.alertMessage), dismissButton: .default(Text("OK")))
             }
+            .background(appearance.backgroundColor ?? Color(.systemGroupedBackground))
         }
     }
 

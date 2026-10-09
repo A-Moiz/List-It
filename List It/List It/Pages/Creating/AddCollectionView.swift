@@ -14,6 +14,7 @@ struct AddCollectionView: View {
     @State var selectedColorHex: String = ""
     @State var showAlert: Bool = false
     var list: List
+    @AppStorage("appAppearance") private var appearance: AppAppearance = .device
     
     var body: some View {
         NavigationStack {
@@ -57,6 +58,7 @@ struct AddCollectionView: View {
             .alert(isPresented: $showAlert) {
                 Alert(title: Text(db.alertTitle), message: Text(db.alertMessage), dismissButton: .default(Text("OK")))
             }
+            .background(appearance.backgroundColor ?? Color(.systemGroupedBackground))
         }
     }
 

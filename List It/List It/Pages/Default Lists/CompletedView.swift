@@ -10,6 +10,7 @@ import SwiftUI
 struct CompletedView: View {
     @Environment(Supabase.self) var db
     @State private var searchText: String = ""
+    @AppStorage("appAppearance") private var appearance: AppAppearance = .device
     
     private var groupedTasks: [(date: Date, tasks: [ToDoTask])] {
         // 1. Get base completed tasks
@@ -85,6 +86,7 @@ struct CompletedView: View {
                 placement: .toolbar,
                 prompt: "Search Tasks, Collections & Lists"
             )
+            .background(appearance.backgroundColor ?? Color(.systemGroupedBackground))
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Text("\(Int(completionPercentage))% Done")

@@ -10,6 +10,7 @@ import SwiftUI
 struct TomorrowView: View {
     @Environment(Supabase.self) var db
     @State private var searchText: String = ""
+    @AppStorage("appAppearance") private var appearance: AppAppearance = .device
 
     private var groupedData: [(list: List, tasks: [ToDoTask])] {
         let cleanQuery = searchText.lowercased().replacingOccurrences(of: " ", with: "")
@@ -45,6 +46,7 @@ struct TomorrowView: View {
             .navigationTitle("Tomorrow")
             .toolbarTitleDisplayMode(.inline)
             .searchable(text: $searchText, placement: .toolbar, prompt: "Search Lists")
+            .background(appearance.backgroundColor ?? Color(.systemGroupedBackground))
         }
     }
 }

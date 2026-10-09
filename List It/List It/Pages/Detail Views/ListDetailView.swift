@@ -17,6 +17,7 @@ struct ListDetailView: View {
     @State var showTaskInfoView: Bool = false
     @State private var currentSort: SortOption = .oldest
     @State private var searchText: String = ""
+    @AppStorage("appAppearance") private var appearance: AppAppearance = .device
     
     var body: some View {
         NavigationStack {
@@ -25,6 +26,7 @@ struct ListDetailView: View {
             }
             .navigationTitle(list.listName)
             .navigationBarTitleDisplayMode(.inline)
+            .background(appearance.backgroundColor ?? Color(.systemGroupedBackground))
             .sheet(isPresented: $showAddTaskView) {
                 AddTaskView(list: list)
                     .presentationDetents([.medium])

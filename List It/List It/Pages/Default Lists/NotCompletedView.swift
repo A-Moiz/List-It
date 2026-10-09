@@ -10,6 +10,7 @@ import SwiftUI
 struct NotCompletedView: View {
     @Environment(Supabase.self) var db
     @State private var searchText: String = ""
+    @AppStorage("appAppearance") private var appearance: AppAppearance = .device
     
     private var groupedData: [(list: List, tasks: [ToDoTask])] {
         // 1. Filter lists based on search text
@@ -69,6 +70,7 @@ struct NotCompletedView: View {
                 placement: .toolbar,
                 prompt: "Search Lists..."
             )
+            .background(appearance.backgroundColor ?? Color(.systemGroupedBackground))
         }
     }
 }

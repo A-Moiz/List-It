@@ -17,6 +17,7 @@ struct AddNoteView: View {
     @State private var isPinned: Bool = false
     @State private var selectedColorHex: String = ""
     @State private var showAlert: Bool = false
+    @AppStorage("appAppearance") private var appearance: AppAppearance = .device
     
     var body: some View {
         NavigationStack {
@@ -73,6 +74,7 @@ struct AddNoteView: View {
             .alert(isPresented: $showAlert) {
                 Alert(title: Text(db.alertTitle), message: Text(db.alertMessage), dismissButton: .default(Text("OK")))
             }
+            .background(appearance.backgroundColor ?? Color(.systemGroupedBackground))
         }
     }
 

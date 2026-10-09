@@ -15,6 +15,7 @@ struct AddListView: View {
     @State var selectedColorHex: String = ""
     @State var showAlert: Bool = false
     var lists: [List]
+    @AppStorage("appAppearance") private var appearance: AppAppearance = .device
     
     var body: some View {
         NavigationStack {
@@ -38,7 +39,8 @@ struct AddListView: View {
             }
             .navigationTitle("Add List")
             .navigationBarTitleDisplayMode(.inline)
-            .background(Color(.systemGroupedBackground))
+            //.background(Color(.systemGroupedBackground))
+            .background(appearance.backgroundColor ?? Color(.systemGroupedBackground))
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Dismiss") { dismiss() }

@@ -40,7 +40,8 @@ struct AllListsView: View {
     }
     @AppStorage("listDisplayStyle") private var displayStyle: ListDisplayStyle = .card
     @AppStorage("lastSeenWhatsNewVersion") private var lastSeenVersion: Int = 0
-    @State var currentVersion: Int = 3
+    @AppStorage("appAppearance") private var appearance: AppAppearance = .device
+    @State var currentVersion: Int = 4
     
     var body: some View {
         NavigationStack {
@@ -99,6 +100,7 @@ struct AllListsView: View {
             .onAppear {
                 requestNotificationPermission()
             }
+            .background(appearance.backgroundColor ?? Color(.systemGroupedBackground))
             .searchable(text: $searchText, placement: .toolbar, prompt: "Search List")
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
@@ -427,7 +429,6 @@ struct ListInfo: View {
                 if !list.isDefault && !isPinnedList {
                     Text("\(taskCount) \(taskCount == 1 ? "Task" : "Tasks") • \(noteCount) \(noteCount == 1 ? "Note" : "Notes")")
                         .font(.system(size: 8))
-                        .foregroundStyle(Color(.lightGray))
                 }
             }
         } else {
@@ -443,7 +444,6 @@ struct ListInfo: View {
                 if !list.isDefault && !isPinnedList {
                     Text("\(taskCount) \(taskCount == 1 ? "Task" : "Tasks") • \(noteCount) \(noteCount == 1 ? "Note" : "Notes")")
                         .font(.system(size: 8))
-                        .foregroundStyle(.gray)
                 }
             }
         }

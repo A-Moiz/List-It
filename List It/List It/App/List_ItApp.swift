@@ -13,6 +13,7 @@ struct List_ItApp: App {
     @AppStorage("isSignedIn") var isSignedIn: Bool = false
     @State private var database = Supabase()
     @State private var isAuthenticating = true
+    @AppStorage("appAppearance") private var appearance: AppAppearance = .device
     
     var body: some Scene {
         WindowGroup {
@@ -21,6 +22,7 @@ struct List_ItApp: App {
                     ProgressView("Loading...")
                 } else if isSignedIn && database.currentUser != nil {
                     AllListsView()
+                        .preferredColorScheme(appearance.colorScheme)
                 } else {
                     IntroView()
                 }
