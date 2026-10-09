@@ -15,6 +15,7 @@ struct TaskInfoView: View {
         (.yellow, "Pinned", "The Task is pinned, with no due date set."),
         (.cyan, "Normal", "No due date, and not pinned.")
     ]
+    @AppStorage("appAppearance") private var appearance: AppAppearance = .device
     
     var body: some View {
         NavigationStack {
@@ -53,6 +54,7 @@ struct TaskInfoView: View {
                     }
                 }
             }
+            .background(appearance.backgroundColor ?? Color(.systemGroupedBackground))
         }
     }
     

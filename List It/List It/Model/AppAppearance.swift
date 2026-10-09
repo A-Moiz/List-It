@@ -25,7 +25,7 @@ enum AppAppearance: String, CaseIterable {
     
     var subtitle: String {
         switch self {
-        case .device: return "Match your iPhone's light or dark setting"
+        case .device: return "Match your device theme"
         case .graphite: return "#36373F"
         case .midnight: return "#202024"
         case .midnightvelvet: return "#240b36"

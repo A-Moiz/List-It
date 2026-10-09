@@ -18,10 +18,10 @@ struct UpdateCollectionView: View {
     private var alertTitle: String {
         alertMode == .delete ? "Delete Note?" : db.alertTitle
     }
-    
     private var alertMessage: String {
         alertMode == .delete ? "This action cannot be undone." : db.alertMessage
     }
+    @AppStorage("appAppearance") private var appearance: AppAppearance = .device
     
     var body: some View {
         NavigationStack {
