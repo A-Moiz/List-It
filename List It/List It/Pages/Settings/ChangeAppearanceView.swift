@@ -14,35 +14,37 @@ struct ChangeAppearanceView: View {
     
     var body: some View {
         NavigationStack {
-            VStack(spacing: 16) {
-                ForEach(AppAppearance.allCases, id: \.self) { option in
-                    appearanceRow(option)
+            ScrollView {
+                VStack(spacing: 16) {
+                    ForEach(AppAppearance.allCases, id: \.self) { option in
+                        appearanceRow(option)
+                    }
+                    
+                    Spacer()
                 }
-                
-                Spacer()
-            }
-            .padding()
-            .navigationTitle("Appearance")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
-                    Button {
-                        dismiss()
-                    } label: {
-                        Text("Dismiss")
+                .padding()
+                .navigationTitle("Appearance")
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .topBarLeading) {
+                        Button {
+                            dismiss()
+                        } label: {
+                            Text("Dismiss")
+                        }
+                    }
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button {
+                            saveAppearance()
+                        } label: {
+                            Text("Save")
+                        }
+                        .fontWeight(.bold)
                     }
                 }
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button {
-                        saveAppearance()
-                    } label: {
-                        Text("Save")
-                    }
-                    .fontWeight(.bold)
+                .onAppear {
+                    selectedAppearance = appearance
                 }
-            }
-            .onAppear {
-                selectedAppearance = appearance
             }
         }
     }

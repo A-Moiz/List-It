@@ -20,35 +20,37 @@ struct AddTaskView: View {
     @State var showAlert: Bool = false
     @State private var statusMessage = ""
     @AppStorage("appAppearance") private var appearance: AppAppearance = .device
-    
+
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 20) {
-                    header
-                    
-                    Divider()
-                    
-                    VStack(alignment: .leading, spacing: 12) {
-                        TextField("Task title", text: $taskTitle)
-                            .font(.title3.weight(.semibold))
+            GeometryReader { proxy in
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 20) {
+                        header
                         
-                        TextField("Description (optional)", text: $taskDescription, axis: .vertical)
-                            .lineLimit(3...5)
-                            .foregroundStyle(.secondary)
+                        Divider()
+                        
+                        VStack(alignment: .leading, spacing: 12) {
+                            TextField("Task title", text: $taskTitle)
+                                .font(.title3.weight(.semibold))
+                            
+                            descriptionField
+                        }
+                        
+                        Divider()
+                        
+                        TaskOrganisationRow(list: list, selectedCollectionID: $selectedCollectionID)
+                        
+                        Divider()
+                        
+                        optionsSection
                     }
-                    
-                    Divider()
-                    
-                    TaskOrganisationRow(list: list, selectedCollectionID: $selectedCollectionID)
-                    
-                    Divider()
-                    
-                    optionsSection
+                    .padding(20)
+                    .frame(minHeight: proxy.size.height)
                 }
-                .padding(20)
+                .scrollDismissesKeyboard(.interactively)
+                .scrollBounceBehavior(.basedOnSize)
             }
-            .scrollDismissesKeyboard(.interactively)
             .navigationTitle("Add Task")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -64,6 +66,23 @@ struct AddTaskView: View {
             }
             .background(appearance.backgroundColor ?? Color(.systemGroupedBackground))
         }
+    }
+
+    // MARK: - Description
+    private var descriptionField: some View {
+        ZStack(alignment: .topLeading) {
+            if taskDescription.isEmpty {
+                Text("Description (optional)")
+                    .foregroundStyle(.secondary)
+                    .padding(.top, 8)
+                    .padding(.leading, 5)
+                    .allowsHitTesting(false)
+            }
+            TextEditor(text: $taskDescription)
+                .scrollContentBackground(.hidden)
+                .foregroundStyle(.secondary)
+        }
+        .frame(minHeight: 70, idealHeight: 100, maxHeight: .infinity)
     }
 
     // MARK: - Header

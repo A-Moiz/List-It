@@ -15,32 +15,44 @@ struct AddCollectionView: View {
     @State var showAlert: Bool = false
     var list: List
     @AppStorage("appAppearance") private var appearance: AppAppearance = .device
-    
+
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 24) {
-                    header
-                    
-                    Divider()
-                    
-                    InputField(
-                        icon: "folder",
-                        text: $collectionName,
-                        placeholder: "e.g. Groceries, High Priority"
-                    )
-                    
-                    Divider()
-                    
-                    VStack(alignment: .leading, spacing: 8) {
-                        ColorInputView(selectedColorHex: $selectedColorHex)
+            GeometryReader { proxy in
+                ScrollView {
+                    VStack(spacing: 0) {
+                        Spacer(minLength: 0)
                         
-                        Text("If no color is selected, this will inherit the **\(list.listName)** list colour.")
-                            .font(.caption2)
-                            .foregroundStyle(.secondary)
+                        VStack(alignment: .leading, spacing: 24) {
+                            header
+                            
+                            Divider()
+                            
+                            InputField(
+                                icon: "folder",
+                                text: $collectionName,
+                                placeholder: "e.g. Groceries, High Priority"
+                            )
+                            
+                            Divider()
+                            
+                            VStack(alignment: .leading, spacing: 8) {
+                                ColorInputView(selectedColorHex: $selectedColorHex)
+                                
+                                Text("If no color is selected, this will inherit the **\(list.listName)** list colour.")
+                                    .font(.caption2)
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+
+                        Spacer(minLength: 0)
+                        Spacer(minLength: 0)
                     }
+                    .padding(20)
+                    .frame(minHeight: proxy.size.height)
                 }
-                .padding(20)
+                .scrollBounceBehavior(.basedOnSize)
             }
             .navigationTitle("Add Collection")
             .navigationBarTitleDisplayMode(.inline)

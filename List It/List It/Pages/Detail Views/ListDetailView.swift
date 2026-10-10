@@ -29,7 +29,7 @@ struct ListDetailView: View {
             .background(appearance.backgroundColor ?? Color(.systemGroupedBackground))
             .sheet(isPresented: $showAddTaskView) {
                 AddTaskView(list: list)
-                    .presentationDetents([.medium])
+                    .presentationDetents([.medium, .large])
                     .interactiveDismissDisabled()
             }
             .sheet(isPresented: $showAddNoteView) {
@@ -39,7 +39,7 @@ struct ListDetailView: View {
             }
             .sheet(isPresented: $showAddCollectionView) {
                 AddCollectionView(list: list)
-                    .presentationDetents([.medium])
+                    .presentationDetents([.medium, .large])
                     .interactiveDismissDisabled()
             }
             .sheet(isPresented: $showTaskInfoView) {
@@ -263,35 +263,106 @@ struct CollectionView: View {
 struct CollectionHeader: View {
     let collection: Collection
     @Binding var isExpanded: Bool
-    @Environment(\.colorScheme) var colorScheme
+    @Environment(\.colorScheme) private var colorScheme
     let searchText: String
+    private let cornerRadius: CGFloat = 17
+    private var isDark: Bool { colorScheme == .dark }
+    private var headerShape: RoundedRectangle {
+        RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+    }
     
     var body: some View {
         VStack(spacing: 0) {
-            CollectionDeatilView(collection: collection, isExpanded: $isExpanded)
-                .padding(.vertical, 14)
-                .padding(.leading, 12)
+            CollectionDeatilView(
+                collection: collection,
+                isExpanded: $isExpanded
+            )
+            .padding(.vertical, 14)
+            .padding(.leading, 12)
+            .background {
+                ZStack {
+                    headerShape.fill(
+                        isDark ? Color(.secondarySystemGroupedBackground) : Color.white
+                    )
+                    
+                    GeometryReader { geometry in
+                        DiagonalSliceShape(skewOffset: isExpanded ? 0 : 24)
+                            .fill(
+                                LinearGradient(
+                                    colors: [
+                                        collection.bgColor.opacity(isDark ? 0.40 : 0.20),
+                                        collection.bgColor.opacity(isDark ? 0.20 : 0.10)
+                                    ],
+                                    startPoint: .leading,
+                                    endPoint: .trailing
+                                )
+                            )
+                            .frame(width: isExpanded ? geometry.size.width : geometry.size.width * 0.30)
+                    }
+                }
+            }
+            .contentShape(Rectangle())
+            .onTapGesture {
+                isExpanded.toggle()
+            }
+            .zIndex(2)
             
             if isExpanded {
-                CollectionTabView(collection: collection, searchText: searchText)
+                VStack(spacing: 0) {
+                    CollectionTabView(
+                        collection: collection,
+                        searchText: searchText
+                    )
                     .padding(.leading, 12)
-                    .padding(.bottom, 10)
-                    .transition(.move(edge: .top).combined(with: .opacity))
-                    .clipped()
+                    .padding(.top, 14)
+                    .padding(.bottom, 12)
+                }
+                .background(isDark ? Color.black.opacity(0.12) : Color(.systemGroupedBackground).opacity(0.3))
+                .transition(.asymmetric(
+                    insertion: .move(edge: .top).combined(with: .opacity),
+                    removal: .move(edge: .top).combined(with: .opacity)
+                ))
+                .zIndex(1)
             }
-            
-            Divider()
         }
-        .background(
-            RoundedRectangle(cornerRadius: 6, style: .continuous)
-                .fill(Color(collection.bgColor.opacity(0.2)))
+        .overlay {
+            headerShape.strokeBorder(
+                collection.bgColor.opacity(isDark ? 0.25 : 0.16),
+                lineWidth: 0.8
+            )
+        }
+        .clipShape(headerShape)
+        .animation(.snappy(duration: 0.32, extraBounce: 0.04), value: isExpanded)
+        .rotation3DEffect(
+            .degrees(isExpanded ? 0 : -6),
+            axis: (x: 1.0, y: -0.4, z: 0.0),
+            anchor: .center,
+            anchorZ: 0.0,
+            perspective: 0.35
         )
-        .overlay(alignment: .leading) {
-            Rectangle()
-                .fill(collection.bgColor)
-                .frame(width: 4)
-        }
-        .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+        .offset(x: isExpanded ? 0 : 6, y: isExpanded ? 0 : -4)
+        .zIndex(3)
+    }
+}
+
+// MARK: - Diagonal Shape
+struct DiagonalSliceShape: Shape {
+    var skewOffset: CGFloat
+    var animatableData: CGFloat {
+        get { skewOffset }
+        set { skewOffset = newValue }
+    }
+    
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+        
+        path.move(to: CGPoint(x: rect.minX, y: rect.minY))
+        path.addLine(to: CGPoint(x: rect.maxX, y: rect.minY))
+        path.addLine(to: CGPoint(x: max(rect.minX, rect.maxX - skewOffset), y: rect.maxY))
+        path.addLine(to: CGPoint(x: rect.minX, y: rect.maxY))
+        
+        path.closeSubpath()
+        return path
     }
 }
 
@@ -331,7 +402,7 @@ struct CollectionDeatilView: View {
                 
                 Image(systemName: "chevron.right")
                     .font(.footnote.weight(.semibold))
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(Color(collection.bgColor))
                     .rotationEffect(.degrees(isExpanded ? 90 : 0))
                     .padding(.trailing)
             }
@@ -451,7 +522,7 @@ struct TaskListView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .sheet(item: $selectedTask) { task in
             TaskDetailView(task: task)
-                .presentationDetents([.medium])
+                .presentationDetents([.medium, .large])
                 .interactiveDismissDisabled()
         }
         .alert(db.alertTitle, isPresented: $showAlert) {
@@ -619,9 +690,8 @@ struct NoteListView: View {
     @State var showAlert: Bool = false
     @State private var alertMode: AlertMode = .error
     private let columns = [
-        GridItem(.flexible(), spacing: 10),
-        GridItem(.flexible(), spacing: 10),
-        GridItem(.flexible(), spacing: 10)
+        GridItem(.flexible(), spacing: 12),
+        GridItem(.flexible(), spacing: 12)
     ]
     
     var body: some View {
@@ -634,7 +704,7 @@ struct NoteListView: View {
                 )
             } else {
                 ScrollView {
-                    LazyVGrid(columns: columns, spacing: 10) {
+                    LazyVGrid(columns: columns, spacing: 12) {
                         ForEach(filteredNotes) { note in
                             NoteView(note: note)
                                 .contentShape(Rectangle())
@@ -643,6 +713,7 @@ struct NoteListView: View {
                         }
                     }
                     .padding(.horizontal)
+                    .padding(.vertical, 6)
                 }
             }
         }
@@ -730,25 +801,23 @@ struct NoteListView: View {
 // MARK: - Note view
 struct NoteView: View {
     let note: Note
-    @Environment(\.colorScheme) var colorScheme
+    @Environment(\.colorScheme) private var colorScheme
+    private let foldSize: CGFloat = 16
+    private let cornerRadius: CGFloat = 8
+    private var isDark: Bool {
+        colorScheme == .dark
+    }
+    private var noteShape: FoldedNoteShape {
+        FoldedNoteShape(cornerRadius: cornerRadius, foldSize: foldSize)
+    }
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            if note.isPinned {
-                HStack {
-                    Spacer()
-                    Image(systemName: "pin.fill")
-                        .font(.system(size: 10))
-                        .foregroundStyle(.secondary)
-                }
-            } else {
-                Color.clear.frame(height: 10)
-            }
-            
+        VStack(alignment: .leading, spacing: 6) {
             Text(note.title)
                 .font(.system(size: 12, weight: .semibold))
                 .lineLimit(2)
                 .multilineTextAlignment(.leading)
+                .padding(.trailing, note.isPinned ? 12 : 0)
             
             if let description = note.description, !description.isEmpty {
                 Text(description)
@@ -756,19 +825,113 @@ struct NoteView: View {
                     .lineLimit(2)
                     .foregroundStyle(.secondary)
             }
-            
-            Spacer()
         }
-        .padding()
-        .frame(width: 90, height: 90)
-        .background(
-            RoundedRectangle(cornerRadius: 6)
-                .fill(note.bgColor.opacity(colorScheme == .dark ? 0.22 : 0.14))
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .padding(10)
+        .frame(maxWidth: .infinity)
+        .frame(height: 90)
+        .background {
+            ZStack {
+                noteShape
+                    .fill(Color(.systemBackground))
+                    .shadow(
+                        color: .black.opacity(isDark ? 0.35 : 0.12),
+                        radius: 3,
+                        x: 0,
+                        y: 2
+                    )
+                
+                noteShape.fill(
+                    LinearGradient(
+                        colors: [
+                            note.bgColor.opacity(isDark ? 0.50 : 0.40),
+                            note.bgColor.opacity(isDark ? 0.28 : 0.20)
+                        ],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+            }
+        }
+        .overlay {
+            noteShape.stroke(note.bgColor.opacity(0.35), lineWidth: 0.8)
+        }
+        .overlay(alignment: .topTrailing) {
+            if note.isPinned {
+                Image(systemName: "pin.fill")
+                    .font(.system(size: 10))
+                    .foregroundStyle(.secondary)
+                    .padding(8)
+            }
+        }
+        .overlay(alignment: .bottomTrailing) {
+            foldedCorner
+        }
+    }
+    
+    // MARK: - Folded corner
+    private var foldedCorner: some View {
+        ZStack {
+            FoldFlapShape().fill(Color(.systemBackground))
+            FoldFlapShape().fill(note.bgColor.opacity(isDark ? 0.55 : 0.45))
+        }
+        .frame(width: foldSize, height: foldSize)
+        .shadow(color: .black.opacity(0.2), radius: 1.5, x: -1, y: -1)
+    }
+}
+
+// MARK: - Note outline with the bottom-right corner cut off
+struct FoldedNoteShape: Shape {
+    var cornerRadius: CGFloat
+    var foldSize: CGFloat
+    
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+        let r = cornerRadius
+        let f = foldSize
+        
+        path.move(to: CGPoint(x: rect.minX + r, y: rect.minY))
+        path.addLine(to: CGPoint(x: rect.maxX - r, y: rect.minY))
+        path.addArc(
+            center: CGPoint(x: rect.maxX - r, y: rect.minY + r),
+            radius: r,
+            startAngle: .degrees(-90),
+            endAngle: .degrees(0),
+            clockwise: false
         )
-        .overlay(
-            RoundedRectangle(cornerRadius: 6)
-                .stroke(note.bgColor.opacity(0.35), lineWidth: 1)
+        path.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY - f))
+        path.addLine(to: CGPoint(x: rect.maxX - f, y: rect.maxY))
+        path.addLine(to: CGPoint(x: rect.minX + r, y: rect.maxY))
+        path.addArc(
+            center: CGPoint(x: rect.minX + r, y: rect.maxY - r),
+            radius: r,
+            startAngle: .degrees(90),
+            endAngle: .degrees(180),
+            clockwise: false
         )
+        path.addLine(to: CGPoint(x: rect.minX, y: rect.minY + r))
+        path.addArc(
+            center: CGPoint(x: rect.minX + r, y: rect.minY + r),
+            radius: r,
+            startAngle: .degrees(180),
+            endAngle: .degrees(270),
+            clockwise: false
+        )
+        path.closeSubpath()
+        
+        return path
+    }
+}
+
+// MARK: - The flap that is folded over the cut corner
+struct FoldFlapShape: Shape {
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+        path.move(to: CGPoint(x: rect.minX, y: rect.minY))
+        path.addLine(to: CGPoint(x: rect.maxX, y: rect.minY))
+        path.addLine(to: CGPoint(x: rect.minX, y: rect.maxY))
+        path.closeSubpath()
+        return path
     }
 }
 

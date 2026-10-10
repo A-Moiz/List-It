@@ -19,27 +19,38 @@ struct AddListView: View {
     
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 24) {
-                    header
-                    
-                    Divider()
-                    
-                    InputField(
-                        icon: "pencil.line",
-                        text: $listName,
-                        placeholder: "e.g. Personal, Work, Fitness"
-                    )
-                    
-                    Divider()
-                    
-                    ColorInputView(selectedColorHex: $selectedColorHex)
+            GeometryReader { proxy in
+                ScrollView {
+                    VStack(spacing: 0) {
+                        Spacer(minLength: 0)
+                        
+                        VStack(alignment: .leading, spacing: 24) {
+                            header
+                            
+                            Divider()
+                            
+                            InputField(
+                                icon: "pencil.line",
+                                text: $listName,
+                                placeholder: "e.g. Personal, Work, Fitness"
+                            )
+                            
+                            Divider()
+                            
+                            ColorInputView(selectedColorHex: $selectedColorHex)
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        
+                        Spacer(minLength: 0)
+                        Spacer(minLength: 0)
+                    }
+                    .padding(20)
+                    .frame(minHeight: proxy.size.height)
                 }
-                .padding(20)
+                .scrollBounceBehavior(.basedOnSize)
             }
             .navigationTitle("Add List")
             .navigationBarTitleDisplayMode(.inline)
-            //.background(Color(.systemGroupedBackground))
             .background(appearance.backgroundColor ?? Color(.systemGroupedBackground))
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {

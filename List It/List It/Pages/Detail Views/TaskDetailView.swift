@@ -36,26 +36,30 @@ struct TaskDetailView: View {
     
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 20) {
-                    TextField("Task title", text: $editedText)
-                        .font(.title3.weight(.semibold))
-                    
-                    Divider()
-                    
-                    descriptionField
-                    
-                    Divider()
-                    
-                    scheduleRow
-                    
-                    Divider()
-                    
-                    actionsRow
+            GeometryReader { proxy in
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 20) {
+                        TextField("Task title", text: $editedText)
+                            .font(.title3.weight(.semibold))
+                        
+                        Divider()
+                        
+                        descriptionField
+                        
+                        Divider()
+                        
+                        scheduleRow
+                        
+                        Divider()
+                        
+                        actionsRow
+                    }
+                    .padding(20)
+                    .frame(minHeight: proxy.size.height)
                 }
-                .padding(20)
+                .scrollDismissesKeyboard(.interactively)
+                .scrollBounceBehavior(.basedOnSize)
             }
-            .scrollDismissesKeyboard(.interactively)
             .navigationTitle("Task Details")
             .toolbarTitleDisplayMode(.inline)
             .background(collection?.bgColor.opacity(0.08) ?? Color(.systemGroupedBackground))
@@ -91,7 +95,7 @@ struct TaskDetailView: View {
             }
         }
     }
-    
+
     // MARK: - Description
     private var descriptionField: some View {
         ZStack(alignment: .topLeading) {
@@ -105,7 +109,7 @@ struct TaskDetailView: View {
             TextEditor(text: $editedDescription)
                 .scrollContentBackground(.hidden)
         }
-        .frame(minHeight: 70, maxHeight: 100)
+        .frame(minHeight: 70, idealHeight: 100, maxHeight: .infinity)
     }
 
     // MARK: - Schedule
@@ -131,12 +135,12 @@ struct TaskDetailView: View {
                             .foregroundStyle(.secondary)
                     }
                 } else {
-                    Text("No due date")
+                    Text("No schedule set")
                         .foregroundStyle(.secondary)
                     
                     Spacer()
                     
-                    Button("Set Date") {
+                    Button("Add schedule") {
                         withAnimation {
                             hasSchedule = true
                         }

@@ -17,28 +17,29 @@ struct WhatsNewView: View {
             icon: "circle.lefthalf.filled",
             title: "Choose your appearance",
             description: "Follow your iPhone's light or dark setting, or pick a different look."
+        ),
+        WhatsNewFeature(
+            icon: "paintbrush",
+            title: "A fresh new look",
+            description: "Major UI updates across the app."
         )
     ]
     
     var body: some View {
         NavigationStack {
             ScrollView {
-                VStack(alignment: .leading, spacing: 28) {
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text("What's New")
-                            .font(.largeTitle.bold())
-                        Text("Here's what's changed in this update.")
-                            .foregroundStyle(.secondary)
-                    }
-                    .padding(.top, 8)
-                    
-                    VStack(alignment: .leading, spacing: 20) {
-                        ForEach(features) { feature in
-                            featureRow(feature)
-                        }
+                Text("Here's what's changed in this update")
+                    .foregroundStyle(.secondary)
+                    .padding()
+                Divider()
+                    .padding()
+                VStack(alignment: .leading, spacing: 20) {
+                    ForEach(features) { feature in
+                        featureRow(feature)
+                        Divider()
                     }
                 }
-                .padding()
+                .padding(.horizontal)
             }
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
@@ -55,6 +56,8 @@ struct WhatsNewView: View {
                     .fontWeight(.semibold)
                 }
             }
+            .navigationTitle("What's new")
+            .navigationBarTitleDisplayMode(.inline)
             .background(appearance.backgroundColor ?? Color(.systemGroupedBackground))
         }
     }

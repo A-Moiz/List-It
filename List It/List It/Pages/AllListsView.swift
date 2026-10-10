@@ -47,13 +47,13 @@ struct AllListsView: View {
         NavigationStack {
             VStack {
                 HeaderView()
-                    .padding()
+                    .padding(.horizontal)
                 
                 PinnedListView(viewingList: $viewingList, showUpdateListView: $showUpdateListView, selectedListToDelete: $selectedListToDelete, selectedListToUpdate: $selectedListToUpdate, alertMode: $alertMode, showAlert: $showAlert, searchText: $searchText)
-                    .padding()
+                    .padding(.horizontal)
                 
                 ListInfoSection(showAddListView: $showAddListView, currentSort: $currentSort, showWhatsNewView: $showWhatsNewView, currentVersion: currentVersion)
-                    .padding()
+                    .padding(.horizontal)
                 
                 Rectangle()
                     .fill(colorScheme == .dark
@@ -61,7 +61,6 @@ struct AllListsView: View {
                           : Color.black.opacity(0.5))
                     .frame(height: 2)
                     .padding(.horizontal)
-                    .padding(.bottom, 1)
                 
                 Group {
                     if filteredLists.isEmpty {
@@ -89,6 +88,7 @@ struct AllListsView: View {
                             ScrollView {
                                 cardGrid
                             }
+                            .padding(.horizontal)
                         case .list:
                             rowList
                         }
@@ -201,7 +201,7 @@ struct AllListsView: View {
             }
             .sheet(isPresented: $showAddListView) {
                 AddListView(lists: filteredLists)
-                    .presentationDetents([.medium])
+                    .presentationDetents([.medium, .large])
                     .interactiveDismissDisabled()
             }
             .sheet(item: $selectedListToUpdate) { list in
@@ -211,7 +211,7 @@ struct AllListsView: View {
             }
             .sheet(isPresented: $showWhatsNewView) {
                 WhatsNewView(currentVersion: currentVersion)
-                    .presentationDetents([.medium, .large])
+                    .presentationDetents([.medium])
                     .interactiveDismissDisabled()
             }
         }
@@ -303,7 +303,7 @@ struct AllListsView: View {
                         }
                         .tint(.orange)
                     }
-                    .listRowInsets(EdgeInsets(top: 5, leading: 5, bottom: 5, trailing: 5))
+                    .listRowInsets(EdgeInsets(top: 5, leading: 16, bottom: 5, trailing: 16))
                     .listRowSeparator(.hidden)
                     .listRowBackground(Color.clear)
             }
@@ -344,67 +344,180 @@ struct AllListsView: View {
     }
 }
 
-// MARK: - Lists view (rounded rectangle)
+// MARK: - Lists view (Card)
 struct ListView: View {
-    @Environment(\.colorScheme) var colorScheme
+    @Environment(\.colorScheme) private var colorScheme
     var list: List
-    private let cornerRadius: CGFloat = 6
-    
+    private let cornerRadius: CGFloat = 10
+    private var isDark: Bool {
+        colorScheme == .dark
+    }
+    private var cardShape: RoundedRectangle {
+        RoundedRectangle(
+            cornerRadius: cornerRadius,
+            style: .continuous
+        )
+    }
+
     var body: some View {
         VStack {
-            ListInfo(list: list, isPinnedList: false, isRowView: false)
-                .padding(.horizontal)
+            ListInfo(
+                list: list,
+                isPinnedList: false,
+                isRowView: false
+            )
+            .padding(.horizontal)
         }
         .frame(width: 120, height: 70)
-        .background(
-            RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-                .fill(Color(list.bgColor.opacity(0.2)))
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-                .stroke(list.bgColor, lineWidth: 1.5)
-        )
-        .overlay(alignment: .leading) {
-            ListSideBar(list: list, isPinnedList: false)
+        .background {
+            GeometryReader { geometry in
+                ZStack(alignment: .leading) {
+                    // Base surface
+                    cardShape.fill(
+                        isDark
+                            ? Color(.secondarySystemGroupedBackground)
+                            : .white
+                    )
+
+                    // Outer wave
+                    WaveShape(
+                        depth: geometry.size.width * 0.52,
+                        curvature: 18
+                    )
+                    .fill(list.bgColor.opacity(0.14))
+
+                    // Middle wave
+                    WaveShape(
+                        depth: geometry.size.width * 0.40,
+                        curvature: 15
+                    )
+                    .fill(list.bgColor.opacity(0.14))
+
+                    // Inner wave
+                    WaveShape(
+                        depth: geometry.size.width * 0.28,
+                        curvature: 12
+                    )
+                    .fill(list.bgColor.opacity(0.14))
+                }
+            }
         }
-        .clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
-        .shadow(color: list.bgColor.opacity(colorScheme == .dark ? 0.5 : 0.3), radius: 3, x: 0, y: 2)
+        .clipShape(cardShape)
+        .shadow(color: .black.opacity(0.12), radius: 8, x: 0, y: 3)
+    }
+}
+
+// MARK: - Wave design for Lists
+struct WaveShape: Shape {
+    var depth: CGFloat
+    var curvature: CGFloat
+
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+
+        let x = min(depth, rect.width)
+
+        path.move(to: .zero)
+        path.addLine(to: CGPoint(x: x, y: 0))
+
+        path.addCurve(
+            to: CGPoint(x: x, y: rect.height),
+            control1: CGPoint(
+                x: x + curvature,
+                y: rect.height * 0.30
+            ),
+            control2: CGPoint(
+                x: x - curvature,
+                y: rect.height * 0.70
+            )
+        )
+
+        path.addLine(
+            to: CGPoint(x: 0, y: rect.height)
+        )
+        path.closeSubpath()
+
+        return path
     }
 }
 
 // MARK: - Lists view (row)
 struct ListRowView: View {
-    @Environment(\.colorScheme) var colorScheme
+    @Environment(\.colorScheme) private var colorScheme
     var list: List
-    
-    private let cornerRadius: CGFloat = 14
-    
+    private let cornerRadius: CGFloat = 17
+    private var cardShape: RoundedRectangle {
+        RoundedRectangle(
+            cornerRadius: cornerRadius,
+            style: .continuous
+        )
+    }
+    private var isDark: Bool {
+        colorScheme == .dark
+    }
+
     var body: some View {
         HStack(spacing: 14) {
-            ListInfo(list: list, isPinnedList: false, isRowView: true)
-            
+            ListInfo(
+                list: list,
+                isPinnedList: false,
+                isRowView: true
+            )
+
             Spacer(minLength: 8)
-            
+
             Image(systemName: "chevron.right")
                 .font(.footnote.weight(.semibold))
-                .foregroundStyle(.secondary)
+                .foregroundStyle(Color(list.bgColor))
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 12)
-        .frame(height: 60)
-        .background(
-            RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-                .fill(Color(list.bgColor.opacity(0.2)))
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-                .stroke(list.bgColor, lineWidth: 1.5)
-        )
-        .overlay(alignment: .leading) {
-            ListSideBar(list: list, isPinnedList: false)
+        .frame(height: 64)
+        .background {
+            GeometryReader { geometry in
+                ZStack(alignment: .leading) {
+                    cardShape.fill(
+                        isDark
+                            ? Color(.secondarySystemGroupedBackground)
+                            : Color.white
+                    )
+
+                    // Outer soft wave
+                    WaveShape(
+                        depth: geometry.size.width * 0.38,
+                        curvature: 25
+                    )
+                    .fill(list.bgColor.opacity(0.14))
+
+                    // Middle wave
+                    WaveShape(
+                        depth: geometry.size.width * 0.31,
+                        curvature: 23
+                    )
+                    .fill(list.bgColor.opacity(0.14))
+
+                    // Inner colored wave
+                    WaveShape(
+                        depth: geometry.size.width * 0.23,
+                        curvature: 20
+                    )
+                    .fill(list.bgColor.opacity(0.14))
+                }
+            }
         }
-        .clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
-        .shadow(color: list.bgColor.opacity(colorScheme == .dark ? 0.5 : 0.3), radius: 3, x: 0, y: 2)
+        .overlay {
+            cardShape.strokeBorder(
+                list.bgColor.opacity(0.25),
+                lineWidth: 0.8
+            )
+        }
+        .clipShape(cardShape)
+        .shadow(
+            color: .black.opacity(0.12),
+            radius: 8,
+            x: 0,
+            y: 3
+        )
     }
 }
 
@@ -447,18 +560,6 @@ struct ListInfo: View {
                 }
             }
         }
-    }
-}
-
-// MARK: - List side bar
-struct ListSideBar: View {
-    var list: List
-    var isPinnedList: Bool
-    
-    var body: some View {
-        Rectangle()
-            .fill(list.bgColor)
-            .frame(width: isPinnedList ? 3 : 5)
     }
 }
 
@@ -663,32 +764,73 @@ struct PinnedHeaderView: View {
 // MARK: - Pinned Lists card
 struct PinnedListCard: View {
     let list: List
-    @Environment(\.colorScheme) var colorScheme
-    
+    @Environment(\.colorScheme) private var colorScheme
+    private let cornerRadius: CGFloat = 13
+    private var cardShape: RoundedRectangle {
+        RoundedRectangle(
+            cornerRadius: cornerRadius,
+            style: .continuous
+        )
+    }
+    private var isDark: Bool {
+        colorScheme == .dark
+    }
+
     var body: some View {
-        ZStack {
-            RoundedRectangle(cornerRadius: 6)
-                .fill(Color(list.bgColor.opacity(0.2)))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 6)
-                        .stroke(list.bgColor, lineWidth: 1.5)
-                )
-            
-            HStack(spacing: 0) {
-                ListSideBar(list: list, isPinnedList: true)
-                    .frame(width: 4)
-                
-                HStack {
-                    ListInfo(list: list, isPinnedList: true, isRowView: false)
+        HStack {
+            ListInfo(
+                list: list,
+                isPinnedList: true,
+                isRowView: false
+            )
+        }
+        .padding(.horizontal, 14)
+        .frame(height: 48)
+        .fixedSize(horizontal: true, vertical: false)
+        .background {
+            GeometryReader { geometry in
+                ZStack(alignment: .leading) {
+                    cardShape.fill(
+                        isDark
+                            ? Color(.secondarySystemGroupedBackground)
+                            : Color.white
+                    )
+
+                    // Outer soft wave
+                    WaveShape(
+                        depth: geometry.size.width * 0.38,
+                        curvature: geometry.size.height * 0.39
+                    )
+                    .fill(list.bgColor.opacity(0.14))
+
+                    // Middle wave
+                    WaveShape(
+                        depth: geometry.size.width * 0.31,
+                        curvature: geometry.size.height * 0.36
+                    )
+                    .fill(list.bgColor.opacity(0.14))
+
+                    // Inner colored wave
+                    WaveShape(
+                        depth: geometry.size.width * 0.23,
+                        curvature: geometry.size.height * 0.31
+                    )
+                    .fill(list.bgColor.opacity(0.14))
                 }
-                .padding(.horizontal, 12)
             }
         }
-        .frame(height: 40)
-        .fixedSize(horizontal: true, vertical: false)
+        .overlay {
+            cardShape.strokeBorder(
+                list.bgColor.opacity(0.25),
+                lineWidth: 0.8
+            )
+        }
+        .clipShape(cardShape)
         .shadow(
-            color: list.bgColor.opacity(colorScheme == .dark ? 0.5 : 0.2),
-            radius: 3, x: 0, y: 2
+            color: .black.opacity(0.12),
+            radius: 6,
+            x: 0,
+            y: 2
         )
     }
 }
