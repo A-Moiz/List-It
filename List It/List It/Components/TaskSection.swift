@@ -74,7 +74,6 @@ struct DetailedTaskCard: View {
     }
 }
 
-
 //#Preview {
 //    TaskSection()
 //}

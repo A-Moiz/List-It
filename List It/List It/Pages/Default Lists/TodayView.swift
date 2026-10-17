@@ -13,7 +13,6 @@ struct TodayView: View {
     @AppStorage("appAppearance") private var appearance: AppAppearance = .device
 
     private var groupedData: [(list: List, tasks: [ToDoTask])] {
-        // Normalize search: lowercase and remove all whitespaces
         let cleanQuery = searchText.lowercased().replacingOccurrences(of: " ", with: "")
         
         let filteredLists = cleanQuery.isEmpty ? db.lists : db.lists.filter {
@@ -51,7 +50,6 @@ struct TodayView: View {
         }
     }
 }
-
 
 #Preview {
     TodayView()

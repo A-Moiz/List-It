@@ -14,15 +14,10 @@ struct WhatsNewView: View {
     var currentVersion: Int
     private let features: [WhatsNewFeature] = [
         WhatsNewFeature(
-            icon: "circle.lefthalf.filled",
-            title: "Choose your appearance",
-            description: "Follow your iPhone's light or dark setting, or pick a different look."
-        ),
-        WhatsNewFeature(
-            icon: "paintbrush",
-            title: "A fresh new look",
-            description: "Major UI updates across the app."
-        )
+                icon: "calendar.badge.clock",
+                title: "Scheduled Tasks",
+                description: "See every scheduled Task in one place. Browse by month, pick a day, and jump back to today anytime. Find it in the menu on the home screen."
+            )
     ]
     
     var body: some View {

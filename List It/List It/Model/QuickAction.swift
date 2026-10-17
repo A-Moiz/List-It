@@ -10,6 +10,7 @@ import Foundation
 enum QuickAction {
     case today
     case tomorrow
+    case scheduled
     case priority
     case completed
     case notCompleted

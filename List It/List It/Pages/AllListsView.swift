@@ -41,7 +41,7 @@ struct AllListsView: View {
     @AppStorage("listDisplayStyle") private var displayStyle: ListDisplayStyle = .card
     @AppStorage("lastSeenWhatsNewVersion") private var lastSeenVersion: Int = 0
     @AppStorage("appAppearance") private var appearance: AppAppearance = .device
-    @State var currentVersion: Int = 4
+    @State var currentVersion: Int = 5
     
     var body: some View {
         NavigationStack {
@@ -127,13 +127,19 @@ struct AllListsView: View {
                         Button {
                             selectedQuickAction = .today
                         } label: {
-                            Label("Today's Tasks", systemImage: "calendar")
+                            Label("Today's Tasks", systemImage: "sun.max")
                         }
                         
                         Button {
                             selectedQuickAction = .tomorrow
                         } label: {
-                            Label("Tomorrow's Tasks", systemImage: "calendar.badge.clock")
+                            Label("Tomorrow's Tasks", systemImage: "sunrise")
+                        }
+                        
+                        Button {
+                            selectedQuickAction = .scheduled
+                        } label: {
+                            Label("Scheduled Tasks", systemImage: "calendar.badge.clock")
                         }
                         
                         Button {
@@ -185,6 +191,8 @@ struct AllListsView: View {
                     TodayView()
                 case .tomorrow:
                     TomorrowView()
+                case .scheduled:
+                    ScheduledView()
                 case .priority:
                     PriorityView()
                 case .completed:
