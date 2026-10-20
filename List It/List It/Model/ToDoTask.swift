@@ -12,7 +12,7 @@ struct ToDoTask: Codable, Identifiable {
     var createdAt: Date
     var text: String
     var description: String?
-    var schedule: Date?
+    var dueDate: Date?
     var isCompleted: Bool
     var dateCompleted: Date?
     var isDeleted: Bool
@@ -26,7 +26,7 @@ struct ToDoTask: Codable, Identifiable {
         case createdAt = "created_at"
         case text
         case description
-        case schedule = "due_date"
+        case dueDate = "due_date"
         case isCompleted = "is_completed"
         case dateCompleted = "date_completed"
         case isDeleted = "is_deleted"

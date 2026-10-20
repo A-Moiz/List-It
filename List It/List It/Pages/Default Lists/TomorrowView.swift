@@ -11,7 +11,6 @@ struct TomorrowView: View {
     @Environment(Supabase.self) var db
     @State private var searchText: String = ""
     @AppStorage("appAppearance") private var appearance: AppAppearance = .device
-
     private var groupedData: [(list: List, tasks: [ToDoTask])] {
         let cleanQuery = searchText.lowercased().replacingOccurrences(of: " ", with: "")
         
@@ -23,12 +22,13 @@ struct TomorrowView: View {
             let tomorrowTasks = db.tasks.filter {
                 $0.listID == list.id &&
                 !$0.isCompleted &&
-                Calendar.current.isDateInTomorrow($0.schedule ?? Date.distantPast)
+                Calendar.current.isDateInTomorrow($0.dueDate ?? Date.distantPast)
             }
             return tomorrowTasks.isEmpty ? nil : (list: list, tasks: tomorrowTasks)
         }
     }
-
+    @State private var selectedTask: ToDoTask?
+    
     var body: some View {
         NavigationStack {
             ScrollView {
@@ -37,7 +37,7 @@ struct TomorrowView: View {
                 } else {
                     LazyVStack(spacing: 20) {
                         ForEach(groupedData, id: \.list.id) { group in
-                            TaskSection(group: group)
+                            TaskSection(group: group, onSelect: { selectedTask = $0 })
                         }
                     }
                     .padding()
@@ -47,6 +47,11 @@ struct TomorrowView: View {
             .toolbarTitleDisplayMode(.inline)
             .searchable(text: $searchText, placement: .toolbar, prompt: "Search Lists")
             .background(appearance.backgroundColor ?? Color(.systemGroupedBackground))
+            .sheet(item: $selectedTask) { task in
+                TaskDetailView(task: task)
+                    .presentationDetents([.medium, .large])
+                    .interactiveDismissDisabled()
+            }
         }
     }
 }

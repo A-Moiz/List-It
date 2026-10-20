@@ -11,7 +11,6 @@ struct PriorityView: View {
     @Environment(Supabase.self) var db
     @State private var searchText: String = ""
     @AppStorage("appAppearance") private var appearance: AppAppearance = .device
-
     private var groupedPriorityData: [(list: List, tasks: [ToDoTask])] {
         // 1. Get all uncompleted pinned tasks
         let allPinned = db.tasks.filter { $0.isPinned && !$0.isCompleted && !$0.isDeleted }
@@ -29,6 +28,7 @@ struct PriorityView: View {
             return tasksInList.isEmpty ? nil : (list: list, tasks: tasksInList)
         }
     }
+    @State private var selectedTask: ToDoTask?
 
     var body: some View {
         NavigationStack {
@@ -63,6 +63,9 @@ struct PriorityView: View {
 
                                 ForEach(group.tasks) { task in
                                     PriorityTaskCard(task: task)
+                                        .onTapGesture {
+                                            selectedTask = task
+                                        }
                                 }
                             }
                         }
@@ -78,6 +81,11 @@ struct PriorityView: View {
                 prompt: "Search Lists..."
             )
             .background(appearance.backgroundColor ?? Color(.systemGroupedBackground))
+            .sheet(item: $selectedTask) { task in
+                TaskDetailView(task: task)
+                    .presentationDetents([.medium, .large])
+                    .interactiveDismissDisabled()
+            }
         }
     }
 }
@@ -126,10 +134,10 @@ struct PriorityTaskCard: View {
                 
                 Spacer()
                 
-                if let schedule = task.schedule {
-                    Label(schedule.formatted(.dateTime.day().month()), systemImage: "clock")
+                if let dueDate = task.dueDate {
+                    Label(dueDate.formatted(.dateTime.day().month()), systemImage: "clock")
                         .font(.system(size: 10, weight: .bold))
-                        .foregroundStyle(schedule < Date() ? .red : .primary)
+                        .foregroundStyle(dueDate < Date() ? .red : .primary)
                 }
             }
         }

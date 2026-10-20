@@ -62,38 +62,40 @@ struct AllListsView: View {
                     .frame(height: 2)
                     .padding(.horizontal)
                 
-                Group {
-                    if filteredLists.isEmpty {
-                        ScrollView {
-                            ContentUnavailableView {
-                                Label("No Lists", systemImage: "checklist")
-                            } description: {
-                                Text("Create a List to start organising your tasks and notes.")
-                            } actions: {
-                                Button {
-                                    showAddListView = true
-                                } label: {
-                                    HStack {
-                                        Image(systemName: "plus")
-                                        Text("Create List")
-                                    }
-                                }
-                                .buttonStyle(.borderedProminent)
-                            }
-                            .frame(maxWidth: .infinity, maxHeight: .infinity)
-                        }
-                    } else {
-                        switch displayStyle {
-                        case .card:
-                            ScrollView {
-                                cardGrid
-                            }
-                            .padding(.horizontal)
-                        case .list:
-                            rowList
-                        }
-                    }
-                }
+                mainContentGroup
+                
+                //                Group {
+                //                    if filteredLists.isEmpty {
+                //                        ScrollView {
+                //                            ContentUnavailableView {
+                //                                Label("No Lists", systemImage: "checklist")
+                //                            } description: {
+                //                                Text("Create a List to start organising your tasks and notes.")
+                //                            } actions: {
+                //                                Button {
+                //                                    showAddListView = true
+                //                                } label: {
+                //                                    HStack {
+                //                                        Image(systemName: "plus")
+                //                                        Text("Create List")
+                //                                    }
+                //                                }
+                //                                .buttonStyle(.borderedProminent)
+                //                            }
+                //                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                //                        }
+                //                    } else {
+                //                        switch displayStyle {
+                //                        case .card:
+                //                            ScrollView {
+                //                                cardGrid
+                //                            }
+                //                            .padding(.horizontal)
+                //                        case .list:
+                //                            rowList
+                //                        }
+                //                    }
+                //                }
             }
             .navigationTitle("Welcome Back 👋")
             .navigationBarTitleDisplayMode(.inline)
@@ -221,6 +223,42 @@ struct AllListsView: View {
                 WhatsNewView(currentVersion: currentVersion)
                     .presentationDetents([.medium])
                     .interactiveDismissDisabled()
+            }
+        }
+    }
+    
+    @ViewBuilder
+    private var mainContentGroup: some View {
+        Group {
+            if filteredLists.isEmpty {
+                ScrollView {
+                    ContentUnavailableView {
+                        Label("No Lists", systemImage: "checklist")
+                    } description: {
+                        Text("Create a List to start organising your tasks and notes.")
+                    } actions: {
+                        Button {
+                            showAddListView = true
+                        } label: {
+                            HStack {
+                                Image(systemName: "plus")
+                                Text("Create List")
+                            }
+                        }
+                        .buttonStyle(.borderedProminent)
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                }
+            } else {
+                switch displayStyle {
+                case .card:
+                    ScrollView {
+                        cardGrid
+                    }
+                    .padding(.horizontal)
+                case .list:
+                    rowList
+                }
             }
         }
     }
@@ -366,7 +404,7 @@ struct ListView: View {
             style: .continuous
         )
     }
-
+    
     var body: some View {
         VStack {
             ListInfo(
@@ -383,24 +421,24 @@ struct ListView: View {
                     // Base surface
                     cardShape.fill(
                         isDark
-                            ? Color(.secondarySystemGroupedBackground)
-                            : .white
+                        ? Color(.secondarySystemGroupedBackground)
+                        : .white
                     )
-
+                    
                     // Outer wave
                     WaveShape(
                         depth: geometry.size.width * 0.52,
                         curvature: 18
                     )
                     .fill(list.bgColor.opacity(0.14))
-
+                    
                     // Middle wave
                     WaveShape(
                         depth: geometry.size.width * 0.40,
                         curvature: 15
                     )
                     .fill(list.bgColor.opacity(0.14))
-
+                    
                     // Inner wave
                     WaveShape(
                         depth: geometry.size.width * 0.28,
@@ -419,15 +457,15 @@ struct ListView: View {
 struct WaveShape: Shape {
     var depth: CGFloat
     var curvature: CGFloat
-
+    
     func path(in rect: CGRect) -> Path {
         var path = Path()
-
+        
         let x = min(depth, rect.width)
-
+        
         path.move(to: .zero)
         path.addLine(to: CGPoint(x: x, y: 0))
-
+        
         path.addCurve(
             to: CGPoint(x: x, y: rect.height),
             control1: CGPoint(
@@ -439,12 +477,12 @@ struct WaveShape: Shape {
                 y: rect.height * 0.70
             )
         )
-
+        
         path.addLine(
             to: CGPoint(x: 0, y: rect.height)
         )
         path.closeSubpath()
-
+        
         return path
     }
 }
@@ -463,7 +501,7 @@ struct ListRowView: View {
     private var isDark: Bool {
         colorScheme == .dark
     }
-
+    
     var body: some View {
         HStack(spacing: 14) {
             ListInfo(
@@ -471,9 +509,9 @@ struct ListRowView: View {
                 isPinnedList: false,
                 isRowView: true
             )
-
+            
             Spacer(minLength: 8)
-
+            
             Image(systemName: "chevron.right")
                 .font(.footnote.weight(.semibold))
                 .foregroundStyle(Color(list.bgColor))
@@ -486,24 +524,24 @@ struct ListRowView: View {
                 ZStack(alignment: .leading) {
                     cardShape.fill(
                         isDark
-                            ? Color(.secondarySystemGroupedBackground)
-                            : Color.white
+                        ? Color(.secondarySystemGroupedBackground)
+                        : Color.white
                     )
-
+                    
                     // Outer soft wave
                     WaveShape(
                         depth: geometry.size.width * 0.38,
                         curvature: 25
                     )
                     .fill(list.bgColor.opacity(0.14))
-
+                    
                     // Middle wave
                     WaveShape(
                         depth: geometry.size.width * 0.31,
                         curvature: 23
                     )
                     .fill(list.bgColor.opacity(0.14))
-
+                    
                     // Inner colored wave
                     WaveShape(
                         depth: geometry.size.width * 0.23,
@@ -783,7 +821,7 @@ struct PinnedListCard: View {
     private var isDark: Bool {
         colorScheme == .dark
     }
-
+    
     var body: some View {
         HStack {
             ListInfo(
@@ -800,24 +838,24 @@ struct PinnedListCard: View {
                 ZStack(alignment: .leading) {
                     cardShape.fill(
                         isDark
-                            ? Color(.secondarySystemGroupedBackground)
-                            : Color.white
+                        ? Color(.secondarySystemGroupedBackground)
+                        : Color.white
                     )
-
+                    
                     // Outer soft wave
                     WaveShape(
                         depth: geometry.size.width * 0.38,
                         curvature: geometry.size.height * 0.39
                     )
                     .fill(list.bgColor.opacity(0.14))
-
+                    
                     // Middle wave
                     WaveShape(
                         depth: geometry.size.width * 0.31,
                         curvature: geometry.size.height * 0.36
                     )
                     .fill(list.bgColor.opacity(0.14))
-
+                    
                     // Inner colored wave
                     WaveShape(
                         depth: geometry.size.width * 0.23,

@@ -642,19 +642,19 @@ class Supabase {
     }
     
     // MARK: - Update Tasks
-    func updateTask(task: ToDoTask, text: String, description: String, schedule: Date?, isPinned: Bool) async -> Bool {
+    func updateTask(task: ToDoTask, text: String, description: String, dueDate: Date?, isPinned: Bool) async -> Bool {
         do {
-            let scheduleString: String? = {
-                guard let schedule else { return nil }
+            let dueDateString: String? = {
+                guard let dueDate else { return nil }
                 let formatter = ISO8601DateFormatter()
                 formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-                return formatter.string(from: schedule)
+                return formatter.string(from: dueDate)
             }()
             
             let updateData: [String: AnyJSON] = [
                 "text": .string(text),
                 "description": .string(description),
-                "due_date": scheduleString != nil ? .string(scheduleString!) : .null,
+                "due_date": dueDateString != nil ? .string(dueDateString!) : .null,
                 "is_pinned": .bool(isPinned)
             ]
             
@@ -668,7 +668,7 @@ class Supabase {
                 if let index = self.tasks.firstIndex(where: { $0.id == task.id }) {
                     self.tasks[index].text = text
                     self.tasks[index].description = description
-                    self.tasks[index].schedule = schedule
+                    self.tasks[index].dueDate = dueDate
                     self.tasks[index].isPinned = isPinned
                 }
             }
@@ -758,6 +758,37 @@ class Supabase {
                 if let index = self.tasks.firstIndex(where: { $0.id == task.id }) {
                     self.tasks[index].isCompleted = true
                     self.tasks[index].dateCompleted = Date()
+                }
+            }
+            return true
+        } catch {
+            await MainActor.run {
+                self.setError(title: "Update Failed", message: error.localizedDescription)
+            }
+            return false
+        }
+    }
+    
+    // MARK: - Uncomplete task
+    func uncompleteTask(task: ToDoTask) async -> Bool {
+        do {
+            let updateData: [String: AnyJSON] = [
+                "is_completed": .bool(false),
+                "date_completed": .null
+            ]
+            
+            try await client
+                .from("task")
+                .update(updateData)
+                .eq("id", value: task.id)
+                .execute()
+            
+            await MainActor.run {
+                withAnimation(.easeOut(duration: 0.2)) {
+                    if let index = self.tasks.firstIndex(where: { $0.id == task.id }) {
+                        self.tasks[index].isCompleted = false
+                        self.tasks[index].dateCompleted = nil
+                    }
                 }
             }
             return true

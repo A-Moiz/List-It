@@ -15,12 +15,14 @@ struct AddTaskView: View {
     var list: List
     @State var selectedCollectionID: String?
     @State var isPinned: Bool = false
-    @State var schedule: Date = Date()
-    @State var addSchedule: Bool = false
+    @State var dueDate: Date = Date()
+    @State var addDueDate: Bool = false
+    @State var addReminder: Bool = false
+    @State var reminderDate: Date = Date().addingTimeInterval(60 * 60)
     @State var showAlert: Bool = false
     @State private var statusMessage = ""
     @AppStorage("appAppearance") private var appearance: AppAppearance = .device
-
+    
     var body: some View {
         NavigationStack {
             GeometryReader { proxy in
@@ -65,9 +67,12 @@ struct AddTaskView: View {
                 Alert(title: Text(db.alertTitle), message: Text(db.alertMessage), dismissButton: .default(Text("OK")))
             }
             .background(appearance.backgroundColor ?? Color(.systemGroupedBackground))
+            .onChange(of: dueDate) { _, _ in keepReminderWithinDueDay() }
+            .onChange(of: addDueDate) { _, _ in keepReminderWithinDueDay() }
+            .onChange(of: addReminder) { _, _ in keepReminderWithinDueDay() }
         }
     }
-
+    
     // MARK: - Description
     private var descriptionField: some View {
         ZStack(alignment: .topLeading) {
@@ -84,7 +89,7 @@ struct AddTaskView: View {
         }
         .frame(minHeight: 70, idealHeight: 100, maxHeight: .infinity)
     }
-
+    
     // MARK: - Header
     private var header: some View {
         HStack {
@@ -95,7 +100,39 @@ struct AddTaskView: View {
             Spacer()
         }
     }
-
+    
+    // MARK: - Reminder limits
+    private var calendar: Calendar {
+        Calendar.current
+    }
+    
+    private var endOfDueDay: Date? {
+        guard addDueDate else { return nil }
+        return calendar.date(bySettingHour: 23, minute: 59, second: 59, of: dueDate)
+    }
+    
+    private var reminderRange: ClosedRange<Date> {
+        let lower = Date()
+        let upper = endOfDueDay ?? Date.distantFuture
+        // max() because a ClosedRange with its bounds the wrong way round
+        // crashes, which this screen could hit if it stays open past midnight.
+        return lower...max(lower, upper)
+    }
+    
+    private func keepReminderWithinDueDay() {
+        guard let limit = endOfDueDay, reminderDate > limit else { return }
+        
+        let time = calendar.dateComponents([.hour, .minute], from: reminderDate)
+        let sameTimeOnDueDay = calendar.date(
+            bySettingHour: time.hour ?? 0,
+            minute: time.minute ?? 0,
+            second: 0,
+            of: dueDate
+        ) ?? limit
+        
+        reminderDate = min(max(sameTimeOnDueDay, Date()), limit)
+    }
+    
     // MARK: - Options
     private var optionsSection: some View {
         VStack(alignment: .leading, spacing: 14) {
@@ -104,15 +141,28 @@ struct AddTaskView: View {
                     .symbolVariant(isPinned ? .fill : .none)
             }
             
-            Toggle(isOn: $addSchedule.animation()) {
-                Label("Schedule reminder", systemImage: "calendar.badge.clock")
+            Toggle(isOn: $addDueDate.animation()) {
+                Label("Add Due Date", systemImage: "calendar.badge.clock")
             }
             
-            if addSchedule {
+            if addDueDate {
                 DatePicker(
-                    "Schedule for",
-                    selection: $schedule,
+                    "Add Due Date",
+                    selection: $dueDate,
                     in: Date()...,
+                    displayedComponents: [.date]
+                )
+            }
+            
+            Toggle(isOn: $addReminder.animation()) {
+                Label("Add Reminder", systemImage: "bell.badge.fill")
+            }
+            
+            if addReminder {
+                DatePicker(
+                    "Add Reminder",
+                    selection: $reminderDate,
+                    in: reminderRange,
                     displayedComponents: [.date, .hourAndMinute]
                 )
             }
@@ -138,6 +188,12 @@ struct AddTaskView: View {
             return
         }
         
+        if addReminder && reminderDate <= Date() {
+            db.setError(title: "Reminder", message: "Please choose a reminder time in the future.")
+            showAlert = true
+            return
+        }
+        
         let collectionID: String
         if let selectedID = selectedCollectionID {
             collectionID = selectedID
@@ -152,7 +208,7 @@ struct AddTaskView: View {
             createdAt: Date(),
             text: taskTitle,
             description: taskDescription,
-            schedule: addSchedule ? schedule : nil,
+            dueDate: addDueDate ? dueDate : nil,
             isCompleted: false,
             isDeleted: false,
             isPinned: isPinned,
@@ -166,7 +222,9 @@ struct AddTaskView: View {
             if success {
                 await MainActor.run {
                     db.tasks.append(newTask)
-                    scheduleNotification(at: schedule)
+                    if addReminder {
+                        scheduleNotification(taskID: newTask.id, title: newTask.text, at: reminderDate)
+                    }
                     dismiss()
                 }
             } else {
@@ -176,12 +234,13 @@ struct AddTaskView: View {
     }
     
     // MARK: - Scheduling Notification
-    func scheduleNotification(at date: Date) {
+    func scheduleNotification(taskID: String, title: String, at date: Date) {
         /// Content for Notification
         let content = UNMutableNotificationContent()
-        content.title = taskTitle
+        content.title = title
         content.body = "Don't forget about this!"
         content.sound = .default
+        content.userInfo = ["taskID": taskID]
         
         /// Get date components for Notification
         let triggerDate = Calendar.current.dateComponents(
@@ -190,24 +249,27 @@ struct AddTaskView: View {
         )
         let trigger = UNCalendarNotificationTrigger(dateMatching: triggerDate, repeats: false)
         
-        /// Create Notification request
+        /// Create Notification request. The task's id is the identifier, so the
+        /// reminder can be found, replaced or cancelled later.
         let request = UNNotificationRequest(
-            identifier: UUID().uuidString,
+            identifier: taskID,
             content: content,
             trigger: trigger
         )
         
         /// Status message
         UNUserNotificationCenter.current().add(request) { error in
-            if let error = error {
-                statusMessage = "Error: \(error.localizedDescription)"
-            } else {
-                statusMessage = "Task reminder scheduled for \(date.formatted(date: .abbreviated, time: .shortened))"
+            if error == nil {
+                ReminderStore.set(date, for: taskID)
             }
-        }
-        
-        UNUserNotificationCenter.current().getPendingNotificationRequests { requests in
-            print("Pending: \(requests.count)")
+            
+            Task { @MainActor in
+                if let error = error {
+                    statusMessage = "Error: \(error.localizedDescription)"
+                } else {
+                    statusMessage = "Task reminder scheduled for \(date.formatted(date: .abbreviated, time: .shortened))"
+                }
+            }
         }
     }
 }
@@ -278,15 +340,7 @@ struct TaskForm: View {
     }
 }
 
-#Preview {
-    @Previewable @State var lists: List = List(id: UUID().uuidString, createdAt: Date(), listIcon: "calendar", listName: "Today", isDefault: true, bgColorHex: "#87CEEB", userId: "", isPinned: false)
-    AddTaskView(list: lists)
-        .environment(Supabase())
-    
-    //    @Previewable @State var lists: List = List(id: UUID().uuidString, createdAt: Date(), listIcon: "calendar", listName: "Today", isDefault: true, bgColorHex: "#87CEEB", userId: "", isPinned: false)
-    //
-    //    @Previewable @State var collectionName: String? = nil
-    //
-    //    TaskOrganisation(list: lists, selectedCollectionName: $collectionName)
-    //        .environment(Supabase())
-}
+//#Preview {
+//    AddTaskView()
+//        .environment(Supabase())
+//}

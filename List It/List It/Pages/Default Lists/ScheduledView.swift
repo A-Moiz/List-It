@@ -20,21 +20,21 @@ struct ScheduledView: View {
         let cal = Calendar.current
         return cal.date(from: cal.dateComponents([.year, .month], from: date)) ?? date
     }
-    private var scheduledTasks: [ToDoTask] {
-        db.tasks.filter { $0.schedule != nil && !$0.isCompleted && !$0.isDeleted }
+    private var dueTasks: [ToDoTask] {
+        db.tasks.filter { $0.dueDate != nil && !$0.isCompleted && !$0.isDeleted }
     }
     private var daysWithTasks: Set<Date> {
-        Set(scheduledTasks.compactMap { task in
-            task.schedule.map { calendar.startOfDay(for: $0) }
+        Set(dueTasks.compactMap { task in
+            task.dueDate.map { calendar.startOfDay(for: $0) }
         })
     }
     private var tasksForSelectedDate: [ToDoTask] {
-        scheduledTasks
+        dueTasks
             .filter { task in
-                guard let schedule = task.schedule else { return false }
-                return calendar.isDate(schedule, inSameDayAs: selectedDate)
+                guard let due = task.dueDate else { return false }
+                return calendar.isDate(due, inSameDayAs: selectedDate)
             }
-            .sorted { ($0.schedule ?? .distantFuture) < ($1.schedule ?? .distantFuture) }
+            .sorted { ($0.dueDate ?? .distantFuture) < ($1.dueDate ?? .distantFuture) }
     }
     private var isShowingCurrentMonth: Bool {
         calendar.isDate(displayedMonth, equalTo: Date(), toGranularity: .month)
@@ -280,8 +280,8 @@ struct ScheduledTaskRow: View {
         list?.bgColor ?? Color.secondary
     }
     private var isOverdue: Bool {
-        guard let schedule = task.schedule else { return false }
-        return schedule < Date()
+        guard let dueDate = task.dueDate else { return false }
+        return dueDate < Date()
     }
     private var cardShape: RoundedRectangle {
         RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
@@ -296,8 +296,8 @@ struct ScheduledTaskRow: View {
                 
                 Spacer(minLength: 8)
                 
-                if let schedule = task.schedule {
-                    Text(schedule.formatted(date: .omitted, time: .shortened))
+                if let dueDate = task.dueDate {
+                    Text(dueDate.formatted(date: .omitted, time: .shortened))
                         .font(.caption.weight(.medium))
                         .foregroundStyle(isOverdue ? Color.red : Color.secondary)
                 }

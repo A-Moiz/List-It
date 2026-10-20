@@ -136,7 +136,7 @@ extension ActivityView {
     }
     
     private var overdueCount: Int {
-        db.tasks.filter { !$0.isCompleted && $0.schedule != nil && $0.schedule! < Date() }.count
+        db.tasks.filter { !$0.isCompleted && $0.dueDate != nil && $0.dueDate! < Date() }.count
     }
     
     private var pinnedCount: Int {

@@ -9,6 +9,7 @@ import SwiftUI
 
 struct TaskSection: View {
     let group: (list: List, tasks: [ToDoTask])
+    var onSelect: ((ToDoTask) -> Void)? = nil
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -30,6 +31,10 @@ struct TaskSection: View {
             
             ForEach(group.tasks) { task in
                 DetailedTaskCard(task: task)
+                    .contentShape(Rectangle())
+                    .onTapGesture {
+                        onSelect?(task)
+                    }
             }
         }
     }

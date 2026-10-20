@@ -14,10 +14,30 @@ struct WhatsNewView: View {
     var currentVersion: Int
     private let features: [WhatsNewFeature] = [
         WhatsNewFeature(
-                icon: "calendar.badge.clock",
-                title: "Scheduled Tasks",
-                description: "See every scheduled Task in one place. Browse by month, pick a day, and jump back to today anytime. Find it in the menu on the home screen."
-            )
+            icon: "calendar.badge.clock",
+            title: "Scheduled Tasks",
+            description: "See every scheduled Task in one place. Browse by month, pick a day, and jump back to today anytime. Find it in the menu on the home screen."
+        ),
+        WhatsNewFeature(
+            icon: "bell.badge",
+            title: "Separate Reminders",
+            description: "Due dates and alerts are now independent. Set a final deadline for your task while picking a completely different time to receive your alert notification."
+        ),
+        WhatsNewFeature(
+            icon: "arrow.uturn.backward",
+            title: "Completion Undo",
+            description: "Accidentally checked off a task? You can now reverse and restore any tasks completed today directly from the completed list."
+        ),
+        WhatsNewFeature(
+            icon: "rectangle.grid.1x2",
+            title: "Redesigned Completed View",
+            description: "Enjoy a beautiful, minimal, and architectural archive feed."
+        ),
+        WhatsNewFeature(
+            icon: "list.bullet",
+            title: "Interactive Default Lists",
+            description: "All tasks appearing in your smart default lists are now fully interactive. Simply tap on any task to instantly open its details and update its properties."
+        )
     ]
     
     var body: some View {

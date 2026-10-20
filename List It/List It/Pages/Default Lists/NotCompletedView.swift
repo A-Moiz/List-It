@@ -11,7 +11,6 @@ struct NotCompletedView: View {
     @Environment(Supabase.self) var db
     @State private var searchText: String = ""
     @AppStorage("appAppearance") private var appearance: AppAppearance = .device
-    
     private var groupedData: [(list: List, tasks: [ToDoTask])] {
         // 1. Filter lists based on search text
         let filteredLists = searchText.isEmpty ? db.lists : db.lists.filter {
@@ -28,6 +27,7 @@ struct NotCompletedView: View {
             return uncompletedTasks.isEmpty ? nil : (list: list, tasks: uncompletedTasks)
         }
     }
+    @State private var selectedTask: ToDoTask?
     
     var body: some View {
         NavigationStack {
@@ -44,6 +44,9 @@ struct NotCompletedView: View {
                             Section {
                                 ForEach(group.tasks) { task in
                                     PendingTaskCard(task: task)
+                                        .onTapGesture {
+                                            selectedTask = task
+                                        }
                                 }
                             } header: {
                                 HStack {
@@ -71,6 +74,11 @@ struct NotCompletedView: View {
                 prompt: "Search Lists..."
             )
             .background(appearance.backgroundColor ?? Color(.systemGroupedBackground))
+            .sheet(item: $selectedTask) { task in
+                TaskDetailView(task: task)
+                    .presentationDetents([.medium, .large])
+                    .interactiveDismissDisabled()
+            }
         }
     }
 }
@@ -121,9 +129,9 @@ struct PendingTaskCard: View {
                 
                 Spacer()
                 
-                if let schedule = task.schedule {
-                    Label(schedule.formatted(.dateTime.day().month()), systemImage: "clock")
-                        .foregroundStyle(schedule < Date() ? .red : .blue)
+                if let dueDate = task.dueDate {
+                    Label(dueDate.formatted(.dateTime.day().month()), systemImage: "clock")
+                        .foregroundStyle(dueDate < Date() ? .red : .blue)
                         .font(.caption.bold())
                 }
             }

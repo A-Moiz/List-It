@@ -253,8 +253,7 @@ struct CollectionView: View {
                 get: { shouldExpand },
                 set: { isExpanded = $0 }
             ),
-            searchText: searchText
-        )
+            searchText: searchText)
         .padding(.horizontal)
     }
 }
@@ -311,7 +310,7 @@ struct CollectionHeader: View {
                 VStack(spacing: 0) {
                     CollectionTabView(
                         collection: collection,
-                        searchText: searchText
+                        searchText: searchText,
                     )
                     .padding(.leading, 12)
                     .padding(.top, 14)
@@ -417,7 +416,6 @@ struct CollectionTabView: View {
     @State private var selectedTab: Int = 0
     let collection: Collection
     let searchText: String
-    
     private let tabs = ["Tasks", "Notes"]
     
     var body: some View {
@@ -611,15 +609,19 @@ struct TaskView: View {
     let task: ToDoTask
     @Environment(Supabase.self) var db
     private var barColor: Color {
-        if let schedule = task.schedule, schedule < Date() {
+        if let dueDate = task.dueDate, dueDate < Date() {
             return .red
         }
         
         if task.isPinned {
-            return task.schedule == nil ? .yellow : .orange
+            return task.dueDate == nil ? .yellow : .orange
         }
         
         return .cyan
+    }
+    private var upcomingReminder: Date? {
+        guard let date = ReminderStore.date(for: task.id), date > Date() else { return nil }
+        return date
     }
     
     var body: some View {
@@ -644,15 +646,32 @@ struct TaskView: View {
                     Image(systemName: "calendar")
                         .font(.caption2)
                     
-                    if let schedule = task.schedule {
-                        Text("Scheduled: \(db.formattedDate(schedule))")
+                    if let dueDate = task.dueDate {
+                        Text("Due: \(db.formattedDate(dueDate))")
                             .font(.caption2)
-                            .fontWeight(schedule < Date() ? .semibold : .regular)
-                            .foregroundStyle(schedule < Date() ? .red : .secondary)
+                            .fontWeight(dueDate < Date() ? .semibold : .regular)
+                            .foregroundStyle(dueDate < Date() ? .red : .secondary)
+                            .lineLimit(1)
                     } else {
                         Text("Created: \(db.formattedDate(task.createdAt))")
                             .font(.caption2)
                             .foregroundStyle(.secondary)
+                            .lineLimit(1)
+                    }
+                    
+                    if let reminder = upcomingReminder {
+                        Text("·")
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                        
+                        Image(systemName: "bell")
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                        
+                        Text(reminder.formatted(.dateTime.day().month().hour().minute()))
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(1)
                     }
                 }
             }

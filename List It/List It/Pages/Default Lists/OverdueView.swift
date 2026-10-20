@@ -11,14 +11,13 @@ struct OverdueView: View {
     @Environment(Supabase.self) var db
     @State private var searchText: String = ""
     @AppStorage("appAppearance") private var appearance: AppAppearance = .device
-    
     private var groupedOverdueData: [(list: List, tasks: [ToDoTask])] {
         let now = Calendar.current.startOfDay(for: Date())
         
         // 1. Filter overdue tasks
         let overdueTasks = db.tasks.filter { task in
-            guard let schedule = task.schedule, !task.isCompleted, !task.isDeleted else { return false }
-            return Calendar.current.startOfDay(for: schedule) < now
+            guard let dueDate = task.dueDate, !task.isCompleted, !task.isDeleted else { return false }
+            return Calendar.current.startOfDay(for: dueDate) < now
         }
         
         // 2. Filter Lists based on search
@@ -33,6 +32,7 @@ struct OverdueView: View {
             return tasksInList.isEmpty ? nil : (list: list, tasks: tasksInList)
         }
     }
+    @State private var selectedTask: ToDoTask?
     
     var body: some View {
         NavigationStack {
@@ -49,6 +49,9 @@ struct OverdueView: View {
                             Section {
                                 ForEach(group.tasks) { task in
                                     OverdueTaskCard(task: task)
+                                        .onTapGesture {
+                                            selectedTask = task
+                                        }
                                 }
                             } header: {
                                 HStack {
@@ -78,6 +81,11 @@ struct OverdueView: View {
                 prompt: "Search Lists..."
             )
             .background(appearance.backgroundColor ?? Color(.systemGroupedBackground))
+            .sheet(item: $selectedTask) { task in
+                TaskDetailView(task: task)
+                    .presentationDetents([.medium, .large])
+                    .interactiveDismissDisabled()
+            }
         }
     }
 }
@@ -132,11 +140,11 @@ struct OverdueTaskCard: View {
                 Spacer()
                 
                 VStack(alignment: .trailing, spacing: 2) {
-                    Text("SCHEDULED")
+                    Text("DUE")
                         .font(.system(size: 8, weight: .bold))
                         .foregroundStyle(.tertiary)
-                    if let schedule = task.schedule {
-                        Text(schedule.formatted(.dateTime.day().month().year()))
+                    if let dueDate = task.dueDate {
+                        Text(dueDate.formatted(.dateTime.day().month().year()))
                             .font(.caption2.bold())
                             .foregroundStyle(.red)
                     }
